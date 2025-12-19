@@ -126,7 +126,6 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
     }
     setIsExtracting(false);
   };
-  };
 
 const simulateReviewExtraction = () => {
     setTimeout(() => {
