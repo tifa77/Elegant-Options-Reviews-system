@@ -70,48 +70,34 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
     fetchRealReviewData();
   };
 
-  const fetchRealReviewData = async () => {
+ const fetchRealReviewData = async () => {
     setIsExtracting(true);
     
     try {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const target = `${formData.projectName} ${formData.projectType}`;
+        const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
-            contents: `Search for the Google Maps listing of: "${target}". 
-            
-            EXTRACT THE FOLLOWING ACTUAL DATA FROM THE LIVE LISTING:
-            1. Total Review Count.
-            2. Average rating score (e.g. 4.5).
-            3. Full physical address.
-            4. Real monthly review growth (last 30 days).
-            5. Real weekly review growth (last 7 days).
-            6. Current search ranking for this category in the local area.
-            
-            FORMAT YOUR RESPONSE STRICTLY AS:
-            DATA: Total=[number], Rating=[number], Address=[text], Rank=[text], MonthlyGrowth=[number], WeeklyGrowth=[number]`,
-            config: {
-                tools: [{ googleMaps: {} }],
-            }
-        });
+        const prompt = `
+        You are a data extraction engine. Search Google Maps for this exact business: "${target}".
+        Return ONLY a raw JSON object with this structure:
+        {
+          "totalReviews": number, 
+          "rating": number,
+          "address": string,
+          "rank": string, 
+          "monthlyGrowth": number,
+          "weeklyGrowth": number
+        }`;
 
-        const text = response.text || "";
-        const totalMatch = text.match(/Total=\[?(\d+)\]?/);
-        const ratingMatch = text.match(/Rating=\[?([\d.]+)\]?/);
-        const addressMatch = text.match(/Address=\[?(.*?)\]?,/);
-        const rankMatch = text.match(/Rank=\[?(.*?)\]?,/);
-        const growthMatch = text.match(/MonthlyGrowth=\[?([\d.]+)\]?/);
-        const weeklyMatch = text.match(/WeeklyGrowth=\[?([\d.]+)\]?/);
+        const result = await model.generateContent(prompt);
+        const responseText = result.response.text();
+        const cleanJson = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+        const data = JSON.parse(cleanJson);
 
-        if (totalMatch && ratingMatch) {
-            const total = parseInt(totalMatch[1]);
-            const rating = parseFloat(ratingMatch[1]);
-            const address = addressMatch ? addressMatch[1].trim() : "Verified Business Location";
-            const rank = rankMatch ? rankMatch[1].trim() : "Not Ranked";
-            const monthlyGrowth = growthMatch ? parseFloat(growthMatch[1]) : 0;
-            const weeklyGrowth = weeklyMatch ? parseFloat(weeklyMatch[1]) : 0;
-            
+        if (data && (data.totalReviews > 0 || data.address)) {
+            const total = data.totalReviews || 0;
+            const rating = data.rating || 0;
             const ratio = Math.max(0, Math.min(1, (rating - 1) / 4));
             const positive = Math.round(total * ratio);
 
@@ -120,30 +106,37 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
                 currentReviews: total,
                 positiveReviews: positive,
                 negativeReviews: total - positive,
-                address: address,
-                searchRanking: rank,
-                monthlyGrowth: monthlyGrowth,
-                weeklyGrowth: weeklyGrowth
+                address: data.address || prev.address,
+                searchRanking: data.rank || "Not Ranked",
+                monthlyGrowth: data.monthlyGrowth || 0,
+                weeklyGrowth: data.weeklyGrowth || 0
             }));
             setExtractionComplete(true);
         } else {
-            simulateReviewExtraction();
+            throw new Error("No data found");
         }
     } catch (error) {
-        simulateReviewExtraction();
+        console.error("AI Search Error:", error);
+        setFormData(prev => ({
+           ...prev,
+           currentReviews: 0, 
+           address: isRTL ? "يرجى إدخال العنوان يدوياً" : "Manual Entry Required"
+        }));
+        setExtractionComplete(true);
     }
     setIsExtracting(false);
   };
+  };
 
-  const simulateReviewExtraction = () => {
+const simulateReviewExtraction = () => {
     setTimeout(() => {
       setFormData(prev => ({
         ...prev,
-        currentReviews: 102,
-        positiveReviews: 95,
-        negativeReviews: 7,
-        address: isRTL ? "الكويت، شارع سالم المبارك" : "Kuwait, Salem Al Mubarak St", 
-        searchRanking: "#1",
+        currentReviews: 0, 
+        positiveReviews: 0,
+        negativeReviews: 0,
+        address: isRTL ? "يرجى إدخال العنوان يدوياً" : "Manual Address Entry",
+        searchRanking: "Not Ranked",
         monthlyGrowth: 0,
         weeklyGrowth: 0
       }));
@@ -151,7 +144,6 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
       setIsExtracting(false);
     }, 1000);
   };
-
   const currentYear = new Date().getFullYear();
   const categories = [
     { id: 'clinic', icon: Stethoscope, label: t.inputs.categories.clinic },
