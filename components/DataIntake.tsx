@@ -70,38 +70,35 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
     fetchRealReviewData();
   };
 
-// دالة الاتصال المباشر بخرائط جوجل (Places API)
-  const fetchRealReviewData = () => {
+// دالة البحث المتوافقة مع نظام جوجل الجديد (2025)
+  const fetchRealReviewData = async () => {
     setIsExtracting(true);
 
-    // 1. فحص هل مكتبة الخرائط موجودة؟
-    if (!window.google || !window.google.maps || !window.google.maps.places) {
-        console.error("Google Maps API not loaded");
-        setIsExtracting(false);
-        setFormData(prev => ({
-            ...prev,
-            currentReviews: 0,
-            address: isRTL ? "خطأ: لم يتم تحميل الخرائط" : "Maps API Error"
-        }));
-        return;
-    }
+    try {
+        // التأكد من تحميل الخرائط
+        if (!window.google || !window.google.maps) {
+            throw new Error("Google Maps JS API not loaded");
+        }
 
-    // 2. إنشاء خدمة البحث
-    const service = new window.google.maps.places.PlacesService(document.createElement('div'));
-    
-    // 3. إعداد طلب البحث
-    const request = {
-        query: `${formData.projectName} ${formData.projectType}`,
-        fields: ['name', 'formatted_address', 'rating', 'user_ratings_total']
-    };
+        // 1. استدعاء المكتبة الجديدة (importLibrary)
+        const { Place } = await window.google.maps.importLibrary("places") as any;
 
-    // 4. تنفيذ البحث
-    service.findPlaceFromQuery(request, (results, status) => {
-        if (status === window.google.maps.places.PlacesServiceStatus.OK && results && results[0]) {
-            const place = results[0];
+        if (!Place) {
+             throw new Error("Places Library not found");
+        }
+
+        // 2. البحث باستخدام الأمر الجديد (searchByText)
+        // هذا هو السطر الذي سيفك "التعليق" ويجلب البيانات
+        const { places } = await Place.searchByText({
+            textQuery: `${formData.projectName} ${formData.projectType}`,
+            fields: ['displayName', 'formattedAddress', 'rating', 'userRatingCount'],
+        });
+
+        // 3. معالجة النتيجة
+        if (places && places.length > 0) {
+            const place = places[0];
             
-            // استخراج الأرقام الحقيقية من جوجل
-            const total = place.user_ratings_total || 0;
+            const total = place.userRatingCount || 0;
             const rating = place.rating || 0;
             const ratio = Math.max(0, Math.min(1, (rating - 1) / 4));
             const positive = Math.round(total * ratio);
@@ -111,24 +108,33 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
                 currentReviews: total,
                 positiveReviews: positive,
                 negativeReviews: total - positive,
-                address: place.formatted_address || "Address Found",
+                address: place.formattedAddress || "Address Found",
                 searchRanking: "#1 Verified",
-                monthlyGrowth: Math.round(total * 0.05), // تقديري
+                monthlyGrowth: Math.round(total * 0.05),
                 weeklyGrowth: Math.round(total * 0.01)
             }));
             setExtractionComplete(true);
         } else {
-            // لم يتم العثور على المكان
-            console.warn("Place not found:", status);
+            console.warn("No results found");
             setFormData(prev => ({
                 ...prev,
                 currentReviews: 0,
-                address: isRTL ? "لم يتم العثور على المكان" : "Not Found"
+                address: isRTL ? "لم يتم العثور على المكان" : "Place Not Found"
             }));
             setExtractionComplete(true);
         }
-        setIsExtracting(false);
-    });
+
+    } catch (error) {
+        console.error("New Places API Error:", error);
+        setFormData(prev => ({
+            ...prev,
+            currentReviews: 0,
+            address: isRTL ? "خطأ في الاتصال" : "Connection Error"
+        }));
+        setExtractionComplete(true);
+    }
+    
+    setIsExtracting(false);
   };
 
 const simulateReviewExtraction = () => {
