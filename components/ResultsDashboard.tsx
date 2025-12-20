@@ -222,3 +222,6 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
               <div className="flex flex-col">
                 <span className="text-blue-200 text-xs font-medium">
                   {isRTL ? "رصيد التقييمات السنوي" : "Annual Reviews Asset"}
+                  </div>
+  );
+};
