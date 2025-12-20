@@ -248,27 +248,47 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
         </div>
       </div>
 
-      {/* --- ✨ ميزة خاصة للمطاعم فقط ✨ --- */}
+     {/* --- ✨ ميزة خاصة للمطاعم (بتصميم يحاكي طلبات وكيتا) ✨ --- */}
       {isRestaurant && (
-        <div className="bg-gradient-to-r from-orange-900/40 to-slate-900 p-6 rounded-[2rem] border border-orange-500/30 relative overflow-hidden animate-pulse-slow">
-            <div className="absolute top-0 right-0 p-6 opacity-10">
-                <Utensils size={100} />
+        <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-6 rounded-[2rem] border border-orange-500/30 relative overflow-hidden group hover:border-orange-500/50 transition-all mt-6">
+            
+            {/* الخلفية الجمالية */}
+            <div className="absolute top-0 right-0 p-6 opacity-5">
+                <Utensils size={120} />
             </div>
-            <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
-                <div className="p-4 bg-orange-500 rounded-2xl shadow-lg shadow-orange-500/20 text-white">
-                    <Bike size={32} />
+
+            <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
+                
+                {/* قسم الأيقونات (The Logos Area) */}
+                <div className="flex items-center -space-x-4 rtl:space-x-reverse">
+                    
+                    {/* محاكاة شعار طلبات (Talabat Style) */}
+                    <div className="w-16 h-16 rounded-2xl bg-[#ff5a00] flex items-center justify-center shadow-lg shadow-orange-900/40 z-20 border-4 border-slate-900 transform group-hover:scale-110 transition-transform">
+                        <Bike className="text-white w-8 h-8" strokeWidth={2.5} />
+                    </div>
+
+                    {/* محاكاة شعار كيتا (Keeta Style) */}
+                    <div className="w-16 h-16 rounded-2xl bg-[#fec400] flex items-center justify-center shadow-lg shadow-yellow-900/40 z-10 border-4 border-slate-900 transform group-hover:translate-x-2 rtl:group-hover:-translate-x-2 transition-transform">
+                        <Zap className="text-black w-8 h-8 fill-black" />
+                    </div>
+
                 </div>
+
                 <div className="flex-1 text-center md:text-right">
                     <h3 className="text-white font-black text-xl mb-2 flex items-center justify-center md:justify-start gap-2">
                         {isRTL ? "مضاعفة النتائج عبر تطبيقات التوصيل" : "Maximize Delivery Orders"}
-                        <span className="bg-orange-500 text-white text-[10px] px-2 py-1 rounded shadow-sm">Talabat & Keeta</span>
+                        {/* شارة صغيرة */}
+                        <span className="bg-slate-700 text-slate-300 text-[10px] px-2 py-1 rounded-full border border-slate-600">
+                           Delivery Apps
+                        </span>
                     </h3>
-                    <p className="text-slate-300 text-sm leading-relaxed">
+                    <p className="text-slate-400 text-sm leading-relaxed font-medium">
                         {isRTL 
-                          ? "بما أن نشاطك مطعم، فإن اعتمادك لا يقتصر على الصالة فقط. نظامنا يستهدف عملاء (طلبات وكيتا) برسائل تلقائية بعد كل طلب، مما يعني أضعافاً مضاعفة من التقييمات اليومية مقارنة بما تراه في الجدول أعلاه."
-                          : "Since you run a restaurant, you don't just rely on dine-in. Our system targets Delivery App customers (Talabat, Keeta) with automated messages, meaning multiples of daily reviews compared to the chart above."}
+                          ? "مطعمك لا يعتمد على الصالة فقط. نظامنا يتكامل ذهنياً مع عملاء (طلبات وكيتا) عبر استهدافهم برسائل ذكية بعد الطلب، مما يحول عملاء التطبيقات المجهولين إلى قاعدة بيانات وزبائن دائمين لك."
+                          : "Your restaurant isn't just dine-in. Our system mentally integrates with Talabat & Keeta customers by targeting them with smart messages post-order, converting anonymous app users into your loyal database."}
                     </p>
                 </div>
+                
             </div>
         </div>
       )}
