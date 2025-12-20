@@ -56,20 +56,19 @@ const ScanningVisualization: React.FC<ScanningVisualizationProps> = ({ data, lan
   const status = getSEOStatus();
   const StatusIcon = status.icon;
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(timer);
-          setTimeout(onComplete, 800); // انتظار بسيط قبل الانتقال
-          return 100;
-        }
-        return prev + 2; // سرعة التقدم
-      });
-    }, 40);
-
-    return () => clearInterval(timer);
-  }, [onComplete]);
+useEffect(() => {
+  const timer = setInterval(() => {
+    setProgress(prev => {
+      if (prev >= 100) {
+        clearInterval(timer);
+        setTimeout(onComplete, 1000); // تأخير إضافي ثانية واحدة بعد الـ 100%
+        return 100;
+      }
+      return prev + 1; // زيادة بمقدار 1 فقط لزيادة الوقت
+    });
+  }, 50); // كل 50 ملي ثانية (سيستغرق 5 ثوانٍ كاملة)
+  return () => clearInterval(timer);
+}, [onComplete]);
 
   return (
     <div className={`w-full max-w-4xl mx-auto p-8 relative overflow-hidden ${isRTL ? 'font-tajawal' : 'font-sans'}`} dir={isRTL ? 'rtl' : 'ltr'}>
