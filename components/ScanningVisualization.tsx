@@ -1,107 +1,156 @@
-
 import React, { useEffect, useState } from 'react';
-import { Language, AuditData } from '../types';
-import { TEXTS } from '../constants';
-import { Map, CheckCircle2, Loader2, Activity, Globe, Zap } from 'lucide-react';
+import { Activity, Globe, Search, AlertTriangle, CheckCircle, BarChart3 } from 'lucide-react';
+import { AuditData, Language } from '../types';
 
 interface ScanningVisualizationProps {
-  language: Language;
   data: AuditData;
+  language: Language;
   onComplete: () => void;
 }
 
-const ScanningVisualization: React.FC<ScanningVisualizationProps> = ({ language, data, onComplete }) => {
-  const t = TEXTS[language];
+const ScanningVisualization: React.FC<ScanningVisualizationProps> = ({ data, language, onComplete }) => {
+  const [progress, setProgress] = useState(0);
   const isRTL = language === 'ar';
-  
-  const [step, setStep] = useState(0);
 
-  // Logic: Use actual extracted data
-  const actualMonthly = data.monthlyGrowth || 0;
-  const actualWeekly = data.weeklyGrowth || 0;
-  const reviewsPerDay = (actualMonthly / 30).toFixed(2);
+  // حساب الأرقام للعرض
+  const reviewsPerWeek = data.weeklyGrowth || 0;
+  // إذا لم يكن هناك نمو أسبوعي، نحسب اليومي بناءً على الشهري
+  const reviewsPerDay = reviewsPerWeek > 0 
+    ? (reviewsPerWeek / 7).toFixed(2) 
+    : ((data.monthlyGrowth || 0) / 30).toFixed(2);
 
-  // SEO Rank Descriptive Mapping
-  const getRankDescription = () => {
-    if (actualMonthly === 0) return t.dashboard.statusLabels.zero;
-    const rawRank = data.searchRanking || "";
-    const num = parseInt(rawRank.replace(/[^0-9]/g, ''));
-    if (isNaN(num)) return t.dashboard.statusLabels.invisible;
-    if (num <= 3) return t.dashboard.statusLabels.strong;
-    if (num <= 10) return t.dashboard.statusLabels.average;
-    return t.dashboard.statusLabels.weak;
+  // --- المنطق الصارم لتحديد الحالة (Strict SEO Status Logic) ---
+  const getSEOStatus = () => {
+    const daily = parseFloat(reviewsPerDay);
+    
+    // إذا كان المعدل أقل من 0.5 يومياً (يعني أقل من 3-4 بالأسبوع) -> شبح
+    if (daily < 0.5) {
+      return {
+        text: isRTL ? "شبح رقمي (ضعيف جداً)" : "Digital Ghost (Critical)",
+        color: "text-red-500",
+        icon: AlertTriangle,
+        borderColor: "border-red-500/50",
+        bgGlow: "bg-red-500/10"
+      };
+    }
+    // إذا كان أقل من 2 يومياً -> منافس
+    if (daily < 2) {
+      return {
+        text: isRTL ? "منافس صاعد (متوسط)" : "Challenger (Average)",
+        color: "text-yellow-400",
+        icon: Activity,
+        borderColor: "border-yellow-400/50",
+        bgGlow: "bg-yellow-400/10"
+      };
+    }
+    // أكثر من ذلك -> مسيطر
+    return {
+      text: isRTL ? "مسيطر على السوق (ممتاز)" : "Market Dominator",
+      color: "text-green-500",
+      icon: CheckCircle,
+      borderColor: "border-green-500/50",
+      bgGlow: "bg-green-500/10"
+    };
   };
 
-  useEffect(() => {
-    const timer1 = setTimeout(() => setStep(1), 2000); 
-    const timer2 = setTimeout(() => setStep(2), 5000); 
-    const timer3 = setTimeout(() => setStep(3), 9000); 
-    const timer4 = setTimeout(() => onComplete(), 13000); 
+  const status = getSEOStatus();
+  const StatusIcon = status.icon;
 
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-      clearTimeout(timer3);
-      clearTimeout(timer4);
-    };
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(timer);
+          setTimeout(onComplete, 800); // انتظار بسيط قبل الانتقال
+          return 100;
+        }
+        return prev + 2; // سرعة التقدم
+      });
+    }, 40);
+
+    return () => clearInterval(timer);
   }, [onComplete]);
 
   return (
-    <div className={`max-w-2xl mx-auto w-full ${isRTL ? 'font-tajawal text-right' : 'font-sans text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className="bg-slate-900/50 backdrop-blur-md rounded-3xl border border-primary-500/10 overflow-hidden shadow-2xl relative">
+    <div className={`w-full max-w-4xl mx-auto p-8 relative overflow-hidden ${isRTL ? 'font-tajawal' : 'font-sans'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+      
+      {/* Grid Background Effect */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none"></div>
+
+      <div className="relative z-10 space-y-12">
         
-        {/* Grid Background Animation */}
-        <div className="absolute inset-0 z-0 opacity-10" style={{ backgroundImage: 'linear-gradient(#0ea5e9 1px, transparent 1px), linear-gradient(90deg, #0ea5e9 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
+        {/* Header Text */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+             <Activity className="text-primary-400 animate-pulse" />
+             <h3 className="text-slate-300 font-bold text-lg">
+               {isRTL ? "جاري تحليل وتيرة التقييمات..." : "Analyzing Review Velocity..."}
+             </h3>
+          </div>
+          <span className="text-primary-400 font-mono text-xl font-bold">{progress}%</span>
+        </div>
 
-        <div className="p-10 space-y-8 relative z-10 min-h-[500px]">
+        {/* Cards Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
-          {/* Header Animation */}
-          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-             <div className="flex items-center gap-3">
-                <Activity className="w-5 h-5 text-primary-500 animate-pulse" />
-                <span className="text-sm font-black text-slate-300 uppercase tracking-widest">{t.scanning.analyzing}</span>
-             </div>
-             <Loader2 className={`w-5 h-5 text-primary-500 animate-spin ${step >= 3 ? 'opacity-0' : 'opacity-100'}`} />
+          {/* Card 1: Weekly Velocity */}
+          <div className="bg-slate-900/50 border border-slate-700 p-8 rounded-3xl flex flex-col items-center justify-center relative overflow-hidden group">
+            <div className="absolute inset-0 bg-primary-500/5 group-hover:bg-primary-500/10 transition-colors"></div>
+            <span className="text-5xl font-black text-white mb-2 tracking-tighter">{reviewsPerWeek}</span>
+            <span className="text-slate-400 text-sm font-medium uppercase tracking-widest">
+              {isRTL ? "تقييم / أسبوع" : "Reviews / Week"}
+            </span>
           </div>
 
-          {/* Review Stats Row (Matches Screenshot) */}
-          <div className="grid grid-cols-2 gap-6">
-             <div className="bg-slate-900/80 p-8 rounded-3xl border border-slate-800 text-center shadow-inner group transition-all duration-500 hover:border-primary-500/30">
-                <div className="text-5xl font-black text-white mb-2 transition-transform group-hover:scale-110 duration-500">{step >= 2 ? reviewsPerDay : "0.00"}</div>
-                <span className="text-xs text-slate-500 uppercase font-black tracking-widest">{t.scanning.dailyLabel}</span>
-             </div>
-             <div className="bg-slate-900/80 p-8 rounded-3xl border border-slate-800 text-center shadow-inner group transition-all duration-500 hover:border-primary-500/30">
-                <div className="text-5xl font-black text-white mb-2 transition-transform group-hover:scale-110 duration-500">{step >= 2 ? actualWeekly : "0"}</div>
-                <span className="text-xs text-slate-500 uppercase font-black tracking-widest">{t.scanning.weeklyLabel}</span>
-             </div>
-          </div>
-
-          {/* SEO Rank Status (Descriptive, matches screenshot layout) */}
-          {step >= 1 && (
-            <div className="animate-fade-in-up bg-slate-900/80 p-6 rounded-3xl border border-primary-500/20 relative group overflow-hidden">
-               <div className="absolute top-0 right-0 w-1.5 h-full bg-primary-500"></div>
-               <div className="flex items-center justify-between">
-                  <div className="bg-slate-800 p-3 rounded-2xl border border-slate-700">
-                     <Globe className="w-6 h-6 text-primary-400" />
-                  </div>
-                  <div className="text-right">
-                     <span className="text-[10px] text-primary-400 block uppercase font-black tracking-widest mb-1">{t.scanning.rankLabel}</span>
-                     <span className="text-2xl font-black text-white transition-all duration-700">{step >= 3 ? getRankDescription() : "N/A"}</span>
-                  </div>
-                  <div className="bg-primary-500/10 p-3 rounded-2xl">
-                     <Globe className="w-6 h-6 text-primary-400 opacity-30" />
-                  </div>
-               </div>
-            </div>
-          )}
-          
-          <div className="text-center pt-4">
-             <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.3em] animate-pulse">
-                {isRTL ? "حساب سرعة النمو (آخر 30 يوم)..." : t.scanning.velocity}
-             </p>
+          {/* Card 2: Daily Velocity */}
+          <div className="bg-slate-900/50 border border-slate-700 p-8 rounded-3xl flex flex-col items-center justify-center relative overflow-hidden group">
+             <div className="absolute inset-0 bg-primary-500/5 group-hover:bg-primary-500/10 transition-colors"></div>
+            <span className="text-5xl font-black text-white mb-2 tracking-tighter">{reviewsPerDay}</span>
+            <span className="text-slate-400 text-sm font-medium uppercase tracking-widest">
+               {isRTL ? "تقييم / يوم" : "Reviews / Day"}
+            </span>
           </div>
 
         </div>
+
+        {/* SEO Status Bar (The Strict Logic Area) */}
+        <div className={`relative p-8 rounded-3xl border ${status.borderColor} ${status.bgGlow} transition-all duration-500`}>
+           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              
+              <div className="flex items-center gap-4">
+                 <div className={`p-3 rounded-full bg-slate-900 ${status.color} border border-slate-800`}>
+                    <Globe size={32} />
+                 </div>
+                 <div className="text-center md:text-right">
+                    <span className="text-slate-400 text-xs font-bold uppercase tracking-widest block mb-1">
+                      {isRTL ? "حالة ظهور الـ SEO" : "SEO Visibility Status"}
+                    </span>
+                    <span className={`text-2xl md:text-3xl font-black ${status.color}`}>
+                      {status.text}
+                    </span>
+                 </div>
+              </div>
+
+              <div className="hidden md:block w-px h-12 bg-slate-700/50"></div>
+
+              <div className="flex items-center gap-2">
+                 <StatusIcon className={`${status.color} animate-bounce`} size={24} />
+                 <span className="text-slate-500 text-xs">
+                   {isRTL ? "يتم حساب سرعة النمو (آخر 30 يوم)..." : "Calculating growth velocity (Last 30 days)..."}
+                 </span>
+              </div>
+
+           </div>
+           
+           {/* Progress Bar Line */}
+           <div className="absolute bottom-0 left-0 h-1 bg-slate-800 w-full rounded-b-3xl overflow-hidden">
+              <div 
+                className={`h-full ${status.color === 'text-red-500' ? 'bg-red-500' : status.color === 'text-yellow-400' ? 'bg-yellow-400' : 'bg-green-500'} transition-all duration-300 ease-out`} 
+                style={{ width: `${progress}%` }}
+              ></div>
+           </div>
+        </div>
+
       </div>
     </div>
   );
