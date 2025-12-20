@@ -341,3 +341,5 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
     </div>
   );
 };
+
+export default ResultsDashboard;
