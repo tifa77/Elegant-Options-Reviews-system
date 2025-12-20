@@ -20,6 +20,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
   const t = TEXTS[language];
   const isRTL = language === 'ar';
   
+  // التحقق من نوع النشاط (مطعم أم لا)
   const isRestaurant = data.projectType === 'restaurant' || data.projectType === 'مطعم' || data.projectType === 'cafe';
 
   // --- 1. الحسابات الذكية ---
@@ -27,6 +28,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
   const currentMonthly = data.monthlyGrowth || 0;
   const currentYearlyReviews = currentMonthly * 12; // مجموع التقييمات السنوي
 
+  // مضاعف التوقعات (للمطاعم أعلى بسبب التوصيل)
   const multiplier = isRestaurant ? 10 : 6; 
   
   const projectedWeekly = Math.max(5, currentWeekly * multiplier);
@@ -220,80 +222,3 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
               <div className="flex flex-col">
                 <span className="text-blue-200 text-xs font-medium">
                   {isRTL ? "رصيد التقييمات السنوي" : "Annual Reviews Asset"}
-                </span>
-                <span className="text-xl font-bold text-white">{projectedYearlyReviews}</span>
-              </div>
-              <div className="flex items-center gap-1 bg-green-500/10 border border-green-500/20 px-3 py-1 rounded-lg">
-                <Percent size={14} className="text-green-400" />
-                <span className="text-green-400 font-black text-sm">+{percentageIncrease}%</span>
-              </div>
-            </div>
-
-            {/* قوة التأثير (Influence) */}
-             <div className="flex justify-between items-end bg-primary-900/20 p-3 rounded-xl border border-primary-500/10">
-              <span className="text-blue-200 text-[10px] font-medium max-w-[150px] leading-tight">
-                {isRTL 
-                  ? "عملاء جدد يتأثرون إيجابياً بقرائهم للتقييمات سنوياً" 
-                  : "New customers positively influenced by reviews annually"}
-              </span>
-              <span className="text-lg font-black text-primary-300 flex items-center gap-1">
-                <Users size={14} />
-                {peopleInfluencedProjected.toLocaleString()}
-              </span>
-            </div>
-
-          </div>
-        </div>
-      </div>
-
-      {/* --- ✨ ميزة خاصة للمطاعم فقط ✨ --- */}
-      {isRestaurant && (
-        <div className="bg-gradient-to-r from-orange-900/40 to-slate-900 p-6 rounded-[2rem] border border-orange-500/30 relative overflow-hidden animate-pulse-slow">
-            <div className="absolute top-0 right-0 p-6 opacity-10">
-                <Utensils size={100} />
-            </div>
-            <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
-                <div className="p-4 bg-orange-500 rounded-2xl shadow-lg shadow-orange-500/20 text-white">
-                    <Bike size={32} />
-                </div>
-                <div className="flex-1 text-center md:text-right">
-                    <h3 className="text-white font-black text-xl mb-2 flex items-center justify-center md:justify-start gap-2">
-                        {isRTL ? "مضاعفة النتائج عبر تطبيقات التوصيل" : "Maximize Delivery Orders"}
-                        <span className="bg-orange-500 text-white text-[10px] px-2 py-1 rounded shadow-sm">Talabat & Keeta</span>
-                    </h3>
-                    <p className="text-slate-300 text-sm leading-relaxed">
-                        {isRTL 
-                          ? "بما أن نشاطك مطعم، فإن اعتمادك لا يقتصر على الصالة فقط. نظامنا يستهدف عملاء (طلبات وكيتا) برسائل تلقائية بعد كل طلب، مما يعني أضعافاً مضاعفة من التقييمات اليومية مقارنة بما تراه في الجدول أعلاه."
-                          : "Since you run a restaurant, you don't just rely on dine-in. Our system targets Delivery App customers (Talabat, Keeta) with automated messages, meaning multiples of daily reviews compared to the chart above."}
-                    </p>
-                </div>
-            </div>
-        </div>
-      )}
-
-      {/* --- بطاقة الخيار المفضل --- */}
-      <div className="bg-gradient-to-br from-violet-900/40 to-slate-900 p-6 rounded-[2rem] border border-violet-500/30 relative overflow-hidden group hover:border-violet-500/50 transition-colors">
-            <div className="absolute top-0 left-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-                <Award size={120} />
-            </div>
-            <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
-                 <div className="p-4 bg-violet-500/20 text-violet-300 rounded-full border border-violet-500/30">
-                    <Crown size={32} />
-                 </div>
-                 <div className="flex-1 text-center md:text-right">
-                    <h3 className="text-white font-black text-lg mb-2">
-                        {isRTL ? "كن الخيار المفضل للعملاء الجدد دائماً" : "Be The #1 Choice Always"}
-                    </h3>
-                    <p className="text-violet-200/80 text-sm leading-relaxed font-medium">
-                        {isRTL 
-                         ? "استمرارك في تصدر التصنيف وامتلاكك لعدد تقييمات إيجابية يفوق منافسيك، يرسخ في عقل العميل أنك (الأفضل والأكثر أماناً)، مما يجعلك الخيار التلقائي لأي عميل جديد يبحث عن الخدمة."
-                         : "Continuously outranking competitors with positive reviews establishes you as the 'Safe & Best' option, making you the automatic choice for any new customer."}
-                    </p>
-                 </div>
-            </div>
-      </div>
-
-      {/* --- بطاقة الخسائر --- */}
-      <div className="bg-red-900/10 border border-red-500/20 p-8 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
-        <div className="absolute -left-10 top-0 w-32 h-32 bg-red-500/10 rounded-full blur-3xl"></div>
-        <div className="flex items-center gap-6 relative z-10">
