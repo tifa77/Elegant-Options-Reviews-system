@@ -1,8 +1,11 @@
-
 import React, { useEffect, useState } from 'react';
 import { Language, AuditData } from '../types';
 import { TEXTS } from '../constants';
-import { ArrowLeft, ArrowRight, MoreVertical, Phone, Video, CheckCheck, Smile, Paperclip, Camera, Mic, Star, MapPin, MessageCircle } from 'lucide-react';
+import { 
+  ArrowLeft, ArrowRight, MoreVertical, Phone, Video, 
+  CheckCheck, Smile, Paperclip, Camera, Mic, Star, 
+  MapPin, MessageCircle, BadgeCheck // ✅ أضفنا أيقونة التوثيق
+} from 'lucide-react';
 
 interface VisualExperienceProps {
   language: Language;
@@ -48,7 +51,7 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
 
   const messageTemplate = getCategorizedMessage();
   
-  const waNumber = "96555555555"; 
+  const waNumber = "96550656365"; 
   const customWAMessage = isRTL 
     ? `مرحباً، أنا مهتم بنظام التقييمات Elegant Options لمشروعي (${data.projectName})` 
     : `Hello, I am interested in the Elegant Options reputation system for my project (${data.projectName})`;
@@ -59,13 +62,14 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
     <div className="flex-1 p-6 flex flex-col items-center text-center space-y-6 bg-white animate-fade-in overflow-y-auto">
       <div className="pt-2">
         <div className="w-20 h-20 mx-auto bg-white rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.1)] flex items-center justify-center p-3 border border-slate-50">
-          <img 
-            src="https://storage.googleapis.com/msgsndr/vX7gQQOe9PXtkGes2GOJ/media/6944362aa49c0a6975236470.png" 
-            alt="Logo" 
-            className="w-full h-full object-contain"
-          />
+          <span className="text-4xl font-bold text-slate-800">{data.projectName.charAt(0)}</span>
         </div>
-        <h3 className="text-xl font-black text-slate-800 mt-4">{data.projectName || "Business Name"}</h3>
+        
+        {/* اسم المشروع مع التوثيق في صفحة الاستبيان أيضاً */}
+        <div className="flex items-center justify-center gap-1.5 mt-4">
+            <h3 className="text-xl font-black text-slate-800">{data.projectName || "Business Name"}</h3>
+            <BadgeCheck className="w-5 h-5 text-green-500 fill-white" />
+        </div>
       </div>
 
       {!submitted ? (
@@ -154,15 +158,15 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
     <>
       <div className="bg-[#075e54] p-4 pt-10 flex items-center justify-between text-white">
         <div className="flex items-center gap-3 overflow-hidden">
-          <div className="w-10 h-10 rounded-full bg-white flex-shrink-0 p-1">
-             <img 
-               src="https://storage.googleapis.com/msgsndr/vX7gQQOe9PXtkGes2GOJ/media/6944362aa49c0a6975236470.png" 
-               alt="Avatar" 
-               className="w-full h-full object-contain"
-             />
+          <div className="w-10 h-10 rounded-full bg-white flex-shrink-0 p-1 flex items-center justify-center">
+             <span className="text-slate-800 font-bold text-lg">{data.projectName.charAt(0)}</span>
           </div>
-          <div className="truncate">
-            <h3 className="text-sm font-bold truncate">{data.projectName || "Your Business"}</h3>
+          <div className="flex-1 min-w-0">
+             {/* ✅ هنا أضفنا شارة التوثيق بجانب الاسم */}
+            <div className="flex items-center gap-1.5">
+                <h3 className="text-sm font-bold truncate">{data.projectName || "Your Business"}</h3>
+                <BadgeCheck className="w-4 h-4 text-green-400 fill-white" />
+            </div>
             <p className="text-[10px] opacity-80">{t.visualExp.online}</p>
           </div>
         </div>
@@ -182,7 +186,10 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
 
         {msgVisible && (
           <div className="animate-fade-in-up flex flex-col items-start max-w-[85%]">
-            <div className="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm">
+            <div className="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm relative group">
+              {/* مثلث المحادثة */}
+              <div className={`absolute top-0 ${isRTL ? '-right-2 border-l-8 border-t-8 border-l-white border-t-transparent' : '-left-2 border-r-8 border-t-8 border-r-white border-t-transparent'}`}></div>
+              
               <p className="text-[13px] text-slate-800 leading-relaxed whitespace-pre-wrap">
                 {messageTemplate}
               </p>
