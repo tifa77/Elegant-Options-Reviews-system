@@ -51,16 +51,14 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
   const lostRevenue = lostCustomers * avgTicket;
 
   // تحديد التصنيف
- // 1. تحديد العملة حسب اللغة (أو المتصفح)
-  const currency = isRTL ? "د.ك" : "KWD"; // يمكنك تغييرها حسب الدولة
+ // 1. تحديد العملة حسب اللغة
+  const currency = isRTL ? "د.ك" : "KWD";
 
-  // 2. حسابات النمو (الموجودة لديك مسبقاً)
+  // 2. حسابات النمو
   const currentMonthly = data.monthlyGrowth || 0;
-  const currentYearlyReviews = currentMonthly * 12;
   
   // 3. المنطق الصارم الجديد للتصنيف (Strict Market Status)
   const getMarketStatus = () => {
-    // الجملة التحفيزية التي تظهر للجميع
     const universalIncentive = isRTL 
       ? "⚠️ تنبيه: المنافسون في منطقتك يكثفون نشاطهم الرقمي الآن لتجاوز تصنيفك، بعضهم بدأ بالفعل بخطف حصتك السوقية."
       : "⚠️ Alert: Competitors in your area are intensifying their digital activity to surpass your ranking; some have already started taking your market share.";
@@ -95,9 +93,10 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
         icon: Crown,
         incentive: universalIncentive
       };
-    };
+    }
   };
 
+  // تعريف المتغير لاستخدامه في الواجهة
   const status = getMarketStatus();
 
   const rankData = getRankData();
