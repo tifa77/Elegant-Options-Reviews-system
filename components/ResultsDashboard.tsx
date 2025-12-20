@@ -5,7 +5,7 @@ import {
   TrendingUp, AlertTriangle, ArrowRight, ArrowLeft, 
   Target, Ghost, Crown, Activity, ArrowUpRight,
   MessageCircle, RotateCw, Play, Zap, BarChart3,
-  Utensils, Bike, Percent, Users, Award, CheckCircle
+  Utensils, Bike, Percent, Users, Award, CheckCircle, Eye
 } from 'lucide-react';
 
 interface ResultsDashboardProps {
@@ -29,12 +29,12 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
     if (isKuwait) {
       return { 
         symbol: isRTL ? "د.ك" : "KWD", 
-        ticket: 20 // رفعنا متوسط القيمة لتعظيم الخسارة
+        ticket: 20 // متوسط القيمة 20 د.ك لتعظيم الخسارة
       };
     } else {
       return { 
         symbol: isRTL ? "دولار" : "USD", 
-        ticket: 60 
+        ticket: 60 // 60 دولار للمشاريع العالمية
       };
     }
   };
@@ -49,8 +49,8 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
 
   const multiplier = isRestaurant ? 10 : 6; 
   // حسابات المستقبل (مع النظام)
-  const projectedWeekly = Math.max(8, currentWeekly * multiplier); // حد أدنى 8
-  const projectedMonthly = Math.max(35, currentMonthly * multiplier); // حد أدنى 35
+  const projectedWeekly = Math.max(8, currentWeekly * multiplier);
+  const projectedMonthly = Math.max(35, currentMonthly * multiplier);
   const projectedYearlyReviews = projectedMonthly * 12;
 
   const percentageIncrease = currentYearlyReviews > 0 
@@ -58,23 +58,40 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
     : 100;
 
   // 3. معادلة الخسارة "المضخمة" (لتعظيم الألم)
-  // الفرضية: كل تقييم مفقود يعادل خسارة 4 عملاء جدد سنوياً (Social Proof Loss)
-  const customerLossMultiplier = 4; 
+  const customerLossMultiplier = 4; // كل تقييم مفقود = خسارة 4 عملاء
   const lostCustomersCount = (projectedYearlyReviews - currentYearlyReviews) * customerLossMultiplier;
   const lostRevenue = lostCustomersCount * regional.ticket;
 
-  // 4. التصنيف السوقي
+  // 4. التصنيف السوقي والشرح التفصيلي
   const getMarketStatus = () => {
     const incentive = isRTL 
       ? "⚠️ تنبيه: المنافسون في منطقتك يكثفون نشاطهم الآن لتجاوز تصنيفك."
       : "⚠️ Alert: Competitors are intensifying their activity to overtake you.";
 
     if (currentMonthly <= 30) {
-      return { title: isRTL ? "شبح رقمي - مخفي" : "Digital Ghost", color: "text-red-500", bg: "bg-red-900/20", border: "border-red-500/30", icon: Ghost, incentive };
+      return { 
+        title: isRTL ? "شبح رقمي - مخفي" : "Digital Ghost", 
+        desc: isRTL 
+          ? "أنت بعيد جداً عن المنافسين ولا تظهر للعملاء الجدد الباحثين عن خيارات جيدة. محركات البحث تتجاهل نشاطك بسبب ضعف التفاعل."
+          : "You are far behind competitors and invisible to new customers looking for good options.",
+        color: "text-red-500", bg: "bg-red-900/20", border: "border-red-500/30", icon: Ghost, incentive 
+      };
     } else if (currentMonthly <= 80) {
-      return { title: isRTL ? "تواجد متوسط" : "Average Presence", color: "text-yellow-500", bg: "bg-yellow-900/20", border: "border-yellow-500/30", icon: Target, incentive };
+      return { 
+        title: isRTL ? "تواجد متوسط" : "Average Presence", 
+        desc: isRTL 
+          ? "أنت موجود ولكنك مهدد. أي تراجع بسيط سيجعلك تختفي خلف المنافسين الأقوياء."
+          : "You are present but at risk. Any decline will push you behind strong competitors.",
+        color: "text-yellow-500", bg: "bg-yellow-900/20", border: "border-yellow-500/30", icon: Target, incentive 
+      };
     }
-    return { title: isRTL ? "متواجد بقوة" : "Strong Presence", color: "text-green-500", bg: "bg-green-900/20", border: "border-green-500/30", icon: Crown, incentive };
+    return { 
+      title: isRTL ? "متواجد بقوة" : "Strong Presence", 
+      desc: isRTL 
+          ? "أداء جيد، ولكن الحفاظ على القمة أصعب من الوصول إليها. المنافسون يتربصون بك."
+          : "Good performance, but staying on top is harder than getting there.",
+      color: "text-green-500", bg: "bg-green-900/20", border: "border-green-500/30", icon: Crown, incentive 
+    };
   };
 
   const status = getMarketStatus();
@@ -84,7 +101,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
   const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(isRTL ? `أريد تفعيل نظام النمو وإيقاف خسارة العملاء لمشروعي (${data.projectName})` : `I want to activate growth and stop customer loss for (${data.projectName})`)}`;
 
   return (
-    <div className={`max-w-4xl mx-auto space-y-8 animate-fade-in pb-32 ${isRTL ? 'font-tajawal text-right' : 'font-sans text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className={`max-w-4xl mx-auto space-y-8 animate-fade-in pb-20 ${isRTL ? 'font-tajawal text-right' : 'font-sans text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       
       {/* الرأس */}
       <div className="flex items-center justify-between px-2 pt-4">
@@ -95,7 +112,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
         <span className="bg-slate-900 border border-slate-700 px-3 py-1 rounded-full text-[10px] font-bold text-slate-400 uppercase">Growth Report</span>
       </div>
 
-      {/* 1. بطاقة التصنيف */}
+      {/* 1. بطاقة التصنيف (مع شرح الشبح الرقمي) */}
       <div className={`p-8 rounded-[2.5rem] border ${status.border} ${status.bg} backdrop-blur-sm relative overflow-hidden group shadow-2xl`}>
         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
           <status.icon size={150} />
@@ -107,6 +124,9 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
           <div className="flex-1">
             <h3 className="text-slate-400 text-sm font-bold uppercase mb-2">{isRTL ? "التشخيص السوقي الحالي" : "Current Market Diagnosis"}</h3>
             <div className={`text-4xl font-black ${status.color} mb-3`}>{status.title}</div>
+            <p className="text-slate-300 text-sm mb-4 leading-relaxed font-medium opacity-90">
+                {status.desc}
+            </p>
             <div className="p-4 bg-black/40 rounded-2xl border border-white/5 text-orange-400 text-sm font-bold animate-pulse">
                {status.incentive}
             </div>
@@ -135,7 +155,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
         </div>
       </div>
 
-      {/* 3. مقارنة الأداء (Old Comparison Format Restored) */}
+      {/* 3. مقارنة الأداء التفصيلية (التصميم القديم المطلوب) */}
       <div className="grid md:grid-cols-2 gap-6">
         
         {/* العمود الأول: الوضع الحالي */}
@@ -170,11 +190,11 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
            <div className="space-y-6">
              <div className="flex justify-between items-end">
                <span className="text-blue-100 text-sm font-medium">{isRTL ? "النمو الأسبوعي المتوقع" : "Projected Weekly"}</span>
-               <span className="text-3xl font-black text-primary-400">{projectedWeekly}+</span>
+               <span className="text-3xl font-black text-primary-400">+{projectedWeekly}</span>
              </div>
              <div className="flex justify-between items-end">
                <span className="text-blue-100 text-sm font-medium">{isRTL ? "النمو الشهري المتوقع" : "Projected Monthly"}</span>
-               <span className="text-3xl font-black text-primary-400">{projectedMonthly}+</span>
+               <span className="text-3xl font-black text-primary-400">+{projectedMonthly}</span>
              </div>
              <div className="flex justify-between items-center pt-2 border-t border-primary-500/20">
                <span className="text-blue-200 text-xs font-medium">{isRTL ? "رصيد التقييمات السنوي" : "Annual Asset"}</span>
@@ -185,7 +205,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
 
       </div>
 
-      {/* 4. ميزة طلبات وكيتا (تفاصيل دقيقة) */}
+      {/* 4. ميزة طلبات وكيتا (شرح تفصيلي للآلية) */}
       {isRestaurant && (
         <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-6 rounded-[2rem] border border-orange-500/30 relative overflow-hidden group">
             <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
@@ -197,15 +217,15 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
                     <h3 className="text-white font-black text-xl mb-2">{isRTL ? "مضاعفة النتائج عبر تطبيقات التوصيل" : "Talabat & Keeta Integration"}</h3>
                     <p className="text-slate-400 text-sm leading-relaxed">
                         {isRTL 
-                         ? "نقوم بإرسال رسائل واتساب تلقائية لعملائك القادمين من (طلبات وكيتا) مباشرة بعد استلام الطلب، نطلب منهم تقييم تجربتهم فوراً. هذا يحول الزبون المجهول إلى تقييم 5 نجوم وعميل دائم." 
-                         : "We send automated WhatsApp messages to your customers from Talabat & Keeta immediately after delivery, requesting a review. This converts anonymous users into 5-star ratings and loyal customers."}
+                         ? "نقوم بإرسال رسائل واتساب تلقائية لعملائك القادمين من (طلبات وكيتا) مباشرة بعد استلام الطلب، نطلب منهم تقييم تجربتهم فوراً. هذا يضمن تحويل كل طلب توصيل إلى فرصة تقييم حقيقية." 
+                         : "We send automated WhatsApp messages to your customers from Talabat & Keeta immediately after delivery, requesting a review. This ensures every order is a potential 5-star review."}
                     </p>
                 </div>
             </div>
         </div>
       )}
 
-      {/* 5. نزيف الإيرادات السنوي (أرقام ضخمة بدون تفاصيل صغيرة) */}
+      {/* 5. نزيف الإيرادات السنوي (الضربة القاضية) */}
       <div className="bg-gradient-to-br from-red-950 to-slate-900 p-8 rounded-[2.5rem] border border-red-500/30 relative overflow-hidden shadow-2xl">
         <div className="absolute top-0 right-0 p-8 opacity-5"><AlertTriangle size={150} /></div>
         <div className="relative z-10 text-center md:text-right">
@@ -221,17 +241,28 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
         </div>
       </div>
 
-      {/* 6. الأزرار السفلية (الزر الأخضر الكبير) */}
-      <div className="fixed bottom-0 left-0 w-full bg-slate-900/90 backdrop-blur-md p-4 border-t border-slate-800 z-50">
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row gap-3">
-            <button onClick={onReset} className="py-4 px-6 bg-slate-800 text-slate-400 rounded-xl font-bold hover:text-white transition-colors flex items-center justify-center gap-2">
-                <RotateCw size={18} /> {isRTL ? "تحليل جديد" : "New Analysis"}
-            </button>
-            <a href={waLink} target="_blank" rel="noopener noreferrer" className="flex-1 py-4 bg-green-600 hover:bg-green-500 text-white rounded-xl font-black text-lg shadow-lg shadow-green-900/20 flex items-center justify-center gap-3 transition-all transform hover:-translate-y-1 animate-pulse">
-                <MessageCircle size={24} fill="white" /> 
-                {isRTL ? "اطلب النظام الآن عبر الواتساب" : "Order System via WhatsApp"}
-            </a>
-        </div>
+      {/* 6. الأزرار السفلية (الترتيب الطبيعي الجديد) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+          
+          {/* زر التجربة البصرية (خذ فكرة) */}
+          <button onClick={onVisualExp} className="py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-lg shadow-xl flex items-center justify-center gap-3 transition-all transform hover:-translate-y-1">
+             <Eye size={22} />
+             {isRTL ? "خذ فكرة (تجربة بصرية)" : "Visual Simulation"}
+          </button>
+
+          {/* زر الواتساب الأخضر الكبير */}
+          <a href={waLink} target="_blank" rel="noopener noreferrer" className="py-5 bg-green-600 hover:bg-green-500 text-white rounded-2xl font-black text-lg shadow-xl shadow-green-900/20 flex items-center justify-center gap-3 transition-all transform hover:-translate-y-1 animate-pulse">
+             <MessageCircle size={24} fill="white" /> 
+             {isRTL ? "اطلب النظام الآن" : "Order System Now"}
+          </a>
+
+      </div>
+      
+      {/* زر تحليل جديد (أسفل الجميع) */}
+      <div className="pt-2">
+         <button onClick={onReset} className="w-full py-4 bg-slate-900 text-slate-500 hover:text-white rounded-2xl font-bold border border-slate-800 transition-all flex items-center justify-center gap-2">
+            <RotateCw size={18} /> {isRTL ? "تحليل نشاط تجاري آخر" : "Analyze Another"}
+         </button>
       </div>
 
     </div>
