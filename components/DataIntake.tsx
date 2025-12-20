@@ -251,7 +251,7 @@ const simulateReviewExtraction = () => {
               <input type="number" required className={`w-full bg-slate-900 border ${extractionComplete ? 'border-green-500/50 bg-green-900/10' : 'border-slate-600'} rounded-xl py-3 px-4 text-white focus:ring-2 focus:ring-primary-500`} value={formData.currentReviews} onChange={(e) => setFormData({...formData, currentReviews: parseInt(e.target.value)})} />
             </div>
             <div className="space-y-2">
-              <label className="text-xs uppercase tracking-wider text-slate-500 font-semibold">{isRTL ? "متوسط عدد العملاء تقريباُ في اليوم " : t.inputs.customers}</label>
+              <label className="text-xs uppercase tracking-wider text-slate-500 font-semibold">{isRTL ? "متوسط عدد العملاء في اليوم " : t.inputs.customers}</label>
               <input type="number" required min="1" className="w-full bg-slate-900 border border-slate-600 rounded-xl py-3 px-4 text-white focus:ring-2 focus:ring-primary-500" value={formData.dailyCustomers} onChange={(e) => setFormData({...formData, dailyCustomers: parseInt(e.target.value)})} />
             </div>
           </div>
