@@ -50,7 +50,6 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
   const lostCustomers = Math.round((peopleInfluencedProjected - peopleInfluencedCurrent) * 0.10);
   const lostRevenue = lostCustomers * avgTicket;
 
-  // تحديد التصنيف
  // 1. تحديد العملة حسب اللغة
   const currency = isRTL ? "د.ك" : "KWD";
 
