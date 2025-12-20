@@ -95,7 +95,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
         icon: Crown,
         incentive: universalIncentive
       };
-    }
+    };
   };
 
   const status = getMarketStatus();
