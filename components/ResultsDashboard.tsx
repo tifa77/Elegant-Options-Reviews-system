@@ -99,7 +99,6 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
   };
 
   const status = getMarketStatus();
-  };
 
   const rankData = getRankData();
   const RankIcon = rankData.icon;
