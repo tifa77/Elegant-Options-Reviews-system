@@ -51,36 +51,54 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
   const lostRevenue = lostCustomers * avgTicket;
 
   // تحديد التصنيف
-  const getRankData = () => {
-    const rank = data.searchRanking || "Ghost";
-    if (rank.includes("Ghost") || rank.includes("Invisible") || currentMonthly < 5) {
-      return { 
-        icon: Ghost, 
-        color: "text-gray-400", 
-        bg: "bg-gray-800/50", 
-        border: "border-gray-700",
-        title: isRTL ? "شبح رقمي (Ghost)" : "Digital Ghost",
-        desc: isRTL ? "نشاطك مخفي تقريباً عن عملاء جدد مقارنة بالمنافسين." : "Your business is invisible to new customers compared to competitors."
+ // 1. تحديد العملة حسب اللغة (أو المتصفح)
+  const currency = isRTL ? "د.ك" : "KWD"; // يمكنك تغييرها حسب الدولة
+
+  // 2. حسابات النمو (الموجودة لديك مسبقاً)
+  const currentMonthly = data.monthlyGrowth || 0;
+  const currentYearlyReviews = currentMonthly * 12;
+  
+  // 3. المنطق الصارم الجديد للتصنيف (Strict Market Status)
+  const getMarketStatus = () => {
+    // الجملة التحفيزية التي تظهر للجميع
+    const universalIncentive = isRTL 
+      ? "⚠️ تنبيه: المنافسون في منطقتك يكثفون نشاطهم الرقمي الآن لتجاوز تصنيفك، بعضهم بدأ بالفعل بخطف حصتك السوقية."
+      : "⚠️ Alert: Competitors in your area are intensifying their digital activity to surpass your ranking; some have already started taking your market share.";
+
+    if (currentMonthly <= 30) {
+      return {
+        title: isRTL ? "شبح رقمي - مخفي تماماً" : "Digital Ghost - Hidden",
+        desc: isRTL ? "نشاطك يعاني من ضعف حاد؛ العملاء لا يجدونك في نتائج البحث، مما يجعلك غير مرئي تماماً." : "Your business is invisible; customers can't find you in search results.",
+        color: "text-red-500",
+        bg: "bg-red-900/20",
+        border: "border-red-500/30",
+        icon: Ghost,
+        incentive: universalIncentive
+      };
+    } else if (currentMonthly <= 80) {
+      return {
+        title: isRTL ? "تواجد متوسط - وضع قلق" : "Average Presence - Risky",
+        desc: isRTL ? "أنت موجود في السوق ولكنك في منطقة الخطر؛ أي تراجع سيؤدي لسقوط تصنيفك فوراً." : "You are in the danger zone; any decline will cause your ranking to drop immediately.",
+        color: "text-yellow-500",
+        bg: "bg-yellow-900/20",
+        border: "border-yellow-500/30",
+        icon: Target,
+        incentive: universalIncentive
+      };
+    } else {
+      return {
+        title: isRTL ? "متواجد بقوة - تحت الحصار" : "Strong Presence - Under Siege",
+        desc: isRTL ? "أداء ممتاز، ولكن القمة مزدحمة؛ لديك منافسون أقوياء جداً يخططون لتجاوزك." : "Excellent performance, but the top is crowded; strong competitors are planning to overtake you.",
+        color: "text-green-500",
+        bg: "bg-green-900/20",
+        border: "border-green-500/30",
+        icon: Crown,
+        incentive: universalIncentive
       };
     }
-    if (rank.includes("Challenger")) {
-      return { 
-        icon: Target, 
-        color: "text-blue-400", 
-        bg: "bg-blue-900/20", 
-        border: "border-blue-700",
-        title: isRTL ? "منافس صاعد" : "Challenger",
-        desc: isRTL ? "أداؤك جيد لكنك تخسر الحصة الأكبر لصالح المتصدرين." : "Good performance, but losing market share to leaders."
-      };
-    }
-    return { 
-      icon: Crown, 
-      color: "text-yellow-400", 
-      bg: "bg-yellow-900/20", 
-      border: "border-yellow-700",
-      title: isRTL ? "مسيطر على السوق" : "Market Dominator",
-      desc: isRTL ? "أنت تقود السوق، حافظ على الصدارة." : "You are leading the market."
-    };
+  };
+
+  const status = getMarketStatus();
   };
 
   const rankData = getRankData();
