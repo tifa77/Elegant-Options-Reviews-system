@@ -11,7 +11,7 @@ export const TEXTS = {
       name: "Project Name",
       year: "Establishment / Branch Opening Year",
       reviews: "Current Review Count",
-      customers: "Approx. how many customers per day?", // Updated for better UX
+      customers: "Approx. how many customers per day?", 
       submit: "Run Deep Scan",
       mapPreview: "Live Location Detection",
       searching: "Locating...",
@@ -42,6 +42,7 @@ export const TEXTS = {
       found: "Location Identified Successfully!",
       analyzing: "Analyzing Review Frequency...",
       velocity: "Calculating Growth Velocity (Last 30 Days)...",
+      extractingStudy: "Extracting project case study...", // Added for the loading phase
       status: "Status: Active",
       match: "Data Matched.",
       weeklyLabel: "Reviews / Week",
@@ -170,7 +171,7 @@ export const TEXTS = {
       name: "اسم المشروع",
       year: "سنة التأسيس / افتتاح الفرع",
       reviews: "عدد التقييمات الحالي",
-      customers: "كم عدد عملائك في اليوم تقريباً", // Updated as requested
+      customers: "كم عدد عملائك في اليوم تقريباً", 
       submit: "تشغيل الفحص العميق",
       mapPreview: "الكشف المباشر عن الموقع",
       searching: "جاري البحث...",
@@ -201,6 +202,7 @@ export const TEXTS = {
       found: "تم تحديد الموقع وتأكيد العنوان!",
       analyzing: "تحليل وتيرة التقييمات...",
       velocity: "حساب سرعة النمو (آخر 30 يوم)...",
+      extractingStudy: "جاري استخراج دراسة حالة المشروع...", // تم التحديث هنا
       status: "الحالة: نشط",
       match: "البيانات مطابقة.",
       weeklyLabel: "تقييم / أسبوع",
@@ -229,7 +231,7 @@ export const TEXTS = {
       protectionAnalysis: "قيمة الإيرادات المحمية سنوياً",
       lossDesc: "الأرباح التي تفوتك بسبب عدم ظهورك في النتائج الثلاثة الأولى.",
       protectionDesc: "قيمة المبيعات التي يحميها نظامنا لضمان بقائك الرقم (1) دائماً.",
-      revenueLogic: "يتم حساب هذا المبلغ بناءً على: [عدد عملائك في اليوم  × 365 يوم × 30% نسبة تسرب]. تشير الإحصائيات العالمية أن النشاط التجاري الذي لا يظهر في النتائج الثلاثة الأولى يفقد ما يصل إلى 30% من الزبائن المحتملين لصالح المنافسين ذوي التقييمات الأعلى. هذا الرقم يمثل القيمة المالية لتلك الفرص الضائعة.",
+      revenueLogic: "يتم حساب هذا المبلغ بناءً على: [عدد عملائك في اليوم  × 365 يوم × 30% نسبة تسرب]. تشير الإحصائيات العالمية أن النشاط التجاري الذي لا يظهر في النتائج الثلاثة الأولى يفقد ما يصل إلى 30% من الزبائن المحتملين لصالح المنافسين ذوي التقييمات الأعلى. هذا الرقم يمثل القيمة المالية لتلك الفص الضائعة.",
       currency: "د.ك",
       statusLabels: {
         invisible: "شبح (غير مرئي للعملاء)",
