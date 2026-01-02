@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, Globe, Search, AlertTriangle, CheckCircle, BarChart3 } from 'lucide-react';
+import { Activity, Globe, Search, AlertTriangle, CheckCircle, BarChart3, Loader2 } from 'lucide-react';
 import { AuditData, Language } from '../types';
+import { TEXTS } from '../constants'; // استيراد النصوص المحدثة
 
 interface ScanningVisualizationProps {
   data: AuditData;
@@ -11,10 +12,10 @@ interface ScanningVisualizationProps {
 const ScanningVisualization: React.FC<ScanningVisualizationProps> = ({ data, language, onComplete }) => {
   const [progress, setProgress] = useState(0);
   const isRTL = language === 'ar';
+  const t = TEXTS[language]; // متغير لسهولة الوصول للنصوص
 
   // حساب الأرقام للعرض
   const reviewsPerWeek = data.weeklyGrowth || 0;
-  // إذا لم يكن هناك نمو أسبوعي، نحسب اليومي بناءً على الشهري
   const reviewsPerDay = reviewsPerWeek > 0 
     ? (reviewsPerWeek / 7).toFixed(2) 
     : ((data.monthlyGrowth || 0) / 30).toFixed(2);
@@ -23,29 +24,26 @@ const ScanningVisualization: React.FC<ScanningVisualizationProps> = ({ data, lan
   const getSEOStatus = () => {
     const daily = parseFloat(reviewsPerDay);
     
-    // إذا كان المعدل أقل من 0.5 يومياً (يعني أقل من 3-4 بالأسبوع) -> شبح
     if (daily < 0.5) {
       return {
-        text: isRTL ? "شبح رقمي (ضعيف جداً)" : "Digital Ghost (Critical)",
+        text: t.dashboard.statusLabels.invisible, // "شبح رقمي" من constants
         color: "text-red-500",
         icon: AlertTriangle,
         borderColor: "border-red-500/50",
         bgGlow: "bg-red-500/10"
       };
     }
-    // إذا كان أقل من 2 يومياً -> منافس
     if (daily < 2) {
       return {
-        text: isRTL ? "منافس صاعد (متوسط)" : "Challenger (Average)",
+        text: t.dashboard.statusLabels.weak,
         color: "text-yellow-400",
         icon: Activity,
         borderColor: "border-yellow-400/50",
         bgGlow: "bg-yellow-400/10"
       };
     }
-    // أكثر من ذلك -> مسيطر
     return {
-      text: isRTL ? "مسيطر على السوق (ممتاز)" : "Market Dominator",
+      text: t.dashboard.statusLabels.strong,
       color: "text-green-500",
       icon: CheckCircle,
       borderColor: "border-green-500/50",
@@ -56,19 +54,19 @@ const ScanningVisualization: React.FC<ScanningVisualizationProps> = ({ data, lan
   const status = getSEOStatus();
   const StatusIcon = status.icon;
 
-useEffect(() => {
-  const timer = setInterval(() => {
-    setProgress(prev => {
-      if (prev >= 100) {
-        clearInterval(timer);
-        setTimeout(onComplete, 1000); // تأخير إضافي ثانية واحدة بعد الـ 100%
-        return 100;
-      }
-      return prev + 1; // زيادة بمقدار 1 فقط لزيادة الوقت
-    });
-  }, 50); // كل 50 ملي ثانية (سيستغرق 5 ثوانٍ كاملة)
-  return () => clearInterval(timer);
-}, [onComplete]);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(timer);
+          setTimeout(onComplete, 1200); // زيادة التأثير الدرامي قبل الانتقال للنتائج
+          return 100;
+        }
+        return prev + 1;
+      });
+    }, 60); // وتيرة تحميل تعطي وقتاً كافياً لقراءة الرسائل
+    return () => clearInterval(timer);
+  }, [onComplete]);
 
   return (
     <div className={`w-full max-w-4xl mx-auto p-8 relative overflow-hidden ${isRTL ? 'font-tajawal' : 'font-sans'}`} dir={isRTL ? 'rtl' : 'ltr'}>
@@ -83,49 +81,61 @@ useEffect(() => {
           <div className="flex items-center gap-3">
              <Activity className="text-primary-400 animate-pulse" />
              <h3 className="text-slate-300 font-bold text-lg">
-               {isRTL ? "جاري تحليل وتيرة التقييمات..." : "Analyzing Review Velocity..."}
+               {progress < 100 ? t.scanning.analyzing : t.inputs.analysisComplete}
              </h3>
           </div>
-          <span className="text-primary-400 font-mono text-xl font-bold">{progress}%</span>
+          <div className="flex items-center gap-3">
+            {progress < 100 && <Loader2 className="animate-spin text-primary-400" size={20} />}
+            <span className="text-primary-400 font-mono text-xl font-bold">{progress}%</span>
+          </div>
         </div>
 
         {/* Cards Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           {/* Card 1: Weekly Velocity */}
-          <div className="bg-slate-900/50 border border-slate-700 p-8 rounded-3xl flex flex-col items-center justify-center relative overflow-hidden group">
+          <div className="bg-slate-900/50 border border-slate-700 p-8 rounded-3xl flex flex-col items-center justify-center relative overflow-hidden group transition-all duration-700">
             <div className="absolute inset-0 bg-primary-500/5 group-hover:bg-primary-500/10 transition-colors"></div>
-            <span className="text-5xl font-black text-white mb-2 tracking-tighter">{reviewsPerWeek}</span>
+            <span className="text-5xl font-black text-white mb-2 tracking-tighter">
+              {progress < 40 ? "---" : reviewsPerWeek}
+            </span>
             <span className="text-slate-400 text-sm font-medium uppercase tracking-widest">
-              {isRTL ? "تقييم / أسبوع" : "Reviews / Week"}
+              {t.scanning.weeklyLabel}
             </span>
           </div>
 
           {/* Card 2: Daily Velocity */}
-          <div className="bg-slate-900/50 border border-slate-700 p-8 rounded-3xl flex flex-col items-center justify-center relative overflow-hidden group">
+          <div className="bg-slate-900/50 border border-slate-700 p-8 rounded-3xl flex flex-col items-center justify-center relative overflow-hidden group transition-all duration-700">
              <div className="absolute inset-0 bg-primary-500/5 group-hover:bg-primary-500/10 transition-colors"></div>
-            <span className="text-5xl font-black text-white mb-2 tracking-tighter">{reviewsPerDay}</span>
+            <span className="text-5xl font-black text-white mb-2 tracking-tighter">
+              {progress < 70 ? "---" : reviewsPerDay}
+            </span>
             <span className="text-slate-400 text-sm font-medium uppercase tracking-widest">
-               {isRTL ? "تقييم / يوم" : "Reviews / Day"}
+               {t.scanning.dailyLabel}
             </span>
           </div>
 
         </div>
 
-        {/* SEO Status Bar (The Strict Logic Area) */}
-        <div className={`relative p-8 rounded-3xl border ${status.borderColor} ${status.bgGlow} transition-all duration-500`}>
+        {/* SEO Status Bar (Condition Logic Applied Here) */}
+        <div className={`relative p-8 rounded-3xl border transition-all duration-700 ease-in-out ${progress < 100 ? 'border-primary-500/30 bg-primary-500/5' : `${status.borderColor} ${status.bgGlow}`}`}>
            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               
               <div className="flex items-center gap-4">
-                 <div className={`p-3 rounded-full bg-slate-900 ${status.color} border border-slate-800`}>
-                    <Globe size={32} />
+                 <div className={`p-3 rounded-full bg-slate-900 border border-slate-800 transition-colors duration-500 ${progress < 100 ? 'text-primary-400' : status.color}`}>
+                    <Globe size={32} className={progress < 100 ? "animate-spin-slow" : ""} />
                  </div>
                  <div className="text-center md:text-right">
                     <span className="text-slate-400 text-xs font-bold uppercase tracking-widest block mb-1">
-                      {isRTL ? "حالة ظهور الـ SEO" : "SEO Visibility Status"}
+                      {t.scanning.rankLabel}
                     </span>
-                    <span className={`text-2xl md:text-3xl font-black ${status.color}`}>
-                      {status.text}
+                    <span className={`text-2xl md:text-3xl font-black transition-all duration-500 ${progress < 100 ? 'text-slate-300' : status.color}`}>
+                      {/* عرض "جاري استخراج دراسة حالة المشروع..." بدلاً من التشخيص أثناء التحميل */}
+                      {progress < 100 ? (
+                        <span className="animate-pulse">{t.scanning.extractingStudy}</span>
+                      ) : (
+                        status.text
+                      )}
                     </span>
                  </div>
               </div>
@@ -133,9 +143,13 @@ useEffect(() => {
               <div className="hidden md:block w-px h-12 bg-slate-700/50"></div>
 
               <div className="flex items-center gap-2">
-                 <StatusIcon className={`${status.color} animate-bounce`} size={24} />
-                 <span className="text-slate-500 text-xs">
-                   {isRTL ? "يتم حساب سرعة النمو (آخر 30 يوم)..." : "Calculating growth velocity (Last 30 days)..."}
+                 {progress < 100 ? (
+                   <Search className="text-primary-400 animate-pulse" size={24} />
+                 ) : (
+                   <StatusIcon className={`${status.color} animate-bounce`} size={24} />
+                 )}
+                 <span className="text-slate-500 text-xs italic">
+                   {progress < 100 ? t.scanning.velocity : t.scanning.match}
                  </span>
               </div>
 
@@ -144,7 +158,7 @@ useEffect(() => {
            {/* Progress Bar Line */}
            <div className="absolute bottom-0 left-0 h-1 bg-slate-800 w-full rounded-b-3xl overflow-hidden">
               <div 
-                className={`h-full ${status.color === 'text-red-500' ? 'bg-red-500' : status.color === 'text-yellow-400' ? 'bg-yellow-400' : 'bg-green-500'} transition-all duration-300 ease-out`} 
+                className={`h-full transition-all duration-300 ease-out ${progress < 100 ? 'bg-primary-500' : (status.color === 'text-red-500' ? 'bg-red-500' : status.color === 'text-yellow-400' ? 'bg-yellow-400' : 'bg-green-500')}`} 
                 style={{ width: `${progress}%` }}
               ></div>
            </div>
