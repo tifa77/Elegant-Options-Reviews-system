@@ -1,4 +1,3 @@
-
 import { Language } from './types';
 
 export const TEXTS = {
@@ -12,7 +11,7 @@ export const TEXTS = {
       name: "Project Name",
       year: "Establishment / Branch Opening Year",
       reviews: "Current Review Count",
-      customers: "Daily Customer Volume",
+      customers: "Approx. how many customers per day?", // Updated for better UX
       submit: "Run Deep Scan",
       mapPreview: "Live Location Detection",
       searching: "Locating...",
@@ -171,7 +170,7 @@ export const TEXTS = {
       name: "اسم المشروع",
       year: "سنة التأسيس / افتتاح الفرع",
       reviews: "عدد التقييمات الحالي",
-      customers: "متوسط عدد الزبائن يومياً",
+      customers: "كم عدد عملائك في اليوم تقريباً", // Updated as requested
       submit: "تشغيل الفحص العميق",
       mapPreview: "الكشف المباشر عن الموقع",
       searching: "جاري البحث...",
@@ -215,7 +214,7 @@ export const TEXTS = {
       totalReviews: "إجمالي التقييمات",
       reviews: "تقييم",
       danger: "مؤشر التأثير الاستراتيجي للمشروع",
-      dangerText: "بالنبض الحالي، يكتسب مشروعك تقييماً واحداً فقط كل",
+      dangerText: "بالنبض الحالي، يكتسب مشروعك تقييمًا واحدًا فقط كل",
       days: "أيام",
       weeklyRate: "معدل النمو الأسبوعي",
       dailyRate: "معدل النمو اليومي",
