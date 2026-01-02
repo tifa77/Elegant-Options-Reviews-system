@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Language, AuditData } from '../types';
 import { TEXTS } from '../constants';
@@ -22,28 +21,19 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
   const isRTL = language === 'ar';
   const isRestaurant = data.projectType === 'restaurant' || data.projectType === 'مطعم' || data.projectType === 'cafe';
 
-  // 1. نظام العملة
   const getRegionalData = () => {
     const address = data.address?.toLowerCase() || "";
     const isKuwait = address.includes("kuwait") || address.includes("الكويت");
-
     if (isKuwait) {
-      return { 
-        symbol: isRTL ? "د.ك" : "KWD", 
-        ticket: 20 
-      };
+      return { symbol: isRTL ? "د.ك" : "KWD", ticket: 20 };
     } else {
-      return { 
-        symbol: isRTL ? "دولار" : "USD", 
-        ticket: 60 
-      };
+      return { symbol: isRTL ? "دولار" : "USD", ticket: 60 };
     }
   };
 
   const regional = getRegionalData();
   const currency = regional.symbol;
   
-  // 2. الحسابات الذكية والنمو
   const currentWeekly = data.weeklyGrowth || 0;
   const currentMonthly = data.monthlyGrowth || 0;
   const currentYearlyReviews = currentMonthly * 12;
@@ -57,12 +47,10 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
     ? Math.round(((projectedYearlyReviews - currentYearlyReviews) / currentYearlyReviews) * 100) 
     : 100;
 
-  // 3. معادلة الخسارة
   const customerLossMultiplier = 4;
   const lostCustomersCount = (projectedYearlyReviews - currentYearlyReviews) * customerLossMultiplier;
   const lostRevenue = lostCustomersCount * regional.ticket;
 
-  // 4. التصنيف السوقي
   const getMarketStatus = () => {
     const incentive = isRTL 
       ? "⚠️ تنبيه: المنافسون في منطقتك يكثفون نشاطهم الآن لتجاوز تصنيفك."
@@ -72,7 +60,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
       return { 
         title: isRTL ? "شبح رقمي - مخفي" : "Digital Ghost", 
         desc: isRTL 
-          ? "أنت بعيد جداً عن المنافسين ولا تظهر للعملاء الجدد الباحثين عن خيارات جيدة. محركات البحث تتجاهل نشاطك بسبب ضعف التفاعل."
+          ? "أنت بعيد جداً عن المنافسين ولا تظهر للعملاء الباحثين عن خيارات جيدة. محركات البحث تتجاهل نشاطك بسبب ضعف التفاعل."
           : "You are far behind competitors and invisible to new customers looking for good options.",
         color: "text-red-500", bg: "bg-red-900/20", border: "border-red-500/30", icon: Ghost, incentive 
       };
@@ -101,7 +89,6 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
   return (
     <div className={`max-w-4xl mx-auto space-y-8 animate-fade-in pb-20 ${isRTL ? 'font-tajawal text-right' : 'font-sans text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       
-      {/* الرأس */}
       <div className="flex items-center justify-between px-2 pt-4">
         <button onClick={onBack} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
           {isRTL ? <ArrowRight className="w-5 h-5" /> : <ArrowLeft className="w-5 h-5" />}
@@ -110,7 +97,6 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
         <span className="bg-slate-900 border border-slate-700 px-3 py-1 rounded-full text-[10px] font-bold text-slate-400 uppercase tracking-widest">Growth Analysis Report</span>
       </div>
 
-      {/* 1. بطاقة التصنيف */}
       <div className={`p-8 rounded-[2.5rem] border ${status.border} ${status.bg} backdrop-blur-sm relative overflow-hidden group shadow-2xl`}>
         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
           <status.icon size={150} />
@@ -132,7 +118,6 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
         </div>
       </div>
 
-      {/* 2. تحليل جودة التقييمات */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-slate-900/80 p-6 rounded-3xl border border-slate-800">
           <span className="text-slate-500 text-xs font-bold block mb-2">{isRTL ? "إجمالي التقييمات" : "Total Reviews"}</span>
@@ -147,13 +132,12 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
           <div className="text-3xl font-black text-red-500">{data.negativeReviews || 0}</div>
           <div className="mt-4 p-3 bg-red-500/10 rounded-xl text-[10px] text-red-300 leading-relaxed italic border border-red-500/10">
             {isRTL 
-              ? `⚠️ لو كنت مشتركاً بنظامنا، لكانت هذه التقييمات السلبية (${data.negativeReviews}) قد حُلت داخلياً قبل أن تُنشر علناً.`
-              : `⚠️ With our system, these (${data.negativeReviews}) negative reviews would have been resolved privately.`}
+              ? `⚠️ لو كنت مشتركاً بنظامنا، لكانت هذه التقييمات السلبية قد حُلت داخلياً قبل أن تُنشر علناً.`
+              : `⚠️ With our system, these negative reviews would have been resolved privately.`}
           </div>
         </div>
       </div>
 
-      {/* 3. مقارنة الأداء */}
       <div className="grid md:grid-cols-2 gap-6">
         <div className="bg-slate-900/80 p-6 rounded-3xl border border-slate-800 relative">
            <div className="flex items-center gap-3 mb-6 border-b border-slate-800 pb-4">
@@ -199,7 +183,6 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
         </div>
       </div>
 
-      {/* 4. نزيف الإيرادات السنوي */}
       <div className="bg-gradient-to-br from-red-950 to-slate-900 p-8 rounded-[2.5rem] border border-red-500/30 relative overflow-hidden shadow-2xl">
         <div className="absolute top-0 right-0 p-8 opacity-5"><AlertTriangle size={150} /></div>
         <div className="relative z-10 text-center md:text-right">
@@ -207,7 +190,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
              <p className="text-slate-400 text-sm leading-relaxed mb-6">
                {isRTL 
                  ? "بسبب ضعف تصنيفك الحالي، أنت تفقد حصة سوقية ضخمة لصالح المنافسين الذين يظهرون قبلك في النتائج."
-                 : "Due to your current ranking, you are losing significant market share to competitors appearing before you."}
+                 : "Due to your current ranking, you are losing significant market share to competitors."}
              </p>
              <div className="text-6xl font-black text-white tracking-tighter drop-shadow-lg">
                 {lostRevenue.toLocaleString()} <span className="text-2xl text-red-500">{currency}</span>
@@ -215,22 +198,18 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
         </div>
       </div>
 
-      {/* 5. القسم الجديد: شرح سبب النزيف وكيفية زيادة الإيرادات */}
       <div className="mt-10 space-y-10 animate-fade-in-up">
-        
-        {/* أسباب النزيف الاستراتيجية */}
         <div className="bg-red-500/5 border-l-4 border-red-500 p-6 rounded-r-2xl">
           <h3 className="text-xl font-bold text-red-400 mb-3 flex items-center gap-2">
             <AlertTriangle size={24} /> {isRTL ? "لماذا يحدث هذا النزيف؟" : "Why this leak is happening?"}
           </h3>
           <p className="text-slate-300 leading-relaxed">
             {isRTL 
-              ? `تشير الإحصائيات العالمية أن أي مشروع لا يظهر في "النتائج الثلاثة الأولى" على خرائط جوجل يفقد تلقائياً 30% من زبائنه المحتملين لصالح المنافسين. حالياً، مجهودك التسويقي يضيع لأن العملاء يختارون منافسيك الذين يمتلكون "سلطة بحث" أقوى ونبض تقييمات يومي.`
-              : `Global stats show that any business not in the "Top 3 Results" loses 30% of potential customers to competitors with better social proof.`}
+              ? "تشير الإحصائيات العالمية أن أي مشروع لا يظهر في النتائج الثلاثة الأولى على خرائط جوجل يفقد تلقائياً 30% من زبائنه المحتملين لصالح المنافسين. حالياً، مجهودك التسويقي يضيع لأن العملاء يختارون منافسيك الذين يمتلكون سلطة بحث أقوى ونبض تقييمات يومي."
+              : "Global stats show that any business not in the Top 3 Results loses 30% of potential customers to competitors."}
           </p>
         </div>
 
-        {/* الحلول المقدمة لزيادة الإيرادات */}
         <div className="space-y-6">
           <h3 className="text-2xl font-bold text-center text-white">
             {isRTL ? "كيف نعيد هذه الأرباح لمشروعك؟" : "How we recover these profits?"}
@@ -255,14 +234,13 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
               <p className="text-slate-400 text-sm">
                 {isRTL 
                   ? "مضاعفة التقييمات اليومية تزيد من ارتباط عملائك بمشروعك (Belonging)؛ فكلما شارك العميل رأيه الإيجابي، زاد ولاؤه ورغبته في العودة إليك مرة أخرى."
-                  : "Doubling daily reviews increases customer belonging. A customer who reviews you is a customer who stays loyal."}
+                  : "Doubling daily reviews increases customer belonging and loyalty."}
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      [cite_start]{/* 6. ميزة تطبيقات التوصيل (للمطاعم فقط) [cite: 72] */}
       {isRestaurant && (
         <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-6 rounded-[2rem] border border-orange-500/30 relative overflow-hidden group">
             <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
@@ -274,21 +252,19 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
                     <h3 className="text-white font-black text-xl mb-2">{isRTL ? "مضاعفة النتائج عبر تطبيقات التوصيل" : "Delivery Apps Integration"}</h3>
                     <p className="text-slate-400 text-sm leading-relaxed">
                         {isRTL 
-                         ? [cite_start]"نحول كل طلب توصيل من (طلبات وكيتا) إلى فرصة تقييم حقيقية عبر رسائل واتساب API مؤتمتة تُرسل فور الاستلام[cite: 72]." 
-                         : "We convert every delivery order into a real review opportunity via automated WhatsApp API messages."}
+                         ? "نحول كل طلب توصيل من طلبات وكيتا إلى فرصة تقييم حقيقية عبر رسائل واتساب API مؤتمتة تُرسل فور الاستلام." 
+                         : "We convert every delivery order into a real review opportunity."}
                     </p>
                 </div>
             </div>
         </div>
       )}
 
-      {/* 7. الأزرار السفلية (الترتيب الاستراتيجي) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6">
           <button onClick={onVisualExp} className="py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-lg shadow-xl flex items-center justify-center gap-3 transition-all transform hover:-translate-y-1">
              <Eye size={22} />
              {isRTL ? "خذ فكرة (تجربة بصرية)" : "Visual Simulation"}
           </button>
-
           <a href={waLink} target="_blank" rel="noopener noreferrer" className="py-5 bg-green-600 hover:bg-green-500 text-white rounded-2xl font-black text-lg shadow-xl shadow-green-900/20 flex items-center justify-center gap-3 transition-all transform hover:-translate-y-1 animate-pulse">
              <MessageCircle size={24} fill="white" /> 
              {isRTL ? "اطلب النظام واسترد أرباحك" : "Order System Now"}
