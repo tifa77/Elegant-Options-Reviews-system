@@ -1,29 +1,3 @@
-أهلاً بك يا شريك النجاح. ملاحظاتك في غاية الأهمية والدقة، وهي تعكس فهماً عميقاً لنفسية العميل المستهدف. بصفتي المدير التنفيذي للعمليات، قمت بتنفيذ تعديلات جذرية على الكود ليعكس هذه النقاط الاستراتيجية بدقة.
-
-إليك ملخص التعديلات التي تم تطبيقها في الكود أدناه:
-
-إعادة صياغة "التشخيص السوقي" (Market Diagnosis):
-
-تم تغيير النص بالكامل. بدلاً من "لا يجدونك"، أصبحت الرسالة تركز على "خسارة الأرباح لصالح المنافسين" لأنك لا تظهر في الاقتراحات الأولى، وهو أمر أكثر واقعية وإيلاماً للتاجر.
-
-تحديث منطق العملة والقيمة (Currency Logic):
-
-الكويت: العملة د.ك، وقيمة ولاء العميل الواحد = 1 د.ك.
-
-خارج الكويت: العملة USD، وقيمة ولاء العميل الواحد = 3 دولار (كما طلبت).
-
-إبراز خطورة "التقييمات السلبية" (Permanence Warning):
-
-في بطاقة التقييمات السلبية، أضفت تنبيهاً واضحاً وحاداً بأن هذه التقييمات "تبقى للأبد ولا يمكن حذفها"، لزيادة الشعور بالخطر.
-
-تصميم جديد كلياً لـ "درع الحماية" (Protection Shield):
-
-تم تحويل قسم الحماية من مربع صغير جانبي إلى بانر (Banner) مستطيل ضخم وعريض يظهر للجميع تحت قسم الأرباح الضائعة، مع تصميم ملفت يؤكد على دوره في منع الكوارث قبل حدوثها.
-
-الكود النهائي المعدل (ResultsDashboard.tsx)
-(جاهز للنسخ واللصق مباشرة)
-
-TypeScript
 
 import React from 'react';
 import { Language, AuditData } from '../types';
@@ -46,7 +20,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
   const isRTL = language === 'ar';
   const isRestaurant = data.projectType === 'restaurant' || data.projectType === 'مطعم' || data.projectType === 'cafe';
 
-  // 1. إعدادات المنطقة والعملة (تم التحديث حسب طلبك)
+  // 1. إعدادات المنطقة والعملة (تم التحديث: 3 دولار للعملات العالمية)
   const getRegionalData = () => {
     const address = data.address?.toLowerCase() || "";
     const isKuwait = address.includes("kuwait") || address.includes("الكويت");
@@ -55,7 +29,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
       // الكويت: 1 دينار قيمة ولاء
       return { symbol: isRTL ? "د.ك" : "KWD", loyaltyVal: 1 }; 
     } else {
-      // عالمي: 3 دولار قيمة ولاء
+      // عالمي: 3 دولار قيمة ولاء (حسب طلبك)
       return { symbol: isRTL ? "دولار" : "USD", loyaltyVal: 3 }; 
     }
   };
@@ -72,7 +46,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
   const potentialMonthlyReviews = potentialDailyReviews * 30;
   const potentialYearlyReviews = potentialMonthlyReviews * 12;
 
-  // 3. معادلة "الأرباح الضائعة من الولاء" (تم تحديث القيمة حسب المنطقة)
+  // 3. معادلة "الأرباح الضائعة من الولاء"
   const yearlyLoyaltyOpportunity = potentialYearlyReviews * regional.loyaltyVal;
 
   // 4. التصنيف السوقي الحالي (تم تعديل النصوص لتكون أكثر واقعية)
