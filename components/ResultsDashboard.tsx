@@ -3,7 +3,8 @@ import { Language, AuditData } from '../types';
 import { TEXTS } from '../constants';
 import { 
   ArrowRight, ArrowLeft, Target, Ghost, Crown, Activity, Zap, Bike, 
-  ShieldAlert, TrendingDown, Eye, Quote, CheckCircle2, Sparkles, Lock, AlertOctagon, Loader2
+  ShieldAlert, TrendingDown, Eye, Quote, CheckCircle2, Sparkles, Lock, 
+  AlertOctagon, Loader2, RotateCw 
 } from 'lucide-react';
 
 interface ResultsDashboardProps {
@@ -15,8 +16,7 @@ interface ResultsDashboardProps {
 }
 
 const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onReset, onBack, onVisualExp }) => {
-  // --- FIX: Safety Guard (حماية من الشاشة الفارغة) ---
-  // إذا لم تصل البيانات بعد، نعرض شاشة تحميل بدلاً من الانهيار
+  // --- Safety Guard: حماية من الشاشة البيضاء ---
   if (!data) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] text-slate-400">
@@ -29,7 +29,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
   const t = TEXTS[language];
   const isRTL = language === 'ar';
   
-  // التأكد من وجود projectType قبل استخدامه
+  // التأكد من وجود projectType
   const projectType = data.projectType?.toLowerCase() || 'other';
   const isRestaurant = projectType === 'restaurant' || projectType === 'مطعم' || projectType === 'cafe';
 
@@ -39,10 +39,8 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
     const isKuwait = address.includes("kuwait") || address.includes("الكويت");
     
     if (isKuwait) {
-      // الكويت: 1 دينار قيمة ولاء
       return { symbol: isRTL ? "د.ك" : "KWD", loyaltyVal: 1 }; 
     } else {
-      // عالمي: 3 دولار قيمة ولاء
       return { symbol: isRTL ? "دولار" : "USD", loyaltyVal: 3 }; 
     }
   };
@@ -50,19 +48,19 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
   const regional = getRegionalData();
   const currency = regional.symbol;
 
-  // استخراج عدد العملاء اليومي
+  // استخراج عدد العملاء
   const dailyCustomers = Number(data.dailyCustomers) || 50; 
 
-  // 2. معادلة النمو (30% من العملاء يقيمون)
+  // 2. معادلة النمو
   const conversionRate = 0.30; 
   const potentialDailyReviews = Math.floor(dailyCustomers * conversionRate);
   const potentialMonthlyReviews = potentialDailyReviews * 30;
   const potentialYearlyReviews = potentialMonthlyReviews * 12;
 
-  // 3. معادلة "الأرباح الضائعة من الولاء"
+  // 3. معادلة أرباح الولاء
   const yearlyLoyaltyOpportunity = potentialYearlyReviews * regional.loyaltyVal;
 
-  // 4. التصنيف السوقي الحالي
+  // 4. التصنيف السوقي
   const currentMonthly = data.monthlyGrowth || 0;
   const currentYearly = currentMonthly * 12;
   const currentWeekly = data.weeklyGrowth || 0;
@@ -262,6 +260,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
                 </p>
             </div>
       </div>
+
 
       {/* 6. AI Reply Card */}
       <div className="bg-gradient-to-r from-blue-900/40 to-slate-900 border border-blue-500/30 rounded-3xl p-6 flex flex-col md:flex-row items-center gap-6 shadow-lg">
