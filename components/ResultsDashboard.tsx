@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Language, AuditData } from '../types';
 import { TEXTS } from '../constants';
 import { 
   ArrowRight, ArrowLeft, Target, Ghost, Crown, Activity, Zap, Bike, 
-  ShieldAlert, TrendingDown, Eye, Quote, CheckCircle2, Sparkles, Lock, AlertOctagon
+  ShieldAlert, TrendingDown, Eye, Quote, CheckCircle2, Sparkles, Lock, AlertOctagon, Loader2
 } from 'lucide-react';
 
 interface ResultsDashboardProps {
@@ -16,11 +15,25 @@ interface ResultsDashboardProps {
 }
 
 const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onReset, onBack, onVisualExp }) => {
+  // --- FIX: Safety Guard (حماية من الشاشة الفارغة) ---
+  // إذا لم تصل البيانات بعد، نعرض شاشة تحميل بدلاً من الانهيار
+  if (!data) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] text-slate-400">
+        <Loader2 className="animate-spin mb-4" size={32} />
+        <p>جاري تحميل التقرير...</p>
+      </div>
+    );
+  }
+
   const t = TEXTS[language];
   const isRTL = language === 'ar';
-  const isRestaurant = data.projectType === 'restaurant' || data.projectType === 'مطعم' || data.projectType === 'cafe';
+  
+  // التأكد من وجود projectType قبل استخدامه
+  const projectType = data.projectType?.toLowerCase() || 'other';
+  const isRestaurant = projectType === 'restaurant' || projectType === 'مطعم' || projectType === 'cafe';
 
-  // 1. إعدادات المنطقة والعملة (تم التحديث: 3 دولار للعملات العالمية)
+  // 1. إعدادات المنطقة والعملة
   const getRegionalData = () => {
     const address = data.address?.toLowerCase() || "";
     const isKuwait = address.includes("kuwait") || address.includes("الكويت");
@@ -29,7 +42,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
       // الكويت: 1 دينار قيمة ولاء
       return { symbol: isRTL ? "د.ك" : "KWD", loyaltyVal: 1 }; 
     } else {
-      // عالمي: 3 دولار قيمة ولاء (حسب طلبك)
+      // عالمي: 3 دولار قيمة ولاء
       return { symbol: isRTL ? "دولار" : "USD", loyaltyVal: 3 }; 
     }
   };
@@ -41,7 +54,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
   const dailyCustomers = Number(data.dailyCustomers) || 50; 
 
   // 2. معادلة النمو (30% من العملاء يقيمون)
-  const conversionRate = 0.30; // 30%
+  const conversionRate = 0.30; 
   const potentialDailyReviews = Math.floor(dailyCustomers * conversionRate);
   const potentialMonthlyReviews = potentialDailyReviews * 30;
   const potentialYearlyReviews = potentialMonthlyReviews * 12;
@@ -49,7 +62,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
   // 3. معادلة "الأرباح الضائعة من الولاء"
   const yearlyLoyaltyOpportunity = potentialYearlyReviews * regional.loyaltyVal;
 
-  // 4. التصنيف السوقي الحالي (تم تعديل النصوص لتكون أكثر واقعية)
+  // 4. التصنيف السوقي الحالي
   const currentMonthly = data.monthlyGrowth || 0;
   const currentYearly = currentMonthly * 12;
   const currentWeekly = data.weeklyGrowth || 0;
@@ -232,7 +245,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
         </div>
       </div>
 
-      {/* 5. NEW BIG PROTECTION BANNER (بتصميم مستطيل كبير) */}
+      {/* 5. PROTECTION BANNER (Wide Rectangle) */}
       <div className="bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700 rounded-[2rem] p-8 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden shadow-xl">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 to-red-500"></div>
             <div className="bg-slate-900/50 p-4 rounded-2xl border border-orange-500/30 shrink-0">
@@ -249,7 +262,6 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
                 </p>
             </div>
       </div>
-
 
       {/* 6. AI Reply Card */}
       <div className="bg-gradient-to-r from-blue-900/40 to-slate-900 border border-blue-500/30 rounded-3xl p-6 flex flex-col md:flex-row items-center gap-6 shadow-lg">
