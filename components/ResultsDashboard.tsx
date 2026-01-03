@@ -1,11 +1,36 @@
+أهلاً بك يا شريك النجاح. ملاحظاتك في غاية الأهمية والدقة، وهي تعكس فهماً عميقاً لنفسية العميل المستهدف. بصفتي المدير التنفيذي للعمليات، قمت بتنفيذ تعديلات جذرية على الكود ليعكس هذه النقاط الاستراتيجية بدقة.
+
+إليك ملخص التعديلات التي تم تطبيقها في الكود أدناه:
+
+إعادة صياغة "التشخيص السوقي" (Market Diagnosis):
+
+تم تغيير النص بالكامل. بدلاً من "لا يجدونك"، أصبحت الرسالة تركز على "خسارة الأرباح لصالح المنافسين" لأنك لا تظهر في الاقتراحات الأولى، وهو أمر أكثر واقعية وإيلاماً للتاجر.
+
+تحديث منطق العملة والقيمة (Currency Logic):
+
+الكويت: العملة د.ك، وقيمة ولاء العميل الواحد = 1 د.ك.
+
+خارج الكويت: العملة USD، وقيمة ولاء العميل الواحد = 3 دولار (كما طلبت).
+
+إبراز خطورة "التقييمات السلبية" (Permanence Warning):
+
+في بطاقة التقييمات السلبية، أضفت تنبيهاً واضحاً وحاداً بأن هذه التقييمات "تبقى للأبد ولا يمكن حذفها"، لزيادة الشعور بالخطر.
+
+تصميم جديد كلياً لـ "درع الحماية" (Protection Shield):
+
+تم تحويل قسم الحماية من مربع صغير جانبي إلى بانر (Banner) مستطيل ضخم وعريض يظهر للجميع تحت قسم الأرباح الضائعة، مع تصميم ملفت يؤكد على دوره في منع الكوارث قبل حدوثها.
+
+الكود النهائي المعدل (ResultsDashboard.tsx)
+(جاهز للنسخ واللصق مباشرة)
+
+TypeScript
+
 import React from 'react';
 import { Language, AuditData } from '../types';
 import { TEXTS } from '../constants';
 import { 
-  TrendingUp, AlertTriangle, ArrowRight, ArrowLeft, 
-  Target, Ghost, Crown, Activity, 
-  MessageCircle, RotateCw, Zap, Bike, 
-  ShieldAlert, Star, TrendingDown, Eye, Quote, CheckCircle2, ThumbsUp, Sparkles, Lock
+  ArrowRight, ArrowLeft, Target, Ghost, Crown, Activity, Zap, Bike, 
+  ShieldAlert, TrendingDown, Eye, Quote, CheckCircle2, Sparkles, Lock, AlertOctagon
 } from 'lucide-react';
 
 interface ResultsDashboardProps {
@@ -21,15 +46,16 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
   const isRTL = language === 'ar';
   const isRestaurant = data.projectType === 'restaurant' || data.projectType === 'مطعم' || data.projectType === 'cafe';
 
-  // 1. إعدادات المنطقة والعملة
+  // 1. إعدادات المنطقة والعملة (تم التحديث حسب طلبك)
   const getRegionalData = () => {
     const address = data.address?.toLowerCase() || "";
     const isKuwait = address.includes("kuwait") || address.includes("الكويت");
     
-    // قيمة الولاء المفقودة (Loyalty Value) = 1 وحدة عملة (تقدير متحفظ جداً لزيادة المصداقية)
     if (isKuwait) {
+      // الكويت: 1 دينار قيمة ولاء
       return { symbol: isRTL ? "د.ك" : "KWD", loyaltyVal: 1 }; 
     } else {
+      // عالمي: 3 دولار قيمة ولاء
       return { symbol: isRTL ? "دولار" : "USD", loyaltyVal: 3 }; 
     }
   };
@@ -37,7 +63,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
   const regional = getRegionalData();
   const currency = regional.symbol;
 
-  // استخراج عدد العملاء اليومي (المدخل أو الافتراضي)
+  // استخراج عدد العملاء اليومي
   const dailyCustomers = Number(data.dailyCustomers) || 50; 
 
   // 2. معادلة النمو (30% من العملاء يقيمون)
@@ -46,13 +72,10 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
   const potentialMonthlyReviews = potentialDailyReviews * 30;
   const potentialYearlyReviews = potentialMonthlyReviews * 12;
 
-  // 3. معادلة "الأرباح الضائعة من الولاء" 
-  // المنطق: 30% عملاء × 365 يوم × 1 دينار قيمة ولاء متكررة
-  // هذا يحسب القيمة السنوية للفرصة الضائعة
+  // 3. معادلة "الأرباح الضائعة من الولاء" (تم تحديث القيمة حسب المنطقة)
   const yearlyLoyaltyOpportunity = potentialYearlyReviews * regional.loyaltyVal;
-  const monthlyLoyaltyOpportunity = potentialMonthlyReviews * regional.loyaltyVal;
 
-  // 4. التصنيف السوقي الحالي
+  // 4. التصنيف السوقي الحالي (تم تعديل النصوص لتكون أكثر واقعية)
   const currentMonthly = data.monthlyGrowth || 0;
   const currentYearly = currentMonthly * 12;
   const currentWeekly = data.weeklyGrowth || 0;
@@ -60,37 +83,36 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
   const getMarketStatus = () => {
     if (currentMonthly <= 5) {
       return { 
-        title: isRTL ? "شبح رقمي (غير مرئي)" : "Digital Ghost", 
+        title: isRTL ? "خارج المنافسة (غير مرئي)" : "Out of Competition (Invisible)", 
         desc: isRTL 
-          ? "العملاء يبحثون عنك ولا يجدونك. أنت تمنح منافسيك الفوز مجاناً."
-          : "Customers search but can't find you. You are giving competitors a free win.",
+          ? "أنت لا تظهر في النتائج الأولى المقترحة للعملاء، مما يجعلهم يذهبون للمنافسين بدلاً منك، فتزيد أرباحهم على حسابك."
+          : "You don't appear in top suggested results. Customers go to competitors instead, increasing their profits at your expense.",
         color: "text-red-500", bg: "bg-red-900/20", border: "border-red-500/30", icon: Ghost 
       };
     } else if (currentMonthly <= 30) {
       return { 
-        title: isRTL ? "تواجد ضعيف" : "Weak Presence", 
+        title: isRTL ? "تواجد ضعيف (مهدد)" : "Weak Presence (At Risk)", 
         desc: isRTL 
-          ? "أنت موجود ولكنك الخيار الثاني أو الثالث دائماً."
-          : "You are there, but always the second or third choice.",
+          ? "أنت تظهر ولكن كخيار ثانوي. المنافسون الأقوى يخطفون انتباه العميل قبل أن يصل إليك."
+          : "You appear as a secondary option. Stronger competitors grab customer attention before they reach you.",
         color: "text-yellow-500", bg: "bg-yellow-900/20", border: "border-yellow-500/30", icon: Target 
       };
     }
     return { 
       title: isRTL ? "منافس قوي" : "Strong Contender", 
       desc: isRTL 
-          ? "أداء جيد، ولكن الحفاظ على القمة يتطلب أتمتة."
-          : "Good performance, but staying on top requires automation.",
+          ? "أداء جيد، ولكن الحفاظ على القمة يتطلب أتمتة مستمرة لصد هجمات المنافسين."
+          : "Good performance, but staying on top requires automation to fend off competitors.",
       color: "text-green-500", bg: "bg-green-900/20", border: "border-green-500/30", icon: Crown 
     };
   };
 
   const status = getMarketStatus();
-  // رابط الواتساب مع رسالة الديناميكية بناءً على الفرصة الضائعة
   const waNumber = "96550656365";
-  const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(isRTL ? `مرحباً، قمت بفحص مشروعي (${data.projectName}) ووجدت فرصة لزيادة ولاء العملاء بقيمة ${yearlyLoyaltyOpportunity} ${currency} سنوياً. أريد تفعيل النظام.` : `Hi, I audited (${data.projectName}) and found a loyalty opportunity of ${yearlyLoyaltyOpportunity} ${currency}/year. I need details.`)}`;
+  const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(isRTL ? `مرحباً، قمت بفحص مشروعي (${data.projectName}) ووجدت فرصة لزيادة أرباح الولاء بقيمة ${yearlyLoyaltyOpportunity} ${currency} سنوياً. أريد تفعيل النظام.` : `Hi, I audited (${data.projectName}) and found a loyalty profit opportunity of ${yearlyLoyaltyOpportunity} ${currency}/year. I need details.`)}`;
 
   return (
-    <div className={`max-w-4xl mx-auto space-y-8 animate-fade-in pb-24 ${isRTL ? 'font-tajawal text-right' : 'font-sans text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className={`max-w-4xl mx-auto space-y-12 animate-fade-in pb-24 ${isRTL ? 'font-tajawal text-right' : 'font-sans text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       
       {/* Header */}
       <div className="flex items-center justify-between px-2 pt-6">
@@ -114,15 +136,15 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
           </div>
           <div className="flex-1">
             <h3 className="text-slate-400 text-sm font-bold uppercase mb-2">{isRTL ? "التشخيص السوقي" : "Market Diagnosis"}</h3>
-            <div className={`text-4xl font-black ${status.color} mb-3`}>{status.title}</div>
-            <p className="text-slate-200 text-lg font-medium leading-relaxed">
+            <div className={`text-4xl font-black ${status.color} mb-4`}>{status.title}</div>
+            <p className="text-slate-200 text-xl font-medium leading-relaxed">
                 {status.desc}
             </p>
           </div>
         </div>
       </div>
 
-      {/* 2. Review Breakdown (Showing Positive & Negative) */}
+      {/* 2. Review Breakdown (With Permanent Warning) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Total */}
         <div className="bg-slate-900/80 p-6 rounded-3xl border border-slate-800">
@@ -134,26 +156,24 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
           <span className="text-green-500 text-xs font-bold block mb-2">{isRTL ? "إيجابية (4-5 نجوم)" : "Positive"}</span>
           <div className="text-3xl font-black text-green-400">{data.positiveReviews || 0}</div>
         </div>
-        {/* Negative with Protection Warning */}
-        <div className="bg-red-500/5 p-6 rounded-3xl border border-red-500/20 relative">
-          <span className="text-red-500 text-xs font-bold block mb-2">{isRTL ? "سلبية (1-3 نجوم)" : "Negative"}</span>
-          <div className="text-3xl font-black text-red-500">{data.negativeReviews || 0}</div>
+        {/* Negative with PERMANENT WARNING */}
+        <div className="bg-red-500/5 p-6 rounded-3xl border border-red-500/20 relative overflow-hidden">
+          <div className="absolute -bottom-4 -right-4 opacity-5 text-red-500"><AlertOctagon size={80} /></div>
+          <span className="text-red-500 text-xs font-bold block mb-2">{isRTL ? "سلبية (تبقى للأبد!)" : "Negative (PERMANENT!)"}</span>
+          <div className="text-3xl font-black text-red-500 relative z-10">{data.negativeReviews || 0}</div>
           
-          {/* Protection Note */}
-          {(data.negativeReviews || 0) > 0 && (
-            <div className="mt-3 flex items-start gap-2 bg-red-500/10 p-2 rounded-lg border border-red-500/10">
-                <ShieldAlert size={14} className="text-red-400 shrink-0 mt-0.5" />
-                <p className="text-[10px] text-red-300 leading-tight">
-                    {isRTL 
-                     ? "لو كنت تستخدم نظام الحماية من Elegant Options، لتم تحويل هذه التقييمات إلى شكاوى سرية."
-                     : "With Elegant Options Protection, these would be private complaints."}
-                </p>
-            </div>
-          )}
+          <div className="mt-3 flex items-start gap-2 relative z-10">
+              <ShieldAlert size={16} className="text-red-400 shrink-0 mt-0.5" />
+              <p className="text-[11px] text-red-300 leading-tight font-bold">
+                  {isRTL 
+                   ? "تحذير: التقييمات السلبية على جوجل لا يمكن حذفها نهائياً، وتظل وصمة تؤثر على سمعتك لسنوات."
+                   : "Warning: Negative reviews on Google cannot be deleted forever. They remain a permanent stain on your reputation."}
+              </p>
+          </div>
         </div>
       </div>
 
-      {/* 3. Comparison Section (Current vs Pro) */}
+      {/* 3. Comparison Section */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* Current Status */}
         <div className="bg-slate-900/80 p-6 rounded-3xl border border-slate-800 relative">
@@ -204,14 +224,14 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
         </div>
       </div>
 
-      {/* 4. Realistic Revenue Opportunity (New Loyalty Logic) */}
-      <div className="mt-8 relative">
+      {/* 4. Realistic Revenue Opportunity */}
+      <div className="relative">
         <div className="bg-slate-900 p-8 rounded-[2.5rem] border border-red-500/30 relative">
             <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                 <div className="flex-1 text-center md:text-right">
                     <div className="flex items-center gap-2 mb-2 justify-center md:justify-start">
                         <TrendingDown className="text-red-500" />
-                        <h4 className="text-red-400 font-bold text-lg">{isRTL ? "فرصة ولاء ضائعة (سنوياً)" : "Missed Loyalty Value"}</h4>
+                        <h4 className="text-red-400 font-bold text-lg">{isRTL ? "أرباح ولاء ضائعة (سنوياً)" : "Missed Loyalty Profits"}</h4>
                     </div>
                     
                     {/* The Big Number (Yearly) */}
@@ -224,32 +244,40 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
                         {isRTL ? (
                             <>
                                 <strong className="text-white block mb-2">منطق الحساب الواقعي:</strong>
-                                لو حصلت على تقييمات من <span className="text-white font-bold">30%</span> فقط من عملائك وكسبت ولائهم، واعتبرنا أنك كسبت منهم <span className="text-white font-bold underline">1 {currency}</span> فقط كعائد إضافي (وهذا أقل التوقعات)، فإنك تحقق عائداً سنوياً إضافياً قدره {yearlyLoyaltyOpportunity.toLocaleString()} {currency}.
+                                لو كسبت ولاء <span className="text-white font-bold">30%</span> فقط من عملائك عبر التقييمات، واعتبرنا أن كل عميل يضيف لأرباحك <span className="text-white font-bold underline">{regional.loyaltyVal} {currency}</span> فقط كعائد ولاء متكرر، فإنك تحقق هذا المبلغ الإضافي سنوياً.
                             </>
                         ) : (
                             <>
                                 <strong className="text-white block mb-2">Realistic Logic:</strong>
-                                If you get reviews from just <span className="text-white font-bold">30%</span> of customers and win their loyalty, assuming a return of only <span className="text-white font-bold underline">1 {currency}</span> (lowest estimate), you would generate an additional {yearlyLoyaltyOpportunity.toLocaleString()} {currency} annually.
+                                If you win the loyalty of just <span className="text-white font-bold">30%</span> of customers via reviews, assuming each adds only <span className="text-white font-bold underline">{regional.loyaltyVal} {currency}</span> as recurring loyalty profit, you generate this additional amount annually.
                             </>
                         )}
                     </div>
-                </div>
-                
-                {/* Protection System (Previously Sho'ala) */}
-                <div className="w-full md:w-1/3 bg-slate-800/50 p-6 rounded-3xl border border-slate-700 text-center">
-                    <Lock size={40} className="mx-auto text-orange-400 mb-3" />
-                    <h5 className="text-white font-bold text-sm mb-2">{isRTL ? "نظام حماية السمعة" : "Reputation Protection"}</h5>
-                    <p className="text-slate-400 text-xs leading-relaxed">
-                        {isRTL 
-                         ? "يقوم نظامنا بتوجيه العميل غير الراضي لإرسال رسالة مباشرة للإدارة، مما يمنع التقييمات السلبية العلنية ويمنحك فرصة للإصلاح." 
-                         : "Our system directs unhappy customers to message management directly, preventing public negative reviews."}
-                    </p>
                 </div>
             </div>
         </div>
       </div>
 
-      {/* 5. Worried about Volume? (Glassmorphism AI Card) */}
+      {/* 5. NEW BIG PROTECTION BANNER (بتصميم مستطيل كبير) */}
+      <div className="bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700 rounded-[2rem] p-8 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden shadow-xl">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 to-red-500"></div>
+            <div className="bg-slate-900/50 p-4 rounded-2xl border border-orange-500/30 shrink-0">
+                <Lock size={48} className="text-orange-400" />
+            </div>
+            <div className="text-center md:text-right flex-1">
+                <h4 className="text-white font-bold text-2xl mb-3">
+                    {isRTL ? "درع الحماية من التقييمات السلبية" : "Negative Review Protection Shield"}
+                </h4>
+                <p className="text-slate-300 text-lg leading-relaxed">
+                    {isRTL 
+                     ? "لا تدع عميلاً غاضباً يدمر سمعتك للأبد. نظامنا يمتص الصدمة ويوجه العميل غير الراضي لإرسال رسالة سرية مباشرة للإدارة، مما يمنع وصول التقييم السلبي إلى جوجل."
+                     : "Don't let an angry customer ruin your reputation forever. Our system absorbs the shock, directing unhappy customers to send a private message to management, stopping the negative review from reaching Google."}
+                </p>
+            </div>
+      </div>
+
+
+      {/* 6. AI Reply Card */}
       <div className="bg-gradient-to-r from-blue-900/40 to-slate-900 border border-blue-500/30 rounded-3xl p-6 flex flex-col md:flex-row items-center gap-6 shadow-lg">
             <div className="relative shrink-0">
                 <div className="absolute inset-0 bg-blue-500 blur-xl opacity-20 rounded-full"></div>
@@ -269,7 +297,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
             </div>
       </div>
 
-      {/* 6. Delivery Integration (Restaurant Only) */}
+      {/* 7. Delivery Integration (Restaurant Only) */}
       {isRestaurant && (
         <div className="bg-gradient-to-r from-orange-900/20 to-slate-900 p-6 rounded-[2rem] border border-orange-500/30 relative overflow-hidden group">
             <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
@@ -289,8 +317,8 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
         </div>
       )}
 
-      {/* 7. The Harvard Quote (Gold Design) */}
-      <div className="relative py-8 px-4">
+      {/* 8. The Harvard Quote */}
+      <div className="relative py-8 px-4 my-8">
          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent"></div>
          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent"></div>
          
@@ -307,7 +335,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
          </div>
       </div>
 
-      {/* 8. Call to Actions */}
+      {/* 9. Call to Actions */}
       <div className="space-y-4 pt-2">
          <p className="text-center text-slate-400 text-sm">
             {isRTL 
