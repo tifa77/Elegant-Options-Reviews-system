@@ -4,7 +4,7 @@ import { TEXTS } from '../constants';
 import { 
   ArrowRight, ArrowLeft, Target, Ghost, Crown, Activity, Zap, Bike, 
   ShieldAlert, TrendingDown, Eye, Quote, CheckCircle2, Sparkles, Lock, 
-  AlertOctagon, Loader2, RotateCw 
+  AlertOctagon, Loader2, RotateCw, Play
 } from 'lucide-react';
 
 interface ResultsDashboardProps {
@@ -94,8 +94,8 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
 
   const status = getMarketStatus();
 
-  // --- تحديث رابط الواتساب (رسالة بسيطة بدون أرقام) ---
-  const waNumber = "96550656365";
+  // --- تحديث رقم الواتساب (Change 1) ---
+  const waNumber = "96566305551"; 
   const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(isRTL ? `مرحباً، قمت بفحص مشروعي (${data.projectName}).` : `Hi, I audited my project (${data.projectName}).`)}`;
 
   return (
@@ -331,11 +331,16 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
          </p>
 
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             {/* Visual Demo Button */}
-             <button onClick={onVisualExp} className="py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-lg shadow-lg shadow-indigo-900/20 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-1">
-                <Eye size={20} />
-                {isRTL ? "تجربة بصرية (Demo)" : "Visual Experience"}
-             </button>
+             {/* Visual Demo Button with Encouragement (Change 2) */}
+             <div className="relative group">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-yellow-500 text-black text-[10px] font-bold px-3 py-1 rounded-full animate-bounce z-10 shadow-lg whitespace-nowrap">
+                    {isRTL ? "👁️ شاهد أولاً" : "👁️ Watch First"}
+                </div>
+                <button onClick={onVisualExp} className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-lg shadow-lg shadow-indigo-900/20 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-1">
+                    <Eye size={20} />
+                    {isRTL ? "تجربة بصرية (Demo)" : "Visual Experience"}
+                </button>
+             </div>
 
              {/* Order Now Button */}
              <a href={waLink} target="_blank" rel="noopener noreferrer" className="py-4 bg-green-600 hover:bg-green-500 text-white rounded-xl font-black text-lg shadow-lg shadow-green-900/20 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-1 animate-pulse">
