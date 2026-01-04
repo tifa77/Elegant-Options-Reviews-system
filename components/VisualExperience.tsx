@@ -265,3 +265,59 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                     {formatTime(timeLeft)}
                 </span>
             </div>
+        </div>
+      </div>
+
+      {/* Phone Mockup Container - Fixed Aspect Ratio */}
+      <div className="relative w-full flex flex-col items-center">
+        <div className="relative mx-auto w-full max-w-[350px] aspect-[9/18.5] bg-black rounded-[3rem] border-[10px] border-black shadow-2xl overflow-hidden flex flex-col z-10 ring-4 ring-slate-900/50">
+          {/* Phone Notch/StatusBar Placeholder */}
+          <div className="absolute top-0 inset-x-0 h-7 bg-black z-20 pointer-events-none"></div>
+          
+          {/* Main Content Area */}
+          <div className="flex-1 relative flex flex-col overflow-hidden bg-slate-100">
+             {stage === 'chat' ? <ChatView /> : <SurveyView />}
+          </div>
+
+          {/* Phone Bottom Indicator Bar */}
+          <div className="absolute bottom-0 inset-x-0 h-5 bg-black z-20 pointer-events-none flex items-center justify-center">
+             <div className="w-1/3 h-1 bg-slate-700 rounded-full opacity-50"></div>
+          </div>
+        </div>
+
+        {/* New Exciting CTA Section */}
+        <div className="w-full max-w-[350px] space-y-4 mt-8 px-2">
+           <div className="relative group">
+             {/* Animated Discount Badge */}
+             <div className="absolute -top-4 right-4 z-20 bg-yellow-400 text-slate-900 font-black text-xs px-4 py-1.5 rounded-full shadow-lg animate-bounce border-2 border-slate-900 whitespace-nowrap">
+                💰 {isRTL ? "خصم 70%!" : "70% OFF!"}
+             </div>
+             
+             {/* Main Compound Button */}
+             <a 
+               href={waLink} 
+               target="_blank" 
+               rel="noopener noreferrer" 
+               className="relative w-full py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-black text-lg rounded-2xl shadow-xl flex items-center justify-center gap-2 overflow-hidden group-hover:shadow-2xl transition-all duration-300 transform group-hover:-translate-y-1"
+             >
+               {/* Shine Effect */}
+               <div className="absolute inset-0 h-full w-full scale-0 rounded-2xl transition-all duration-300 group-hover:scale-100 group-hover:bg-white/10"></div>
+               <MessageCircle className="w-6 h-6 fill-white/20" />
+               <span className="relative z-10">{isRTL ? "اطلب النظام الآن" : "Order System Now"}</span>
+             </a>
+           </div>
+
+           <button 
+             onClick={onBack} 
+             className="w-full py-3 bg-transparent text-slate-400 font-bold rounded-xl border-2 border-slate-700 hover:bg-slate-800 hover:text-white transition-all flex items-center justify-center gap-2 text-sm"
+           >
+             {isRTL ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
+             {t.back}
+           </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default VisualExperience;
