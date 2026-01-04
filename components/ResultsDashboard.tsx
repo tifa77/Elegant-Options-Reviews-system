@@ -93,8 +93,10 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
   };
 
   const status = getMarketStatus();
+
+  // --- تحديث رابط الواتساب (رسالة بسيطة بدون أرقام) ---
   const waNumber = "96550656365";
-  const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(isRTL ? `مرحباً، قمت بفحص مشروعي (${data.projectName}) ووجدت فرصة لزيادة أرباح الولاء بقيمة ${yearlyLoyaltyOpportunity} ${currency} سنوياً. أريد تفعيل النظام.` : `Hi, I audited (${data.projectName}) and found a loyalty profit opportunity of ${yearlyLoyaltyOpportunity} ${currency}/year. I need details.`)}`;
+  const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(isRTL ? `مرحباً، قمت بفحص مشروعي (${data.projectName}).` : `Hi, I audited my project (${data.projectName}).`)}`;
 
   return (
     <div className={`max-w-4xl mx-auto space-y-12 animate-fade-in pb-24 ${isRTL ? 'font-tajawal text-right' : 'font-sans text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
@@ -261,7 +263,6 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
             </div>
       </div>
 
-
       {/* 6. AI Reply Card */}
       <div className="bg-gradient-to-r from-blue-900/40 to-slate-900 border border-blue-500/30 rounded-3xl p-6 flex flex-col md:flex-row items-center gap-6 shadow-lg">
             <div className="relative shrink-0">
@@ -322,10 +323,11 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
 
       {/* 9. Call to Actions */}
       <div className="space-y-4 pt-2">
+         {/* --- رسالة دعوة للنظر في النظام (فوق زر التجربة البصرية) --- */}
          <p className="text-center text-slate-400 text-sm">
             {isRTL 
-             ? "شاهد كيف يقوم النظام بطلب التقييم بذكاء وتصفية العملاء الغاضبين:" 
-             : "See how the system smartly requests reviews and filters unhappy customers:"}
+             ? "قبل اتخاذ القرار، شاهد بنفسك كيف نطلب التقييم من العميل بذكاء:" 
+             : "Before you decide, watch how we smartly request reviews from customers:"}
          </p>
 
          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
