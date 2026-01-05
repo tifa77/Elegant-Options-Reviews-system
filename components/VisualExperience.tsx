@@ -4,7 +4,7 @@ import { TEXTS } from '../constants';
 import { 
   ArrowLeft, ArrowRight, MoreVertical, Phone, Video, 
   CheckCheck, Smile, Paperclip, Camera, Mic, Star, 
-  MapPin, MessageCircle, BadgeCheck, Zap, Clock, Timer
+  MapPin, MessageCircle, BadgeCheck, Zap, Clock, Timer, Signal, Wifi, Battery
 } from 'lucide-react';
 
 interface VisualExperienceProps {
@@ -23,8 +23,8 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
   const [hoverRating, setHoverRating] = useState(0);
   const [submitted, setSubmitted] = useState(false);
 
-  // --- إضافة المؤقت (5 دقائق) ---
-  const [timeLeft, setTimeLeft] = useState(300); // 300 ثانية = 5 دقائق
+  // --- المؤقت التنازلي (للعرض فقط على الشاشة) ---
+  const [timeLeft, setTimeLeft] = useState(300); // 5 دقائق
 
   useEffect(() => {
     if (timeLeft <= 0) return;
@@ -34,13 +34,11 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
     return () => clearInterval(timerId);
   }, [timeLeft]);
 
-  // دالة تنسيق الوقت MM:SS
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
-  // ---------------------------
 
   useEffect(() => {
     if (stage === 'chat') {
@@ -70,20 +68,20 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
 
   const messageTemplate = getCategorizedMessage();
   
-  // رقم الواتساب المحدث ورسالة الخصم
+  // --- رسالة الواتساب الواقعية (بدون المؤقت) ---
   const waNumber = "96566305551"; 
   const customWAMessage = isRTL 
-    ? `مرحباً، أريد حجز خصم الـ 70% (المتبقي ${formatTime(timeLeft)}) وتفعيل نظام Elegant Options لمشروعي (${data.projectName})` 
-    : `Hello, I want to claim the 70% discount (Time left: ${formatTime(timeLeft)}) and activate Elegant Options for my project (${data.projectName})`;
+    ? `مرحباً، أريد الاستفادة من عرض خصم الـ 70% وتفعيل نظام Elegant Options لمشروعي (${data.projectName})` 
+    : `Hello, I want to claim the 70% discount offer and activate Elegant Options for my project (${data.projectName})`;
     
   const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(customWAMessage)}`;
 
   // --- مكون شاشة الاستبيان ---
   const SurveyView = () => (
-    <div className="flex-1 flex flex-col bg-white animate-fade-in overflow-hidden relative">
+    <div className="flex-1 flex flex-col bg-white animate-fade-in relative h-full">
       {/* Survey Header */}
-      <div className="pt-10 pb-6 px-6 flex flex-col items-center text-center bg-slate-50 border-b border-slate-100">
-        <div className="w-16 h-16 mx-auto bg-white rounded-2xl shadow-sm flex items-center justify-center p-2 border border-slate-100 mb-3">
+      <div className="pt-12 pb-4 px-6 flex flex-col items-center text-center bg-slate-50 border-b border-slate-100">
+        <div className="w-16 h-16 mx-auto bg-white rounded-2xl shadow-sm flex items-center justify-center p-2 border border-slate-100 mb-2">
           <span className="text-3xl font-bold text-slate-800">{data.projectName.charAt(0)}</span>
         </div>
         <div className="flex items-center justify-center gap-1.5">
@@ -92,18 +90,18 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
         </div>
       </div>
 
-      {/* Survey Content - Scrollable Area */}
-      <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+      {/* Survey Content */}
+      <div className="flex-1 overflow-y-auto p-5 custom-scrollbar">
           {!submitted ? (
-            <div className="w-full space-y-6 pb-6">
-              <div className="space-y-2 text-center">
-                <h2 className="text-xl font-black text-slate-900 leading-tight">{t.survey.title}</h2>
-                <p className="text-slate-400 text-xs font-bold">{t.survey.subtitle}</p>
+            <div className="w-full space-y-5">
+              <div className="space-y-1 text-center">
+                <h2 className="text-lg font-black text-slate-900 leading-tight">{t.survey.title}</h2>
+                <p className="text-slate-400 text-[10px] font-bold">{t.survey.subtitle}</p>
               </div>
 
-              <div className="space-y-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-50">
-                <p className="text-sm font-bold text-slate-500 leading-relaxed text-center">
-                  {isRTL ? `يرجى تقييم زيارتك لـ ${data.projectName}` : t.survey.ratePrompt.replace('{projectName}', data.projectName)}
+              <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 text-center">
+                <p className="text-sm font-bold text-slate-600 mb-3">
+                  {isRTL ? `كيف كانت تجربتك معنا؟` : t.survey.ratePrompt.replace('{projectName}', data.projectName)}
                 </p>
                 <div className="flex items-center justify-center gap-2">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -113,10 +111,10 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                       onMouseEnter={() => setHoverRating(star)}
                       onMouseLeave={() => setHoverRating(0)}
                       onClick={() => handleRatingClick(star)}
-                      className="transition-all transform hover:scale-110 active:scale-90 focus:outline-none"
+                      className="transition-all transform hover:scale-110 active:scale-95 focus:outline-none"
                     >
                       <Star 
-                        className={`w-9 h-9 ${
+                        className={`w-10 h-10 ${
                           star <= (hoverRating || rating) 
                             ? 'fill-yellow-400 text-yellow-400 drop-shadow-sm' 
                             : 'text-slate-200 fill-slate-50'
@@ -128,32 +126,32 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
               </div>
 
               {rating > 0 && (
-                <div className="space-y-4 animate-fade-in-up w-full">
-                  <div className={`p-4 rounded-2xl border shadow-sm transition-all transform ${rating >= 4 ? 'bg-green-50/50 border-green-100' : 'bg-red-50/50 border-red-100'}`}>
-                    <h4 className={`text-base font-black mb-1 uppercase tracking-tight ${rating >= 4 ? 'text-green-600' : 'text-red-500'}`}>
+                <div className="space-y-3 animate-fade-in-up w-full">
+                  <div className={`p-3 rounded-xl border shadow-sm transition-all ${rating >= 4 ? 'bg-green-50/50 border-green-100' : 'bg-red-50/50 border-red-100'}`}>
+                    <h4 className={`text-sm font-black mb-1 ${rating >= 4 ? 'text-green-600' : 'text-red-500'}`}>
                       {rating >= 4 ? t.survey.highStarsTitle : t.survey.lowStarsTitle}
                     </h4>
-                    <p className={`text-[11px] leading-relaxed font-bold ${rating >= 4 ? 'text-green-600/70' : 'text-red-500/70'}`}>
+                    <p className={`text-[10px] leading-relaxed font-bold ${rating >= 4 ? 'text-green-600/70' : 'text-red-500/70'}`}>
                       {rating >= 4 ? t.survey.highStarsDesc : t.survey.lowStarsDesc}
                     </p>
                   </div>
 
                   <textarea
                     placeholder={t.survey.placeholder}
-                    className="w-full h-20 p-3 bg-slate-50 border border-slate-100 rounded-xl text-slate-800 text-sm outline-none focus:border-blue-500 resize-none transition-all placeholder:text-slate-300"
+                    className="w-full h-20 p-3 bg-slate-50 border border-slate-100 rounded-xl text-slate-800 text-sm outline-none focus:border-blue-500 resize-none"
                   ></textarea>
 
                   {rating >= 4 ? (
                     <button 
                       onClick={handleSubmit}
-                      className="w-full py-3 bg-[#0ea5e9] hover:bg-[#0284c7] text-white font-black text-base rounded-xl shadow-md transition-all flex items-center justify-center gap-2 transform active:scale-95"
+                      className="w-full py-3 bg-[#0ea5e9] hover:bg-[#0284c7] text-white font-black text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
                     >
-                      <MapPin className="w-5 h-5" /> {isRTL ? "نشر على خرائط جوجل" : t.survey.submitGoogle}
+                      <MapPin className="w-4 h-4" /> {isRTL ? "نشر على جوجل" : t.survey.submitGoogle}
                     </button>
                   ) : (
                     <button 
                       onClick={handleSubmit}
-                      className="w-full py-3 bg-slate-800 hover:bg-black text-white font-black text-base rounded-xl shadow-md transition-all transform active:scale-95"
+                      className="w-full py-3 bg-slate-900 hover:bg-black text-white font-black text-sm rounded-xl shadow-md transition-all"
                     >
                       {t.survey.submitPrivate}
                     </button>
@@ -162,85 +160,81 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
               )}
             </div>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center space-y-6 py-10 animate-fade-in h-full">
+            <div className="flex-1 flex flex-col items-center justify-center space-y-4 py-10 animate-fade-in h-full">
                <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
                   <CheckCheck className="w-8 h-8 text-green-500" />
                </div>
-               <h2 className="text-xl font-black text-slate-900">{t.visualExp.postDemoTitle}</h2>
+               <h2 className="text-lg font-black text-slate-900">{t.visualExp.postDemoTitle}</h2>
                <p className="text-slate-500 text-xs font-bold px-8 text-center">{t.visualExp.postDemoDesc}</p>
             </div>
           )}
       </div>
-      
-       {/* Footer Branding */}
-       <div className="p-3 flex flex-col items-center justify-center bg-slate-50 border-t border-slate-100 absolute bottom-0 w-full">
-           <span className="text-[8px] text-slate-400 font-black tracking-[0.2em] uppercase">{t.survey.poweredBy}</span>
-       </div>
     </div>
   );
 
   // --- مكون شاشة المحادثة ---
   const ChatView = () => (
-    <div className="flex-1 flex flex-col overflow-hidden relative bg-[#e5ddd5]">
+    <div className="flex-1 flex flex-col overflow-hidden relative bg-[#e5ddd5] h-full">
       {/* Chat Header */}
-      <div className="bg-[#075e54] p-3 pt-10 flex items-center justify-between text-white shadow-sm z-10 relative">
+      <div className="bg-[#075e54] p-3 pt-12 flex items-center justify-between text-white shadow-sm z-10 relative">
         <div className="flex items-center gap-2 overflow-hidden">
           <ArrowLeft className="w-5 h-5 cursor-pointer" onClick={onBack} />
-          <div className="w-8 h-8 rounded-full bg-white flex-shrink-0 p-0.5 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-full bg-white flex-shrink-0 p-0.5 flex items-center justify-center">
              <span className="text-slate-800 font-bold text-sm">{data.projectName.charAt(0)}</span>
           </div>
           <div className="flex-1 min-w-0 flex flex-col justify-center">
              <div className="flex items-center gap-1">
-                <h3 className="text-[13px] font-bold truncate leading-tight">{data.projectName || "Business"}</h3>
-                <BadgeCheck className="w-3 h-3 text-green-400 fill-white" />
+                <h3 className="text-[14px] font-bold truncate leading-tight">{data.projectName || "Business"}</h3>
+                <BadgeCheck className="w-3.5 h-3.5 text-green-400 fill-white" />
              </div>
+             <p className="text-[10px] opacity-80 text-left">Official Business Account</p>
           </div>
         </div>
         <div className="flex items-center gap-3 opacity-90">
-          <Video className="w-4 h-4" />
-          <Phone className="w-4 h-4" />
-          <MoreVertical className="w-4 h-4" />
+          <Video className="w-5 h-5" />
+          <Phone className="w-5 h-5" />
+          <MoreVertical className="w-5 h-5" />
         </div>
       </div>
 
-      {/* Chat Body - Scrollable */}
+      {/* Chat Body */}
       <div className="flex-1 p-4 space-y-4 overflow-y-auto custom-scrollbar relative z-0" style={{ backgroundImage: 'url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")', backgroundSize: '400px' }}>
         <div className="flex justify-center mb-4">
-          <span className="bg-[#dcf8c6]/80 backdrop-blur-sm text-[10px] text-slate-600 px-2 py-0.5 rounded-lg shadow-sm font-medium uppercase tracking-wide">
+          <span className="bg-[#dcf8c6]/90 backdrop-blur-sm text-[10px] text-slate-600 px-2 py-0.5 rounded-lg shadow-sm font-medium uppercase tracking-wide">
              {t.visualExp.status}
           </span>
         </div>
 
         {msgVisible && (
-          <div className="animate-fade-in-up flex flex-col items-start max-w-[90%]">
-            <div className="bg-white p-2.5 rounded-lg rounded-tl-none shadow-[0_1px_0.5px_rgba(0,0,0,0.13)] relative group">
-              {/* Triangle Tail */}
-              <svg viewBox="0 0 8 13" height="13" width="8" preserveAspectRatio="xMidYMid meet" className="absolute top-0 -left-[8px] fill-white"><path opacity=".13" fill="#00000000" d="M1.533 3.568L8 12.193V1H2.812C1.042 1 .474 2.156 1.533 3.568z"></path><path fill="currentColor" d="M1.533 3.568L8 12.193V1H2.812C1.042 1 .474 2.156 1.533 3.568z"></path></svg>
+          <div className="animate-fade-in-up flex flex-col items-start max-w-[92%]">
+            <div className="bg-white p-3 rounded-lg rounded-tl-none shadow-[0_1px_0.5px_rgba(0,0,0,0.13)] relative group">
+              {/* WhatsApp Tail */}
+              <svg viewBox="0 0 8 13" height="13" width="8" className={`absolute top-0 ${isRTL ? '-right-[8px] rotate-y-180' : '-left-[8px]'} fill-white`}><path d="M1.533 3.568L8 12.193V1H2.812C1.042 1 .474 2.156 1.533 3.568z"></path></svg>
               
-              <p className="text-[12.5px] text-[#111b21] leading-[1.4] whitespace-pre-wrap">
+              <p className="text-[13.5px] text-[#111b21] leading-[1.4] whitespace-pre-wrap">
                 {messageTemplate}
               </p>
-              <div className="mt-2 pt-2 border-t border-slate-100/50">
-                 <button onClick={handleCtaClick} className="w-full bg-[#f0f2f5] hover:bg-[#e4e6eb] active:bg-[#d8dadf] p-2 rounded-[4px] text-center transition-colors">
-                    <span className="text-[#0084ff] font-medium text-[13px]">{t.visualExp.cta}</span>
+              <div className="mt-3 pt-2 border-t border-slate-100">
+                 <button onClick={handleCtaClick} className="w-full bg-[#f0f2f5] hover:bg-[#e4e6eb] active:bg-[#d8dadf] p-2.5 rounded-[6px] text-center transition-colors">
+                    <span className="text-[#0084ff] font-semibold text-[13px]">{t.visualExp.cta}</span>
                  </button>
               </div>
               <div className="flex justify-end items-center gap-0.5 mt-1">
-                 <span className="text-[9px] text-[#667781]">12:45 PM</span>
-                 <CheckCheck className="w-3 h-3 text-[#53bdeb]" />
+                 <span className="text-[10px] text-[#667781]">12:45 PM</span>
+                 <CheckCheck className="w-3.5 h-3.5 text-[#53bdeb]" />
               </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Chat Footer (Input) */}
-      <div className="bg-[#f0f2f5] px-2 py-1.5 flex items-end gap-2 relative z-10">
-        <div className="bg-white flex-1 rounded-[18px] px-3 py-2 flex items-end gap-2 shadow-sm border border-slate-200/50">
-            <Smile className="w-5 h-5 text-[#8696a0] mb-0.5 cursor-pointer hover:text-[#54656f]" />
-            <div className="flex-1 text-[14px] text-[#54656f] leading-[1.4] max-h-[100px] overflow-y-auto py-0.5">Type a message</div>
-            <Paperclip className="w-5 h-5 text-[#8696a0] mb-0.5 cursor-pointer hover:text-[#54656f] rotate-[-45deg]" />
-            <Camera className="w-5 h-5 text-[#8696a0] mb-0.5 cursor-pointer hover:text-[#54656f]" />
+      {/* Chat Footer */}
+      <div className="bg-[#f0f2f5] px-2 py-2 flex items-end gap-2 relative z-10 pb-5">
+        <div className="bg-white flex-1 rounded-[20px] px-3 py-2 flex items-end gap-2 shadow-sm border border-slate-200/50">
+            <Smile className="w-6 h-6 text-[#8696a0] mb-0.5 cursor-pointer" />
+            <div className="flex-1 text-[15px] text-[#54656f] leading-[1.4] py-0.5">Message</div>
+            <Paperclip className="w-5 h-5 text-[#8696a0] mb-0.5 rotate-[-45deg]" />
+            <Camera className="w-5 h-5 text-[#8696a0] mb-0.5" />
         </div>
         <div className="bg-[#00a884] w-10 h-10 rounded-full flex items-center justify-center shadow-sm cursor-pointer hover:bg-[#008f70] transition-colors shrink-0">
             <Mic className="w-5 h-5 text-white" />
@@ -252,64 +246,86 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
   return (
     <div className={`max-w-4xl mx-auto flex flex-col items-center animate-fade-in pb-10 ${isRTL ? 'font-tajawal' : 'font-sans'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       
-      {/* Header Section with Timer */}
-      <div className="text-center space-y-4 w-full mb-8">
-        <h2 className="text-2xl font-black text-white uppercase tracking-tight">{isRTL ? "تجربة بصرية تفاعلية" : t.visualExp.header}</h2>
+      {/* 1. العنوان المشوق + المؤقت */}
+      <div className="text-center space-y-6 w-full mb-8">
+        <div className="space-y-2">
+            <h2 className="text-3xl font-black text-white uppercase tracking-tight leading-tight">
+                {isRTL ? "شاهد كيف يتحول مشروعك إلى مغناطيس للعملاء" : "Watch Your Business Become a Customer Magnet"}
+            </h2>
+            <p className="text-slate-400 text-sm font-medium">
+                {isRTL ? "تجربة تفاعلية حية لنظام Elegant Options" : "Live interactive demo of Elegant Options system"}
+            </p>
+        </div>
         
-        {/* Countdown Timer Banner */}
-        <div className="bg-red-600/90 backdrop-blur-sm text-white py-2 px-6 rounded-full inline-flex items-center gap-3 shadow-lg animate-pulse border border-red-400/50 mx-auto">
-            <Timer className="w-5 h-5 text-yellow-300" />
-            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
-                <span className="text-xs font-bold opacity-90">{isRTL ? "ينتهي خصم الـ 70% خلال:" : "70% Discount ends in:"}</span>
-                <span className="text-lg font-black text-yellow-300 font-mono tracking-widest">
-                    {formatTime(timeLeft)}
-                </span>
-            </div>
+        {/* Countdown Banner */}
+        <div className="bg-red-600/10 border border-red-500/50 backdrop-blur-md text-white py-2 px-6 rounded-full inline-flex items-center gap-3 shadow-[0_0_20px_rgba(220,38,38,0.4)] animate-pulse mx-auto">
+            <div className="w-2 h-2 rounded-full bg-red-500 animate-ping"></div>
+            <span className="text-sm font-bold tracking-wide">
+                {isRTL ? "ينتهي عرض الخصم 70% خلال:" : "70% Discount ends in:"}
+            </span>
+            <span className="text-xl font-black text-red-400 font-mono tracking-widest bg-slate-900/50 px-2 rounded-md">
+                {formatTime(timeLeft)}
+            </span>
         </div>
       </div>
 
-      {/* Phone Mockup Container - Fixed Aspect Ratio */}
+      {/* 2. حاوية الهاتف (Wide Screen iPhone) */}
       <div className="relative w-full flex flex-col items-center">
-        <div className="relative mx-auto w-full max-w-[350px] aspect-[9/18.5] bg-black rounded-[3rem] border-[10px] border-black shadow-2xl overflow-hidden flex flex-col z-10 ring-4 ring-slate-900/50">
-          {/* Phone Notch/StatusBar Placeholder */}
-          <div className="absolute top-0 inset-x-0 h-7 bg-black z-20 pointer-events-none"></div>
+        {/* The Frame: iPhone 14/15 Pro Max Style */}
+        <div className="relative mx-auto w-[370px] h-[750px] bg-black rounded-[50px] shadow-[0_0_0_12px_#1a1a1a,0_0_0_14px_#333,0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col z-10">
+          
+          {/* Dynamic Island / Notch */}
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 w-[120px] h-[35px] bg-black rounded-full z-30 flex items-center justify-center gap-3 px-3">
+             <div className="w-2 h-2 rounded-full bg-[#1a1a1a]/50"></div>
+             <div className="w-16 h-20 bg-transparent"></div> {/* Camera area */}
+          </div>
+
+          {/* Status Bar Mockup */}
+          <div className="absolute top-0 inset-x-0 h-12 z-20 flex justify-between items-center px-8 pt-2 text-white text-[12px] font-medium">
+             <span>9:41</span>
+             <div className="flex gap-1.5">
+                <Signal className="w-3.5 h-3.5" />
+                <Wifi className="w-3.5 h-3.5" />
+                <Battery className="w-4 h-4" />
+             </div>
+          </div>
           
           {/* Main Content Area */}
-          <div className="flex-1 relative flex flex-col overflow-hidden bg-slate-100">
+          <div className="flex-1 relative flex flex-col overflow-hidden bg-slate-100 rounded-[40px]">
              {stage === 'chat' ? <ChatView /> : <SurveyView />}
           </div>
 
-          {/* Phone Bottom Indicator Bar */}
-          <div className="absolute bottom-0 inset-x-0 h-5 bg-black z-20 pointer-events-none flex items-center justify-center">
-             <div className="w-1/3 h-1 bg-slate-700 rounded-full opacity-50"></div>
-          </div>
+          {/* Bottom Indicator */}
+          <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-32 h-1.5 bg-white rounded-full z-30 opacity-40"></div>
         </div>
 
-        {/* New Exciting CTA Section */}
-        <div className="w-full max-w-[350px] space-y-4 mt-8 px-2">
-           <div className="relative group">
-             {/* Animated Discount Badge */}
-             <div className="absolute -top-4 right-4 z-20 bg-yellow-400 text-slate-900 font-black text-xs px-4 py-1.5 rounded-full shadow-lg animate-bounce border-2 border-slate-900 whitespace-nowrap">
-                💰 {isRTL ? "خصم 70%!" : "70% OFF!"}
+        {/* 3. زر الطلب مع الخصم (Exciting CTA) */}
+        <div className="w-full max-w-[370px] space-y-4 mt-8 px-2">
+           <div className="relative group cursor-pointer">
+             {/* Animated Badge */}
+             <div className="absolute -top-5 right-0 z-20 bg-yellow-400 text-black font-black text-xs px-3 py-1.5 rounded-lg shadow-lg animate-bounce border-2 border-black rotate-3">
+                🔥 {isRTL ? "خصم 70% لفترة محدودة" : "70% OFF Limited Time"}
              </div>
              
-             {/* Main Compound Button */}
+             {/* The Big Button */}
              <a 
                href={waLink} 
                target="_blank" 
                rel="noopener noreferrer" 
-               className="relative w-full py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-black text-lg rounded-2xl shadow-xl flex items-center justify-center gap-2 overflow-hidden group-hover:shadow-2xl transition-all duration-300 transform group-hover:-translate-y-1"
+               className="relative block w-full py-5 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-black text-xl rounded-2xl shadow-[0_10px_30px_rgba(16,185,129,0.4)] text-center transition-all transform hover:-translate-y-1 active:scale-95 overflow-hidden"
              >
+               <span className="relative z-10 flex items-center justify-center gap-2">
+                  <Zap className="w-6 h-6 fill-yellow-300 text-yellow-300" />
+                  {isRTL ? "اطلب النظام الآن" : "Order System Now"}
+               </span>
                {/* Shine Effect */}
-               <div className="absolute inset-0 h-full w-full scale-0 rounded-2xl transition-all duration-300 group-hover:scale-100 group-hover:bg-white/10"></div>
-               <MessageCircle className="w-6 h-6 fill-white/20" />
-               <span className="relative z-10">{isRTL ? "اطلب النظام الآن" : "Order System Now"}</span>
+               <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 skew-x-12"></div>
              </a>
            </div>
 
            <button 
              onClick={onBack} 
-             className="w-full py-3 bg-transparent text-slate-400 font-bold rounded-xl border-2 border-slate-700 hover:bg-slate-800 hover:text-white transition-all flex items-center justify-center gap-2 text-sm"
+             className="w-full py-3 text-slate-500 font-bold hover:text-white transition-colors flex items-center justify-center gap-2 text-sm"
            >
              {isRTL ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
              {t.back}
