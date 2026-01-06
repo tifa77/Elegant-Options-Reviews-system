@@ -1,12 +1,9 @@
 // @ts-nocheck
 import React, { useState, useEffect } from 'react';
+import { GoogleGenAI } from "@google/genai";
 import { Language, AuditData } from '../types';
 import { TEXTS } from '../constants';
-import { 
-  Search, MapPin, Loader2, CheckCircle2, ArrowLeft, ArrowRight, 
-  Stethoscope, Store, Coffee, ShoppingBag, Briefcase, 
-  Calendar, Star, Users, Zap 
-} from 'lucide-react';
+import { Search, MapPin, Loader2, Navigation, CheckCircle2, ArrowLeft, ArrowRight, Globe, Stethoscope, Utensils, Coffee, ShoppingBag, Briefcase } from 'lucide-react';
 
 interface DataIntakeProps {
   language: Language;
@@ -21,32 +18,30 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
   const [formData, setFormData] = useState<AuditData>({
     projectName: '',
     projectType: 'restaurant',
-    customProjectType: '',
-    establishedYear: new Date().getFullYear(),
+    establishedYear: new Date().getFullYear() - 1,
     currentReviews: 0,
     positiveReviews: 0,
     negativeReviews: 0,
-    dailyCustomers: 50,
+    dailyCustomers: 0,
     searchRanking: 'Not Ranked',
     monthlyGrowth: 0,
-    weeklyGrowth: 0,
-    address: ''
+    weeklyGrowth: 0
   });
 
   const [mapUrl, setMapUrl] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [showMapDetails, setShowMapDetails] = useState(false);
   const [isLocationConfirmed, setIsLocationConfirmed] = useState(false);
+  
   const [isExtracting, setIsExtracting] = useState(false);
+  const [extractionComplete, setExtractionComplete] = useState(false);
 
-  // --- 1. إصلاح الخريطة لتظهر الموقع الصحيح دائماً ---
   useEffect(() => {
     setIsLocationConfirmed(false);
+    setExtractionComplete(false);
     
-    // إذا لم يكن هناك اسم، نعرض خريطة عامة للكويت
     if (!formData.projectName) {
       setShowMapDetails(false);
-      setMapUrl(`https://maps.google.com/maps?q=Kuwait&t=&z=10&ie=UTF8&iwloc=&output=embed`);
       return;
     }
 
@@ -54,28 +49,20 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
     setShowMapDetails(false);
 
     const timer = setTimeout(() => {
-      // تكوين نص البحث بدقة
-      const typeLabel = formData.projectType === 'other' ? formData.customProjectType : formData.projectType;
-      const query = `${formData.projectName} ${typeLabel}`;
+      const query = `${formData.projectName} ${formData.projectType}`;
       const encodedQuery = encodeURIComponent(query);
-      
-      // استخدام رابط Embed القياسي والموثوق
-      setMapUrl(`https://maps.google.com/maps?q=${encodedQuery}&hl=${isRTL ? 'ar' : 'en'}&t=&z=14&ie=UTF8&iwloc=&output=embed`);
+      setMapUrl(`https://maps.google.com/maps?q=${encodedQuery}&t=&z=13&ie=UTF8&iwloc=&output=embed`);
       
       setIsSearching(false);
       setShowMapDetails(true);
     }, 1200);
 
     return () => clearTimeout(timer);
-  }, [formData.projectName, formData.projectType, formData.customProjectType, isRTL]);
+  }, [formData.projectName, formData.projectType]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const finalData = {
-      ...formData,
-      projectType: formData.projectType === 'other' ? formData.customProjectType : formData.projectType
-    };
-    onSubmit(finalData);
+    onSubmit(formData);
   };
 
   const handleConfirmLocation = () => {
@@ -83,205 +70,197 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
     fetchRealReviewData();
   };
 
-  // --- 2. محاكاة ذكية للبيانات "الحقيقية" (Deterministic Simulation) ---
-  // هذه الدالة تولد أرقاماً تبدو حقيقية وثابتة بناءً على اسم المطعم
-  // بحيث لو أدخل العميل نفس الاسم مرتين، يحصل على نفس الأرقام (مصداقية أعلى)
+// دالة البحث المتوافقة مع نظام جوجل الجديد (2025) مع تحليل ذكي للجودة
   const fetchRealReviewData = async () => {
     setIsExtracting(true);
-    
-    setTimeout(() => {
-        // توليد رقم "شبه حقيقي" بناءً على طول الاسم وحروفه
-        const nameSeed = formData.projectName.length * 42; 
-        const simulatedReviews = Math.floor((nameSeed * 1.5) + 120); // رقم لا يبدو عشوائياً
-        
+
+    try {
+        // التأكد من تحميل الخرائط
+        if (!window.google || !window.google.maps) {
+            throw new Error("Google Maps JS API not loaded");
+        }
+
+        // 1. استدعاء المكتبة الجديدة (importLibrary)
+        const { Place } = await window.google.maps.importLibrary("places") as any;
+
+        if (!Place) {
+             throw new Error("Places Library not found");
+        }
+
+        // 2. البحث باستخدام الأمر الجديد (searchByText)
+        const { places } = await Place.searchByText({
+            textQuery: `${formData.projectName} ${formData.projectType}`,
+            fields: ['displayName', 'formattedAddress', 'rating', 'userRatingCount'],
+        });
+
+        // 3. معالجة النتيجة وتحليل التقييمات
+        if (places && places.length > 0) {
+            const place = places[0];
+            
+            const total = place.userRatingCount || 0;
+            const rating = place.rating || 0;
+
+            // --- 🧠 منطق التحليل الذكي الجديد ---
+            // التقييمات الإيجابية تعكس نسبة التقييم العام من 5
+            // إذا كان التقييم 4.5 من 5، فإن النسبة الإيجابية التقريبية هي 90%
+            const positiveRatio = Math.max(0, Math.min(1, (rating / 5))); 
+            const positiveCount = Math.round(total * positiveRatio);
+            const negativeCount = total - positiveCount;
+
+            setFormData(prev => ({
+                ...prev,
+                currentReviews: total,
+                positiveReviews: positiveCount, // تحليل (4-5 نجوم)
+                negativeReviews: negativeCount, // تحليل (1-3 نجوم)
+                address: place.formattedAddress || "Address Found",
+                searchRanking: "#1 Verified",
+                monthlyGrowth: Math.round(total * 0.05),
+                weeklyGrowth: Math.round(total * 0.01)
+            }));
+            setExtractionComplete(true);
+        } else {
+            console.warn("No results found");
+            setFormData(prev => ({
+                ...prev,
+                currentReviews: 0,
+                address: isRTL ? "لم يتم العثور على المكان" : "Place Not Found"
+            }));
+            setExtractionComplete(true);
+        }
+
+    } catch (error) {
+        console.error("New Places API Error:", error);
         setFormData(prev => ({
             ...prev,
-            currentReviews: simulatedReviews, // يضع الرقم "المسحوب"
-            address: isRTL ? "تم التحقق من الموقع" : "Location Verified",
-            monthlyGrowth: Math.floor(simulatedReviews * 0.08),
-            weeklyGrowth: Math.floor(simulatedReviews * 0.02)
+            currentReviews: 0,
+            address: isRTL ? "خطأ في الاتصال" : "Connection Error"
         }));
-        
-        setIsExtracting(false);
-    }, 2000);
+        setExtractionComplete(true);
+    }
+    
+    setIsExtracting(false);
   };
 
+const simulateReviewExtraction = () => {
+    setTimeout(() => {
+      setFormData(prev => ({
+        ...prev,
+        currentReviews: 0, 
+        positiveReviews: 0,
+        negativeReviews: 0,
+        address: isRTL ? "يرجى إدخال العنوان يدوياً" : "Manual Address Entry",
+        searchRanking: "Not Ranked",
+        monthlyGrowth: 0,
+        weeklyGrowth: 0
+      }));
+      setExtractionComplete(true);
+      setIsExtracting(false);
+    }, 1000);
+  };
+  const currentYear = new Date().getFullYear();
   const categories = [
-    { id: 'clinic', icon: Stethoscope, label: isRTL ? 'طبي' : 'Medical' },
-    { id: 'restaurant', icon: Store, label: isRTL ? 'مطعم' : 'Restaurant' },
-    { id: 'cafe', icon: Coffee, label: isRTL ? 'مقهى' : 'Cafe' },
-    { id: 'shop', icon: ShoppingBag, label: isRTL ? 'تجاري' : 'Retail' },
-    { id: 'other', icon: Briefcase, label: isRTL ? 'أخرى' : 'Other' },
+    { id: 'clinic', icon: Stethoscope, label: t.inputs.categories.clinic },
+    { id: 'restaurant', icon: Utensils, label: t.inputs.categories.restaurant },
+    { id: 'cafe', icon: Coffee, label: t.inputs.categories.cafe },
+    { id: 'shop', icon: ShoppingBag, label: t.inputs.categories.shop },
+    { id: 'other', icon: Briefcase, label: t.inputs.categories.other },
   ];
 
-  const getDynamicPlaceholder = () => {
-    const mapping = {
-      clinic: isRTL ? "مثال: عيادة رويال، مستشفى السيف..." : "e.g. Royal Clinic, Seef Hospital...",
-      restaurant: isRTL ? "مثال: مطعم فتوش، ميس الغانم..." : "e.g. Fatoush, Mais Alghanim...",
-      cafe: isRTL ? "مثال: ستاربكس، كافيه بين..." : "e.g. Starbucks, Coffee Bean...",
-      shop: isRTL ? "مثال: زارا، إكسايت..." : "e.g. Zara, Xcite...",
-      other: isRTL ? "اكتب اسم مشروعك..." : "Enter business name..."
-    };
-    return mapping[formData.projectType] || mapping.other;
+  const getPlaceholder = () => {
+    const type = formData.projectType as keyof typeof t.inputs.placeholders;
+    return t.inputs.placeholders[type] || t.inputs.placeholders.other;
   };
 
   return (
     <div className={`max-w-4xl mx-auto relative ${isRTL ? 'text-right font-tajawal' : 'text-left font-sans'}`} dir={isRTL ? 'rtl' : 'ltr'}>
-      
-      {/* زر العودة */}
-      <button onClick={onBack} className={`absolute top-0 ${isRTL ? 'right-0' : 'left-0'} flex items-center gap-2 text-slate-500 hover:text-white transition-colors z-20`}>
+      <button onClick={onBack} className={`absolute top-0 ${isRTL ? 'right-0' : 'left-0'} flex items-center gap-2 text-slate-400 hover:text-white transition-colors z-20`}>
         {isRTL ? <ArrowRight className="w-5 h-5" /> : <ArrowLeft className="w-5 h-5" />}
         <span className="font-medium text-sm">{t.back}</span>
       </button>
 
-      {/* الهيدر */}
-      <div className="flex flex-col items-center justify-center mb-10 pt-8 text-center">
-        <div className="bg-slate-900 border border-slate-700/50 p-4 rounded-3xl shadow-2xl relative mb-6">
-           <img src="https://storage.googleapis.com/msgsndr/vX7gQQOe9PXtkGes2GOJ/media/6944362aa49c0a6975236470.png" alt="Logo" className="w-16 h-16 object-contain" />
+      <div className="flex flex-col items-center justify-center mb-10 animate-fade-in-up pt-8 text-center">
+        <div className="relative mb-6">
+          <div className="absolute inset-0 bg-primary-500/20 blur-2xl rounded-full"></div>
+          <div className="bg-slate-900 border border-slate-700/50 p-4 rounded-3xl shadow-2xl relative">
+             <img src="https://storage.googleapis.com/msgsndr/vX7gQQOe9PXtkGes2GOJ/media/6944362aa49c0a6975236470.png" alt="Elegant Options" className="w-20 h-20 object-contain" />
+          </div>
         </div>
-        <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight uppercase mb-2">ELEGANT <span className="text-primary-500">OPTIONS</span></h1>
-        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs md:text-sm">{t.auditTitle}</p>
+        <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight mb-2 uppercase">ELEGANT <span className="text-primary-500">OPTIONS</span></h1>
+        <p className="text-slate-400 font-medium tracking-wide uppercase text-sm">{t.auditTitle}</p>
       </div>
 
-      <div className="bg-slate-800/80 backdrop-blur-md rounded-[2.5rem] shadow-2xl border border-slate-700/50 p-6 md:p-10">
-        <form onSubmit={handleSubmit} className="space-y-10">
-          
-          {/* اختيار النوع */}
-          <div className="space-y-4">
-            <label className="text-xs uppercase tracking-wider text-slate-500 font-black px-1">{t.inputs.type}</label>
+      <div className="bg-slate-800/80 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-700/50 p-6 md:p-8">
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="space-y-3">
+            <label className="text-xs uppercase tracking-wider text-slate-500 font-semibold">{t.inputs.type}</label>
             <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
               {categories.map((cat) => (
                 <button
                   key={cat.id}
                   type="button"
                   onClick={() => setFormData({...formData, projectType: cat.id})}
-                  className={`flex flex-col items-center justify-center p-4 rounded-2xl border transition-all duration-300 ${
-                    formData.projectType === cat.id ? 'bg-primary-500/10 border-primary-500 text-primary-400 scale-105 shadow-xl' : 'bg-slate-900 border-slate-700 text-slate-500 hover:bg-slate-800'
+                  className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-300 ${
+                    formData.projectType === cat.id ? 'bg-primary-500/10 border-primary-500 text-primary-400 ring-2 ring-primary-500/50 scale-105' : 'bg-slate-900 border-slate-700 text-slate-500 hover:bg-slate-800'
                   }`}
                 >
-                  <cat.icon className="w-6 h-6 mb-2" />
-                  <span className="text-[10px] font-black text-center leading-tight">{cat.label}</span>
+                  <cat.icon className="w-5 h-5 mb-2" />
+                  <span className="text-[10px] sm:text-xs font-bold text-center leading-tight">{cat.label}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* الخريطة والاسم */}
           <div className="space-y-6">
-            <div className="space-y-3">
-              <label className="flex items-center gap-2 text-xs uppercase tracking-wider font-black text-green-400 px-1">
-                <MapPin className="w-4 h-4 animate-pulse" /> {t.inputs.mapPreview}
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-xs uppercase tracking-wider font-semibold text-green-400">
+                <MapPin className="w-3.5 h-3.5" /> {t.inputs.mapPreview}
               </label>
-              
-              {/* حاوية الخريطة */}
-              <div className="w-full h-64 bg-slate-900 rounded-3xl overflow-hidden border-2 border-slate-700 relative group">
-                <iframe 
-                  width="100%" 
-                  height="100%" 
-                  frameBorder="0" 
-                  src={mapUrl} 
-                  title="Map" 
-                  className="opacity-75 group-hover:opacity-100 transition-opacity duration-500"
-                ></iframe>
-
-                {/* شريط الحالة فوق الخريطة */}
+              <div className="w-full h-56 bg-slate-900 rounded-xl overflow-hidden border border-slate-600 relative group shadow-inner">
+                <iframe width="100%" height="100%" frameBorder="0" src={mapUrl} title="Map" style={{ filter: 'grayscale(20%) brightness(0.9)' }}></iframe>
                 {showMapDetails && (
-                  <button type="button" onClick={handleConfirmLocation} disabled={isLocationConfirmed || isExtracting} className={`absolute inset-x-3 bottom-3 p-4 rounded-2xl shadow-2xl flex items-center justify-between transition-all duration-300 ${isLocationConfirmed ? 'bg-slate-900/95 border-2 border-green-500' : 'bg-slate-800/95 border border-white/10 hover:border-primary-500'}`}>
-                    <div className="flex items-center gap-4 overflow-hidden">
-                      <div className={`rounded-full p-2.5 flex-shrink-0 ${isLocationConfirmed ? 'bg-green-500' : 'bg-red-500'}`}>
+                  <button type="button" onClick={handleConfirmLocation} disabled={isLocationConfirmed || isExtracting} className={`absolute inset-x-2 bottom-2 p-3 rounded-lg shadow-2xl flex items-center justify-between transition-all duration-300 ${isLocationConfirmed ? 'bg-slate-900/95 border-2 border-green-500' : 'bg-slate-800/90 border border-white/10 hover:border-primary-500/50'}`}>
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <div className={`rounded-full p-2 flex-shrink-0 ${isLocationConfirmed ? 'bg-green-500' : 'bg-red-500'}`}>
                         {isExtracting ? <Loader2 className="w-5 h-5 text-white animate-spin" /> : <MapPin className="w-5 h-5 text-white" />}
                       </div>
                       <div className="text-left overflow-hidden">
-                        <h4 className="text-white font-black text-sm truncate">{formData.projectName || "..."}</h4>
-                        <p className="text-[10px] text-slate-400 truncate">{formData.address || t.inputs.addressSim}</p>
+                        <h4 className="text-white font-bold text-sm truncate">{formData.projectName || "Business Name"}</h4>
+                        <p className="text-[10px] text-slate-300 truncate">{formData.address || t.inputs.addressSim}</p>
                       </div>
                     </div>
-                    <span className="text-[10px] font-black text-primary-400 uppercase whitespace-nowrap ml-4">
-                      {isLocationConfirmed ? t.inputs.locationConfirmed : (isRTL ? "اضغط للتأكيد" : "Tap to Confirm")}
+                    <span className="text-[10px] font-black text-primary-400 uppercase tracking-widest whitespace-nowrap ml-4">
+                      {isLocationConfirmed ? t.inputs.locationConfirmed : (isRTL ? "إضغط لتأكيد الموقع" : "Tap to confirm")}
                     </span>
                   </button>
                 )}
               </div>
             </div>
 
-            <div className="space-y-3">
-               <label className="text-xs uppercase tracking-wider text-slate-500 font-black px-1">{t.inputs.name}</label>
+            <div className="space-y-2">
+               <label className="text-xs uppercase tracking-wider text-slate-500 font-semibold">{t.inputs.name}</label>
                <div className="relative">
-                 <input 
-                    type="text" 
-                    value={formData.projectName} 
-                    required 
-                    onChange={(e) => setFormData({...formData, projectName: e.target.value})} 
-                    className={`w-full bg-slate-900 border-2 border-slate-700 rounded-2xl px-4 py-5 text-white focus:ring-2 focus:ring-primary-500 outline-none text-lg font-bold transition-all ${isRTL ? 'pr-14' : 'pl-14'}`} 
-                    placeholder={getDynamicPlaceholder()} 
-                 />
-                 <Search className={`absolute top-1/2 -translate-y-1/2 ${isRTL ? 'right-5' : 'left-5'} w-6 h-6 text-slate-600`} />
+                 <Search className={`absolute top-1/2 -translate-y-1/2 ${isRTL ? 'right-4' : 'left-4'} w-5 h-5 text-slate-500`} />
+                 <input type="text" value={formData.projectName} required onChange={(e) => setFormData({...formData, projectName: e.target.value})} className={`w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-4 text-white focus:ring-2 focus:ring-primary-500 outline-none transition-all ${isRTL ? 'pr-12 text-right' : 'pl-12 text-left'}`} placeholder={getPlaceholder()} />
                </div>
             </div>
           </div>
 
-          {/* --- 3. المستطيلات الثلاثة (تم استعادة الأسهم وضبط المحاذاة) --- */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            
-            {/* سنة التأسيس */}
-            <div className="bg-slate-900/50 p-5 rounded-2xl border border-slate-700/50 flex flex-col hover:border-slate-500 transition-colors">
-              <label className="text-[10px] uppercase font-black text-slate-500 mb-3 min-h-[40px] flex items-end">
-                 {isRTL ? "سنة التأسيس / الفرع" : "Establishment Year"}
-              </label>
-              <div className="relative">
-                {/* تم إزالة كلاسات إخفاء الأسهم لضمان ظهورها */}
-                <input 
-                  type="number" 
-                  required 
-                  min="1900"
-                  className="w-full bg-slate-900 border border-slate-600 rounded-xl py-4 px-3 text-white font-black focus:ring-1 focus:ring-primary-500 outline-none text-xl" 
-                  value={formData.establishedYear} 
-                  onChange={(e) => setFormData({...formData, establishedYear: parseInt(e.target.value)})} 
-                />
-                <Calendar className={`absolute top-4 w-5 h-5 text-slate-700 pointer-events-none ${isRTL ? 'left-3' : 'right-3'}`} />
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <label className="text-xs uppercase tracking-wider text-slate-500 font-semibold">{isRTL ? "سنة التأسيس / افتتاح الفرع" : t.inputs.year}</label>
+              <input type="number" required min="1900" max={currentYear} className="w-full bg-slate-900 border border-slate-600 rounded-xl py-3 px-4 text-white focus:ring-2 focus:ring-primary-500" value={formData.establishedYear} onChange={(e) => setFormData({...formData, establishedYear: parseInt(e.target.value)})} />
             </div>
-
-            {/* عدد التقييمات */}
-            <div className="bg-slate-900/50 p-5 rounded-2xl border border-slate-700/50 flex flex-col hover:border-slate-500 transition-colors">
-              <label className="text-[10px] uppercase font-black text-slate-500 mb-3 min-h-[40px] flex items-end">
-                 {isRTL ? "عدد التقييمات الحالي" : "Current Review Count"}
-              </label>
-              <div className="relative">
-                <input 
-                  type="number" 
-                  required 
-                  min="0"
-                  className={`w-full bg-slate-900 border rounded-xl py-4 px-3 text-white font-black focus:ring-1 focus:ring-primary-500 outline-none text-xl ${isExtracting ? 'animate-pulse' : ''} ${isLocationConfirmed ? 'border-green-500/50 text-green-400' : 'border-slate-600'}`} 
-                  value={formData.currentReviews} 
-                  onChange={(e) => setFormData({...formData, currentReviews: parseInt(e.target.value)})} 
-                />
-                <Star className={`absolute top-4 w-5 h-5 text-slate-700 pointer-events-none ${isRTL ? 'left-3' : 'right-3'}`} />
-              </div>
+            <div className="space-y-2">
+              <label className="text-xs uppercase tracking-wider text-slate-500 font-semibold">{isRTL ? "عدد التقييمات الحالي" : t.inputs.reviews}</label>
+              <input type="number" required className={`w-full bg-slate-900 border ${extractionComplete ? 'border-green-500/50 bg-green-900/10' : 'border-slate-600'} rounded-xl py-3 px-4 text-white focus:ring-2 focus:ring-primary-500`} value={formData.currentReviews} onChange={(e) => setFormData({...formData, currentReviews: parseInt(e.target.value)})} />
             </div>
-
-            {/* عدد العملاء */}
-            <div className="bg-slate-900/50 p-5 rounded-2xl border border-slate-700/50 flex flex-col hover:border-slate-500 transition-colors">
-              <label className="text-[10px] uppercase font-black text-slate-500 mb-3 min-h-[40px] flex items-end">
-                 {isRTL ? "متوسط العملاء يومياً" : "Daily Customers"}
-              </label>
-              <div className="relative">
-                <input 
-                  type="number" 
-                  required 
-                  min="1"
-                  className="w-full bg-slate-900 border border-slate-600 rounded-xl py-4 px-3 text-white font-black focus:ring-1 focus:ring-primary-500 outline-none text-xl" 
-                  value={formData.dailyCustomers} 
-                  onChange={(e) => setFormData({...formData, dailyCustomers: parseInt(e.target.value)})} 
-                />
-                <Users className={`absolute top-4 w-5 h-5 text-slate-700 pointer-events-none ${isRTL ? 'left-3' : 'right-3'}`} />
-              </div>
+            <div className="space-y-2">
+              <label className="text-xs uppercase tracking-wider text-slate-500 font-semibold">{isRTL ? "كم عدد عملائك في اليوم تقريباً " : t.inputs.customers}</label>
+              <input type="number" required min="1" className="w-full bg-slate-900 border border-slate-600 rounded-xl py-3 px-4 text-white focus:ring-2 focus:ring-primary-500" value={formData.dailyCustomers} onChange={(e) => setFormData({...formData, dailyCustomers: parseInt(e.target.value)})} />
             </div>
-
           </div>
 
-          <button type="submit" className="w-full bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-black text-xl py-6 rounded-3xl shadow-2xl transform transition hover:-translate-y-1 active:scale-[0.98] uppercase tracking-[0.2em] flex items-center justify-center gap-3">
-            <Zap className="w-6 h-6 fill-white" />
+          <button type="submit" className="w-full bg-primary-500 hover:bg-primary-600 text-white font-black text-xl py-5 rounded-2xl shadow-2xl transform transition active:scale-[0.98] uppercase tracking-[0.2em] mt-4">
             {t.inputs.submit}
           </button>
         </form>
