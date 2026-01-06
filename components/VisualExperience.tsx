@@ -4,7 +4,7 @@ import { TEXTS } from '../constants';
 import { 
   ArrowLeft, ArrowRight, MoreVertical, Phone, Video, 
   CheckCheck, Smile, Paperclip, Camera, Mic, Star, 
-  MapPin, MessageCircle, BadgeCheck, Zap, Timer, 
+  MapPin, MessageCircle, BadgeCheck, Zap, 
   ShieldAlert, TrendingUp, Lock, UserCog, Signal, Wifi, Battery
 } from 'lucide-react';
 
@@ -24,23 +24,6 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
   const [hoverRating, setHoverRating] = useState(0);
   const [submitted, setSubmitted] = useState(false);
 
-  // --- المؤقت التنازلي (5 دقائق) ---
-  const [timeLeft, setTimeLeft] = useState(300);
-
-  useEffect(() => {
-    if (timeLeft <= 0) return;
-    const timerId = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
-    }, 1000);
-    return () => clearInterval(timerId);
-  }, [timeLeft]);
-
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  };
-
   useEffect(() => {
     if (stage === 'chat') {
       const timer = setTimeout(() => setMsgVisible(true), 800);
@@ -59,7 +42,6 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
-    // تأخير بسيط قبل إظهار شاشة الإغلاق
     setTimeout(() => setStage('post-demo'), 500);
   };
 
@@ -70,13 +52,16 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
   };
 
   const messageTemplate = getCategorizedMessage();
+  
+  // --- رسالة الواتساب الرسمية (بدون خصم) ---
   const waNumber = "96566305551"; 
   const customWAMessage = isRTL 
-    ? `مرحباً، أريد الاستفادة من عرض خصم الـ 70% وتفعيل نظام Elegant Options لمشروعي (${data.projectName})` 
-    : `Hello, I want to claim the 70% discount offer and activate Elegant Options for my project (${data.projectName})`;
+    ? `مرحباً، أريد تفعيل نظام Elegant Options لمشروعي (${data.projectName}) للبدء في حماية السمعة وزيادة المبيعات.` 
+    : `Hello, I want to activate the Elegant Options system for my project (${data.projectName}) to start protecting reputation and boosting sales.`;
+    
   const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(customWAMessage)}`;
 
-  // --- مكون: شرح منطق النظام (الخطوات) ---
+  // --- مكون: شرح منطق النظام ---
   const SystemLogicExplainer = () => {
     if (rating === 0) return null;
     const isPositive = rating >= 4;
@@ -92,7 +77,6 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
            </h4>
         </div>
         
-        {/* الخطوات المتغيرة */}
         <div className="space-y-2">
            <div className="flex items-center gap-2 text-xs text-slate-600">
               <div className={`w-1.5 h-1.5 rounded-full ${isPositive ? 'bg-green-400' : 'bg-red-400'}`}></div>
@@ -119,10 +103,9 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
     );
   };
 
-  // --- مكون: شاشة الإغلاق البيعي (Post Demo) ---
+  // --- مكون: شاشة الإغلاق البيعي ---
   const PostDemoView = () => (
     <div className="flex-1 flex flex-col items-center justify-center bg-white p-6 text-center animate-fade-in h-full relative overflow-hidden">
-        {/* الخلفية الجمالية */}
         <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 to-blue-500"></div>
         <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-green-50 rounded-full blur-3xl opacity-50"></div>
 
@@ -201,7 +184,6 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
               </div>
             </div>
 
-            {/* هنا يظهر شرح النظام ديناميكياً */}
             <SystemLogicExplainer />
 
             {rating > 0 && (
@@ -303,26 +285,16 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
   return (
     <div className={`max-w-4xl mx-auto flex flex-col items-center animate-fade-in pb-10 ${isRTL ? 'font-tajawal' : 'font-sans'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       
-      {/* 1. Header & Timer */}
-      <div className="text-center space-y-6 w-full mb-8">
-        <div className="space-y-2">
-            <h2 className="text-3xl font-black text-white uppercase tracking-tight leading-tight">
-                {isRTL ? "حول عملاءك إلى جيش من المروجين، واحمِ سمعتك بذكاء" : "Turn Loyalty into Profit & Shield Your Reputation"}
-            </h2>
-            <p className="text-slate-400 text-sm font-medium">
-                {isRTL ? "نظام أوتوماتيكي: يحفز الإيجابي، ويحتوي السلبي قبل أن ينتشر." : "Automated System: Boosts the positive, contains the negative before it spreads."}
-            </p>
-        </div>
-        
-        <div className="bg-red-600/10 border border-red-500/50 backdrop-blur-md text-white py-2 px-6 rounded-full inline-flex items-center gap-3 shadow-[0_0_20px_rgba(220,38,38,0.4)] animate-pulse mx-auto">
-            <div className="w-2 h-2 rounded-full bg-red-500 animate-ping"></div>
-            <span className="text-sm font-bold tracking-wide">
-                {isRTL ? "ينتهي عرض الخصم 70% خلال:" : "70% Discount ends in:"}
-            </span>
-            <span className="text-xl font-black text-red-400 font-mono tracking-widest bg-slate-900/50 px-2 rounded-md">
-                {formatTime(timeLeft)}
-            </span>
-        </div>
+      {/* 1. Header (Clean & Professional) */}
+      <div className={`space-y-4 w-full mb-8 ${isRTL ? 'text-center' : 'text-left pl-4 md:pl-0'}`}>
+        <h2 className="text-3xl font-black text-white uppercase tracking-tight leading-tight">
+            {isRTL ? "نظام النمو الذكي وحماية السمعة" : "Smart Growth & Reputation Protection System"}
+        </h2>
+        <p className="text-slate-400 text-sm font-medium">
+            {isRTL 
+             ? "نظام أوتوماتيكي: يحفز الإيجابي، ويحتوي السلبي قبل أن ينتشر." 
+             : "Automated System: Boosts positive reviews, contains negative ones before they spread."}
+        </p>
       </div>
 
       {/* 2. iPhone Mockup */}
@@ -350,13 +322,9 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
           <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-32 h-1.5 bg-white rounded-full z-30 opacity-40"></div>
         </div>
 
-        {/* 3. CTA */}
+        {/* 3. CTA Button (Clean) */}
         <div className="w-full max-w-[370px] space-y-4 mt-8 px-2">
            <div className="relative group cursor-pointer">
-             <div className="absolute -top-5 right-0 z-20 bg-yellow-400 text-black font-black text-xs px-3 py-1.5 rounded-lg shadow-lg animate-bounce border-2 border-black rotate-3">
-                🔥 {isRTL ? "خصم 70% لفترة محدودة" : "70% OFF Limited Time"}
-             </div>
-             
              <a 
                href={waLink} 
                target="_blank" 
