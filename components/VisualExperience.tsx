@@ -84,23 +84,23 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
     const isPositive = rating >= 4;
 
     return (
-      <div className={`mt-5 mx-4 p-4 rounded-2xl border transition-all duration-500 animate-fade-in-up shadow-sm ${isPositive ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200' : 'bg-gradient-to-br from-red-50 to-orange-50 border-red-200'}`}>
-        <div className="flex items-center gap-2 mb-3">
+      <div className={`mt-4 mx-4 p-3 rounded-2xl border transition-all duration-500 animate-fade-in-up shadow-sm ${isPositive ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200' : 'bg-gradient-to-br from-red-50 to-orange-50 border-red-200'}`}>
+        <div className="flex items-center gap-2 mb-2">
            {isPositive 
-             ? <div className="p-1.5 bg-green-500 rounded-full text-white shadow-lg shadow-green-200"><Sparkles className="w-4 h-4" /></div> 
-             : <div className="p-1.5 bg-red-500 rounded-full text-white shadow-lg shadow-red-200"><ShieldAlert className="w-4 h-4" /></div>
+             ? <div className="p-1 bg-green-500 rounded-full text-white shadow-sm"><Sparkles className="w-3.5 h-3.5" /></div> 
+             : <div className="p-1 bg-red-500 rounded-full text-white shadow-sm"><ShieldAlert className="w-3.5 h-3.5" /></div>
            }
-           <h4 className={`font-black text-sm ${isPositive ? 'text-green-800' : 'text-red-800'}`}>
+           <h4 className={`font-black text-xs ${isPositive ? 'text-green-800' : 'text-red-800'}`}>
              {isPositive 
                ? (isRTL ? "تم تفعيل محرك النمو! 🚀" : "Growth Engine Activated! 🚀") 
                : (isRTL ? "تم تفعيل درع الحماية! 🛡️" : "Safety Shield Activated! 🛡️")}
            </h4>
         </div>
         
-        <div className="space-y-3">
-           <div className="flex items-start gap-3">
-              <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${isPositive ? 'bg-green-500 animate-pulse' : 'bg-red-500 animate-pulse'}`}></div>
-              <div className="text-xs text-slate-700 leading-snug">
+        <div className="space-y-2">
+           <div className="flex items-start gap-2">
+              <div className={`mt-1 w-1.5 h-1.5 rounded-full shrink-0 ${isPositive ? 'bg-green-500 animate-pulse' : 'bg-red-500 animate-pulse'}`}></div>
+              <div className="text-[11px] text-slate-700 leading-snug">
                   <span className="font-bold block mb-0.5">{isRTL ? "تحليل الذكاء الاصطناعي:" : "AI Analysis:"}</span>
                   {isPositive 
                     ? (isRTL ? "العميل سعيد جداً (فرصة ذهبية للترويج)." : "Customer is happy (Golden opportunity).") 
@@ -108,9 +108,9 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
               </div>
            </div>
 
-           <div className="flex items-start gap-3">
-              <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${isPositive ? 'bg-green-500' : 'bg-red-500'}`}></div>
-              <div className="text-xs text-slate-700 leading-snug">
+           <div className="flex items-start gap-2">
+              <div className={`mt-1 w-1.5 h-1.5 rounded-full shrink-0 ${isPositive ? 'bg-green-500' : 'bg-red-500'}`}></div>
+              <div className="text-[11px] text-slate-700 leading-snug">
                   <span className="font-bold block mb-0.5">{isRTL ? "الإجراء الذكي المتخذ:" : "Smart Action Taken:"}</span>
                   {isPositive 
                     ? (isRTL ? "✅ توجيه العميل فوراً لخرائط جوجل لرفع الترتيب." : "✅ Redirecting to Google Maps to boost SEO.") 
@@ -126,7 +126,7 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
   const PostDemoView = () => (
     <div className="flex-1 flex flex-col items-center justify-center bg-white p-6 text-center animate-fade-in h-full relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-green-400 to-blue-500"></div>
-        <div className="relative z-10 w-full max-w-xs">
+        <div className="relative z-10 w-full max-w-xs flex flex-col items-center justify-center h-full">
             <div className="w-20 h-20 mx-auto bg-green-50 rounded-full flex items-center justify-center mb-6 shadow-sm border border-green-100">
                 <CheckCheck className="w-10 h-10 text-green-600" />
             </div>
@@ -146,26 +146,26 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
     </div>
   );
 
-  // --- مكون: شاشة الاستبيان ---
+  // --- مكون: شاشة الاستبيان (بدون سكرول) ---
   const SurveyView = () => (
-    <div className="flex-1 flex flex-col bg-white animate-fade-in relative h-full">
-      <div className="pt-14 pb-4 px-6 flex flex-col items-center text-center bg-slate-50/50 border-b border-slate-100/50 backdrop-blur-md sticky top-0 z-10">
-        <div className="w-16 h-16 mx-auto bg-white rounded-2xl shadow-sm flex items-center justify-center p-2 border border-slate-100 mb-2">
-          <span className="text-3xl font-bold text-slate-800">{data.projectName.charAt(0)}</span>
+    <div className="flex-1 flex flex-col bg-white animate-fade-in relative h-full overflow-hidden">
+      <div className="pt-12 pb-3 px-4 flex flex-col items-center text-center bg-slate-50/80 border-b border-slate-100/80 backdrop-blur-md z-10 shrink-0">
+        <div className="w-14 h-14 mx-auto bg-white rounded-2xl shadow-sm flex items-center justify-center p-2 border border-slate-100 mb-2">
+          <span className="text-2xl font-bold text-slate-800">{data.projectName.charAt(0)}</span>
         </div>
         <div className="flex items-center justify-center gap-1.5">
-            <h3 className="text-lg font-black text-slate-800">{data.projectName || "Business Name"}</h3>
-            <BadgeCheck className="w-5 h-5 text-green-500 fill-green-100" />
+            <h3 className="text-base font-black text-slate-800 truncate max-w-[200px]">{data.projectName || "Business Name"}</h3>
+            <BadgeCheck className="w-4 h-4 text-green-500 fill-green-100" />
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar bg-white">
-          <div className="w-full space-y-6 pt-6 pb-20">
-            <div className="px-5">
-              <p className="text-sm font-bold text-slate-600 mb-4 text-center">
+      <div className="flex-1 flex flex-col justify-between py-4 px-4 overflow-hidden bg-white">
+          <div className="w-full space-y-4">
+            <div className="px-2">
+              <p className="text-sm font-bold text-slate-600 mb-3 text-center">
                 {isRTL ? `كيف كانت تجربتك معنا؟` : t.survey.ratePrompt.replace('{projectName}', data.projectName)}
               </p>
-              <div className="flex items-center justify-center gap-3">
+              <div className="flex items-center justify-center gap-2">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
                     key={star}
@@ -176,7 +176,7 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                     className="transition-all transform hover:scale-110 active:scale-90 focus:outline-none"
                   >
                     <Star 
-                      className={`w-11 h-11 ${
+                      className={`w-10 h-10 ${
                         star <= (hoverRating || rating) 
                           ? 'fill-yellow-400 text-yellow-400 drop-shadow-md' 
                           : 'text-slate-200 fill-slate-50'
@@ -190,25 +190,25 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
             <SystemLogicExplainer />
 
             {rating > 0 && (
-              <div className="px-5 animate-fade-in-up w-full space-y-4">
+              <div className="px-2 animate-fade-in-up w-full space-y-3">
                 <textarea
                   placeholder={t.survey.placeholder}
-                  className="w-full h-24 p-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none transition-all placeholder:text-slate-400"
+                  className="w-full h-auto flex-1 min-h-[80px] p-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none transition-all placeholder:text-slate-400"
                 ></textarea>
 
                 {rating >= 4 ? (
                   <button 
                     onClick={handleSubmit}
-                    className="w-full py-4 bg-[#0ea5e9] hover:bg-[#0284c7] text-white font-black text-sm rounded-2xl shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2 transform active:scale-95"
+                    className="w-full py-3.5 bg-[#0ea5e9] hover:bg-[#0284c7] text-white font-black text-sm rounded-2xl shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2 transform active:scale-95 shrink-0"
                   >
-                    <MapPin className="w-5 h-5" /> {isRTL ? "نشر على جوجل ماب" : t.survey.submitGoogle}
+                    <MapPin className="w-4 h-4" /> {isRTL ? "نشر على جوجل ماب" : t.survey.submitGoogle}
                   </button>
                 ) : (
                   <button 
                     onClick={handleSubmit}
-                    className="w-full py-4 bg-slate-900 hover:bg-black text-white font-black text-sm rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 transform active:scale-95"
+                    className="w-full py-3.5 bg-slate-900 hover:bg-black text-white font-black text-sm rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 transform active:scale-95 shrink-0"
                   >
-                    <UserCog className="w-5 h-5" />
+                    <UserCog className="w-4 h-4" />
                     {t.survey.submitPrivate}
                   </button>
                 )}
@@ -219,31 +219,31 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
     </div>
   );
 
-  // --- مكون: شاشة المحادثة ---
+  // --- مكون: شاشة المحادثة (بدون سكرول) ---
   const ChatView = () => (
     <div className="flex-1 flex flex-col overflow-hidden relative bg-[#e5ddd5] h-full">
-      <div className="bg-[#075e54] p-3 pt-12 flex items-center justify-between text-white shadow-sm z-10 relative backdrop-blur-md bg-opacity-95">
+      <div className="bg-[#075e54]/95 p-3 pt-12 flex items-center justify-between text-white shadow-sm z-10 relative backdrop-blur-md shrink-0">
         <div className="flex items-center gap-2 overflow-hidden">
           <ArrowLeft className="w-5 h-5 cursor-pointer" onClick={onBack} />
-          <div className="w-10 h-10 rounded-full bg-white flex-shrink-0 p-0.5 flex items-center justify-center">
-             <span className="text-slate-800 font-bold text-base">{data.projectName.charAt(0)}</span>
+          <div className="w-9 h-9 rounded-full bg-white flex-shrink-0 p-0.5 flex items-center justify-center">
+             <span className="text-slate-800 font-bold text-sm">{data.projectName.charAt(0)}</span>
           </div>
           <div className="flex-1 min-w-0 flex flex-col justify-center">
              <div className="flex items-center gap-1">
-                <h3 className="text-[15px] font-bold truncate leading-tight">{data.projectName || "Business"}</h3>
-                <BadgeCheck className="w-4 h-4 text-green-400 fill-white" />
+                <h3 className="text-[14px] font-bold truncate leading-tight">{data.projectName || "Business"}</h3>
+                <BadgeCheck className="w-3.5 h-3.5 text-green-400 fill-white" />
              </div>
-             <p className="text-[11px] opacity-80 text-left">Official Business Account</p>
+             <p className="text-[10px] opacity-80 text-left">Official Business Account</p>
           </div>
         </div>
-        <div className="flex items-center gap-4 opacity-90">
+        <div className="flex items-center gap-3 opacity-90">
           <Video className="w-5 h-5" />
           <Phone className="w-5 h-5" />
           <MoreVertical className="w-5 h-5" />
         </div>
       </div>
 
-      <div className="flex-1 p-4 space-y-4 overflow-y-auto custom-scrollbar relative z-0" style={{ backgroundImage: 'url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")', backgroundSize: '400px' }}>
+      <div className="flex-1 p-4 space-y-4 overflow-hidden relative z-0" style={{ backgroundImage: 'url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")', backgroundSize: '400px' }}>
         <div className="flex justify-center mb-4">
           <span className="bg-[#dcf8c6]/90 backdrop-blur-sm text-[10px] text-slate-600 px-2 py-0.5 rounded-lg shadow-sm font-medium uppercase tracking-wide">
              {t.visualExp.status}
@@ -271,7 +271,7 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
         )}
       </div>
 
-      <div className="bg-[#f0f2f5] px-2 py-2 flex items-end gap-2 relative z-10 pb-6 pt-3">
+      <div className="bg-[#f0f2f5] px-2 py-2 flex items-end gap-2 relative z-10 pb-6 pt-3 shrink-0">
         <div className="bg-white flex-1 rounded-[24px] px-4 py-2.5 flex items-end gap-3 shadow-sm border border-slate-200/50">
             <Smile className="w-6 h-6 text-[#8696a0] mb-0.5 cursor-pointer" />
             <div className="flex-1 text-[16px] text-[#54656f] leading-[1.4] py-0.5">Message</div>
@@ -288,19 +288,19 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
   return (
     <div className={`max-w-4xl mx-auto flex flex-col items-center animate-fade-in pb-10 ${isRTL ? 'font-tajawal' : 'font-sans'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       
-      {/* 1. Header (Clean & Pro) - Left Aligned for English */}
-      <div className={`space-y-4 w-full mb-8 px-4 ${isRTL ? 'text-center' : 'text-left max-w-[370px] mx-auto md:max-w-none'}`}>
+      {/* 1. Header (Centered for both languages) */}
+      <div className="space-y-4 w-full mb-8 px-4 text-center mx-auto">
         <h2 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tight leading-tight">
             {isRTL ? "نظام النمو الذكي وحماية السمعة" : "Smart Growth & Reputation Protection System"}
         </h2>
-        <p className="text-slate-400 text-sm md:text-base font-medium leading-relaxed max-w-2xl">
+        <p className="text-slate-400 text-sm md:text-base font-medium leading-relaxed max-w-2xl mx-auto">
             {isRTL 
              ? "نظام أوتوماتيكي متكامل: يحفز العملاء السعداء للنشر، ويحتوي العملاء الغاضبين قبل أن يكتبوا." 
              : "Automated System: Boosts positive reviews from happy customers, and intercepts negative feedback before it goes public."}
         </p>
 
-        {/* --- بانر المؤقت (تمت إعادته بطلبك) --- */}
-        <div className={`bg-red-600/10 border border-red-500/50 backdrop-blur-md text-white py-2 px-6 rounded-full inline-flex items-center gap-3 shadow-[0_0_20px_rgba(220,38,38,0.4)] animate-pulse ${isRTL ? 'mx-auto' : ''}`}>
+        {/* --- بانر المؤقت (Centered) --- */}
+        <div className="bg-red-600/10 border border-red-500/50 backdrop-blur-md text-white py-2 px-6 rounded-full inline-flex items-center gap-3 shadow-[0_0_20px_rgba(220,38,38,0.4)] animate-pulse mx-auto">
             <Timer className="w-4 h-4 text-yellow-400" />
             <span className="text-sm font-bold tracking-wide">
                 {isRTL ? "ينتهي خصم الـ 70% خلال:" : "70% Discount ends in:"}
@@ -311,9 +311,9 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
         </div>
       </div>
 
-      {/* 2. iPhone 15 Pro Max Mockup */}
+      {/* 2. iPhone 17 Pro Max Titanium Mockup (Thinner Bezels, No Scrolling) */}
       <div className="relative w-full flex flex-col items-center">
-        <div className="relative mx-auto w-[360px] h-[740px] bg-[#1b1b1b] rounded-[60px] shadow-[0_0_0_4px_#333,0_0_0_8px_#121212,0_30px_60px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col z-10 ring-1 ring-white/10">
+        <div className="relative mx-auto w-[360px] h-[740px] bg-black rounded-[64px] shadow-[0_0_0_2px_#3a3a3a,0_0_0_4px_#1a1a1a,0_30px_80px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col z-10 ring-[3px] ring-[#5a5a5a]/50">
           
           {/* Dynamic Island */}
           <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[120px] h-[36px] bg-black rounded-full z-30 flex items-center justify-center gap-3 px-3">
@@ -331,8 +331,8 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
              </div>
           </div>
           
-          {/* Content Area */}
-          <div className="flex-1 relative flex flex-col overflow-hidden bg-white rounded-[52px] mt-2 mb-2 ml-2 mr-2 border border-black/10">
+          {/* Content Area (Fixed, No Scrolling) */}
+          <div className="flex-1 relative flex flex-col overflow-hidden bg-white rounded-[58px] mt-2 mb-2 ml-2 mr-2 border border-black/10">
              {stage === 'chat' ? <ChatView /> : (stage === 'survey' ? <SurveyView /> : <PostDemoView />)}
           </div>
 
@@ -343,8 +343,8 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
         {/* 3. CTA Button (With Badge) */}
         <div className="w-full max-w-[370px] space-y-4 mt-10 px-2">
            <div className="relative group cursor-pointer">
-             {/* --- شارة الخصم (تمت إعادتها بطلبك) --- */}
-             <div className={`absolute -top-5 z-20 bg-yellow-400 text-black font-black text-xs px-3 py-1.5 rounded-lg shadow-lg animate-bounce border-2 border-black rotate-3 ${isRTL ? 'right-0' : 'right-0'}`}>
+             {/* --- شارة الخصم --- */}
+             <div className={`absolute -top-5 z-20 bg-yellow-400 text-black font-black text-xs px-3 py-1.5 rounded-lg shadow-lg animate-bounce border-2 border-black rotate-3 right-0`}>
                 🔥 {isRTL ? "خصم 70% لفترة محدودة" : "70% OFF Limited Time"}
              </div>
 
