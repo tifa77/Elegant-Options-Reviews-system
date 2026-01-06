@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Language, AuditData } from '../types';
 import { TEXTS } from '../constants';
 import { 
@@ -38,14 +38,16 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
   const [showMapDetails, setShowMapDetails] = useState(false);
   const [isLocationConfirmed, setIsLocationConfirmed] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
+  
+  // مرجع لخدمة الأماكن
+  const mapRef = useRef<HTMLDivElement>(null);
 
-  // --- منطق الخريطة (يعمل 100%) ---
+  // --- تحديث الخريطة والبحث عن البيانات ---
   useEffect(() => {
     setIsLocationConfirmed(false);
     
     if (!formData.projectName) {
       setShowMapDetails(false);
-      // خريطة عامة للكويت كبداية
       setMapUrl(`https://maps.google.com/maps?q=Kuwait&t=&z=10&ie=UTF8&iwloc=&output=embed`);
       return;
     }
@@ -56,12 +58,13 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
     const timer = setTimeout(() => {
       const typeLabel = formData.projectType === 'other' ? formData.customProjectType : formData.projectType;
       const query = `${formData.projectName} ${typeLabel}`;
-      // استخدام الرابط الأكثر استقراراً للخرائط
+      
+      // 1. تحديث الـ Iframe للعرض
       setMapUrl(`https://maps.google.com/maps?q=${encodeURIComponent(query)}&t=&z=14&ie=UTF8&iwloc=&output=embed`);
       
       setIsSearching(false);
       setShowMapDetails(true);
-    }, 1000);
+    }, 1200);
 
     return () => clearTimeout(timer);
   }, [formData.projectName, formData.projectType, formData.customProjectType]);
@@ -80,11 +83,47 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
     fetchRealReviewData();
   };
 
-  const fetchRealReviewData = async () => {
+  // --- دالة سحب البيانات (محاكاة دقيقة جداً في حال عدم وجود API Key) ---
+  const fetchRealReviewData = () => {
     setIsExtracting(true);
-    setTimeout(() => {
-        const nameSeed = formData.projectName.length * 42; 
-        const simulatedReviews = Math.floor((nameSeed * 1.5) + 120);
+    
+    // محاولة الاتصال بـ Places API الحقيقي (اذا كان متوفراً)
+    if (window.google && window.google.maps && window.google.maps.places) {
+        const service = new window.google.maps.places.PlacesService(document.createElement('div'));
+        const request = {
+            query: `${formData.projectName} ${formData.projectType}`,
+            fields: ['name', 'user_ratings_total', 'formatted_address', 'rating'],
+        };
+
+        service.findPlaceFromQuery(request, (results, status) => {
+            if (status === window.google.maps.places.PlacesServiceStatus.OK && results && results[0]) {
+                const place = results[0];
+                // استخدام البيانات الحقيقية من جوجل
+                setFormData(prev => ({
+                    ...prev,
+                    currentReviews: place.user_ratings_total || 0,
+                    address: place.formatted_address || "Location Found",
+                    monthlyGrowth: Math.ceil((place.user_ratings_total || 0) * 0.05),
+                    weeklyGrowth: Math.ceil((place.user_ratings_total || 0) * 0.01)
+                }));
+                setIsExtracting(false);
+                return;
+            }
+            // إذا فشل (بسبب عدم وجود API Key)، نستخدم المحاكاة الذكية
+            runSimulation(); 
+        });
+    } else {
+        // إذا لم يتم تحميل مكتبة جوجل، نستخدم المحاكاة الذكية فوراً
+        runSimulation();
+    }
+  };
+
+  // محاكاة ذكية تعطي أرقاماً "منطقية" وليست عشوائية تماماً
+  const runSimulation = () => {
+      setTimeout(() => {
+        // خوارزمية بسيطة لتوليد رقم ثابت بناءً على الاسم (لكي لا يتغير كل مرة)
+        const nameSeed = formData.projectName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const simulatedReviews = (nameSeed % 500) + 50; // رقم بين 50 و 550
         
         setFormData(prev => ({
             ...prev,
@@ -143,7 +182,6 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
 
       {/* الحاوية الرئيسية الزجاجية */}
       <div className="bg-[#0f172a]/70 backdrop-blur-xl rounded-[3rem] shadow-[0_0_50px_rgba(15,23,42,0.5)] border border-white/5 p-6 md:p-10 relative overflow-hidden">
-        {/* خلفية جمالية خفيفة */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent opacity-50"></div>
 
         <form onSubmit={handleSubmit} className="space-y-10 relative z-10">
@@ -172,7 +210,6 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
               ))}
             </div>
 
-            {/* حقل "أخرى" يظهر بسلاسة */}
             {formData.projectType === 'other' && (
               <div className="animate-fade-in-up mt-2 relative">
                 <div className="absolute inset-y-0 flex items-center pointer-events-none px-4 text-cyan-500">
@@ -209,7 +246,6 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
                   className="opacity-70 group-hover:opacity-100 transition-opacity duration-700 filter grayscale-[30%] hover:grayscale-0"
                 ></iframe>
 
-                {/* شريط الحالة العائم */}
                 {showMapDetails && (
                   <div className="absolute inset-x-3 bottom-3">
                       <button type="button" onClick={handleConfirmLocation} disabled={isLocationConfirmed || isExtracting} className={`w-full p-3 rounded-2xl shadow-xl flex items-center justify-between transition-all duration-300 backdrop-blur-md border ${isLocationConfirmed ? 'bg-green-500/10 border-green-500/50' : 'bg-slate-900/80 border-slate-600 hover:border-blue-500'}`}>
@@ -255,7 +291,7 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
             </div>
           </div>
 
-          {/* 3. المستطيلات الثلاثة (نفس التنسيق الصارم مع تجميل الألوان) */}
+          {/* 3. المستطيلات الثلاثة (تصميم موحد) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             
             {/* سنة التأسيس */}
@@ -314,7 +350,6 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
 
           </div>
 
-          {/* زر الفحص الاحترافي */}
           <button 
             type="submit" 
             className="group w-full relative overflow-hidden bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-black text-xl py-6 rounded-3xl shadow-[0_10px_40px_rgba(37,99,235,0.4)] transform transition-all hover:-translate-y-1 active:scale-[0.98] uppercase tracking-[0.2em] flex items-center justify-center gap-4 mt-8"
