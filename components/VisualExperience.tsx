@@ -16,9 +16,13 @@ interface VisualExperienceProps {
 }
 
 const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onBack }) => {
+  // حماية لمنع الشاشة البيضاء
   if (!data || !data.projectName) return null;
 
   const isRTL = language === 'ar';
+  // فرضنا RTL دائماً في هذه الواجهة بناءً على طلبك للواقعية العربية
+  const dir = 'rtl'; 
+  
   const [stage, setStage] = useState<'chat' | 'survey' | 'post-demo'>('chat');
   const [msgVisible, setMsgVisible] = useState(false);
   const [rating, setRating] = useState<null | 'happy' | 'neutral' | 'sad'>(null);
@@ -51,12 +55,40 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
     return `يعطيك العافية، مشكور على ثقتك في **${data.projectName}**. إن شاء الله الخدمة جازت لك وما قصرنا معاك؟ يهمنا رأيك..`;
   };
 
+  // رابط الواتساب مع رسالة طلب الخصم
   const waLink = `https://wa.me/96566305551?text=${encodeURIComponent(`مرحباً، أريد الاستفادة من خصم الـ 70% وتفعيل نظام Elegant Options لمشروعي (${data.projectName}).`)}`;
+
+  const SidebarGuide = ({ side, title, text, icon: Icon, color, visible }: any) => {
+    if (!visible) return null;
+    const colorClasses = {
+      green: 'border-green-500/50 bg-green-950/40 text-green-400',
+      red: 'border-red-500/50 bg-red-950/40 text-red-400',
+      blue: 'border-blue-500/40 bg-slate-900/90 text-blue-400',
+      orange: 'border-orange-500/50 bg-orange-950/40 text-orange-400'
+    };
+    
+    // تعديل اتجاه الأسهم الجانبية بناءً على RTL الثابت
+    const isLeftSide = side === 'left';
+    
+    return (
+      <div className={`absolute z-50 w-72 p-5 rounded-[2rem] border-2 backdrop-blur-2xl shadow-2xl animate-fade-in transition-all duration-700
+        ${colorClasses[color]} ${isLeftSide ? '-left-[20rem]' : '-right-[20rem]'} top-1/4 hidden lg:block text-right`}>
+        <div className="flex items-center gap-2 mb-3 justify-end">
+          <h4 className="text-white font-black text-xs uppercase tracking-tighter">{title}</h4>
+          <Icon className="w-6 h-6" />
+        </div>
+        <p className="text-slate-200 text-[11px] leading-relaxed font-bold mb-4">{text}</p>
+        <div className={`absolute top-1/2 -translate-y-1/2 ${isLeftSide ? '-right-10' : '-left-10'} text-white animate-pulse`}>
+           {isLeftSide ? <MoveRight size={28} /> : <MoveLeft size={28} />}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="max-w-6xl mx-auto flex flex-col items-center animate-fade-in pb-10 relative font-tajawal text-right" dir="rtl">
       
-      {/* لوجو Elegant Options الأزرق - ثابت أسفل يسار */}
+      {/* لوجو Elegant Options الأزرق الثابت */}
       <div className="fixed bottom-6 left-6 z-[100] hidden md:block">
          <img src="https://storage.googleapis.com/msgsndr/vX7gQQOe9PXtkGes2GOJ/media/6944362aa49c0a6975236470.png" alt="Elegant Options" className="w-14 h-14 object-contain" />
       </div>
@@ -68,45 +100,69 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
       </div>
 
       <div className="relative">
+        {/* الإرشادات الجانبية */}
+        <SidebarGuide side='left' visible={stage === 'chat'} title="الأتمتة اللحظية ⚡" color="blue" icon={Zap}
+          text={`بمجرد انتهاء الخدمة ${isRestaurant ? 'أو استلام الطلب من (طلبات/كيتا)' : ''}، يرسل النظام هذه الرسالة آلياً. (يمكنك تخصيص وتعديل محتواها بالكامل حسب مشروعك).`}
+        />
+        <SidebarGuide side='right' visible={stage === 'survey' && rating === 'sad'} title="درع الحماية النشط 🛡️" color="red" icon={ShieldAlert}
+          text="الذكاء الاصطناعي رصد استياءً! سيقوم الآن بحجب هذا التقييم عن جوجل تماماً، وتوجيه العميل لرسالة خاصة للمدير لحل المشكلة فوراً."
+        />
+        <SidebarGuide side='right' visible={stage === 'survey' && rating === 'neutral'} title="إجراء وقائي ⚠️" color="orange" icon={Info}
+          text="تقييم متوسط؟ كإجراء احتياطي لحماية معدل النجوم، يتم تحويل العميل للمدير لمعرفة سبب القصور بدلاً من نشره."
+        />
+        <SidebarGuide side='right' visible={stage === 'survey' && rating === 'happy'} title="محرك الهيمنة 🚀" color="green" icon={TrendingUp}
+          text="العميل سعيد! النظام سيفهم ذلك ويقوم بإظهار صفحة تقييم مشروعك على جوجل مباشرة بـ 5 نجوم جاهزة، ليضمن لك الصدارة."
+        />
+
         {/* iPhone Simulation */}
         <div className="relative mx-auto w-[330px] md:w-[360px] h-[680px] md:h-[740px] bg-black rounded-[60px] shadow-[0_40px_100px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col z-10 border border-white/10">
-          <div className="absolute top-0 inset-x-0 h-12 z-20 flex justify-between items-center px-10 pt-4 text-white text-[12px] font-bold">
+          <div className="absolute top-0 inset-x-0 h-12 z-20 flex justify-between items-center px-10 pt-4 text-white text-[12px] font-bold" dir="ltr">
              <span>9:41</span> <div className="flex gap-2"><Signal size={14} /><Wifi size={14} /><Battery size={14} /></div>
           </div>
           <div className="flex-1 relative flex flex-col overflow-hidden bg-white rounded-[50px] m-2 border border-black/20 mt-10 mb-4">
              {stage === 'chat' ? (
                 <div className="flex-1 flex flex-col bg-[#e5ddd5] h-full overflow-hidden">
-                   {/* WhatsApp Header - Realistic RTL */}
-                   <div className="bg-[#075e54] p-3 pt-6 flex items-center justify-between text-white shadow-md">
-                      <div className="flex items-center gap-3">
-                        <MoreVertical size={20} className="opacity-70" />
-                        <Phone size={18} className="opacity-70" />
-                        <Video size={18} className="opacity-70" />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-right">
-                           <div className="flex items-center justify-end gap-1">
-                              <h3 className="text-sm font-black truncate max-w-[120px]">{data.projectName}</h3>
-                              <BadgeCheck size={16} className="text-blue-400 fill-blue-400" />
-                           </div>
-                           <p className="text-[9px] opacity-80 font-bold">نشط الآن</p>
+                   {/* WhatsApp Header - REALISTIC RTL FIX */}
+                   <div className="bg-[#075e54] p-3 pt-6 flex items-center justify-between text-white shadow-md" dir="rtl">
+                      
+                      {/* Right Side: Name, Avatar, Arrow */}
+                      <div className="flex items-center justify-start gap-2 flex-1">
+                        <ArrowRight size={24} className="cursor-pointer opacity-90" onClick={onBack} />
+                        <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-[#075e54] font-black text-lg shadow-inner shrink-0">
+                            {data.projectName?.charAt(0)}
                         </div>
-                        <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-[#075e54] font-black text-lg shadow-inner">{data.projectName?.charAt(0)}</div>
-                        <ArrowRight size={20} className="opacity-70" onClick={onBack} />
+                        <div className="text-right overflow-hidden">
+                           <div className="flex items-center justify-start gap-1">
+                              <h3 className="text-sm font-black truncate max-w-[150px]">{data.projectName}</h3>
+                              <BadgeCheck size={16} className="text-blue-400 fill-blue-400 shrink-0" />
+                           </div>
+                           <p className="text-[9px] opacity-80 font-bold truncate">متصل الآن • حساب تجاري رسمي</p>
+                        </div>
+                      </div>
+
+                      {/* Left Side: Call Icons */}
+                      <div className="flex items-center gap-4 opacity-70 shrink-0">
+                        <Video size={20} />
+                        <Phone size={20} />
+                        <MoreVertical size={20} />
                       </div>
                    </div>
+
                    <div className="flex-1 p-4" style={{ backgroundImage: 'url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")', backgroundSize: '400px' }}>
                       {msgVisible && (
-                        <div className="bg-white p-4 rounded-2xl rounded-tr-none shadow-xl max-w-[90%] animate-fade-in-up border border-slate-100 float-right">
-                           <p className="text-[13px] text-slate-800 leading-relaxed font-bold text-right" dir="rtl">{getKuwaitiMessage()}</p>
-                           <button onClick={() => setStage('survey')} className="w-full mt-4 bg-blue-600 py-3 rounded-xl text-white font-black text-sm shadow-lg">تقييم التجربة الآن</button>
-                           <div className="flex justify-end mt-1 items-center gap-0.5 text-[#53bdeb]"><span className="text-[10px] text-slate-400 font-bold">1:21 PM</span> <CheckCheck size={14} /></div>
+                        <div className="bg-white p-4 rounded-2xl rounded-tr-none shadow-xl max-w-[90%] animate-fade-in-up border border-slate-100 float-right relative" dir="rtl">
+                           {/* Tail fix for RTL */}
+                           <div className="absolute -top-0 -right-2 w-4 h-4 bg-white border-t border-r border-slate-100 transform rotate-45 skew-x-12"></div>
+                           
+                           <p className="text-[13px] text-slate-800 leading-relaxed font-bold text-right relative z-10">{getKuwaitiMessage()}</p>
+                           <button onClick={() => setStage('survey')} className="w-full mt-4 bg-blue-600 py-3 rounded-xl text-white font-black text-sm shadow-lg shadow-blue-100 relative z-10">تقييم التجربة الآن</button>
+                           <div className="flex justify-end mt-1 items-center gap-0.5 text-[#53bdeb] relative z-10"><span className="text-[10px] text-slate-400 font-bold">1:21 PM</span> <CheckCheck size={14} /></div>
                         </div>
                       )}
                    </div>
                 </div>
              ) : stage === 'survey' ? (
-                <div className="flex-1 flex flex-col bg-white h-full overflow-hidden p-6 items-center text-center">
+                <div className="flex-1 flex flex-col bg-white h-full overflow-hidden p-6 items-center text-center" dir="rtl">
                    {/* YOUR LOGO - Enlarged */}
                    <div className="w-28 h-28 bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center mb-4 text-slate-400 shadow-inner">
                       <ImageIcon size={32} />
@@ -117,7 +173,7 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                       <p className="text-[10px] text-slate-500 font-bold">مشروع **{data.projectName}** يطلب مشاركة تجربتك بكل شفافية</p>
                    </div>
                    
-                   <div className="flex justify-between w-full mb-8 px-2" dir="rtl">
+                   <div className="flex justify-between w-full mb-8 px-2">
                       <button onClick={() => setRating('happy')} className={`group flex flex-col items-center gap-3 transition-all duration-500 ${rating === 'happy' ? 'scale-110' : 'opacity-30 grayscale'}`}>
                          <div className="w-16 h-16 bg-green-50 rounded-3xl flex items-center justify-center border-2 border-green-200 shadow-xl group-hover:border-green-500"><Smile size={48} className="text-green-500" /></div>
                          <span className="text-xs font-black text-green-600">ممتازة</span>
@@ -165,20 +221,21 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                    )}
                 </div>
              ) : (
-                <div className="flex-1 flex flex-col items-center justify-center p-10 bg-white h-full text-center">
+                <div className="flex-1 flex flex-col items-center justify-center p-10 bg-white h-full text-center" dir="rtl">
                    <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mb-8 border border-green-100 shadow-inner"><CheckCheck size={50} className="text-green-600 animate-bounce" /></div>
-                   <h2 className="text-2xl font-black text-slate-900 mb-4 tracking-tighter">Elegant Options حماية كاملة 24/7</h2>
-                   <p className="text-slate-600 text-[11px] font-bold leading-relaxed px-4">هذا النظام يضمن لك صدارة نتائج البحث وحماية سمعتك الرقمية من أي عثرات قد تؤثر على مبيعاتك.</p>
+                   {/* العنوان الجديد المعدل */}
+                   <h2 className="text-2xl font-black text-slate-900 mb-4 tracking-tighter">نظام Elegant Options: حماية مستمرة لا تتوقف</h2>
+                   <p className="text-slate-600 text-[11px] font-bold leading-relaxed px-4">هذا النظام يعمل الآن في الخلفية ليضمن لك صدارة نتائج البحث وحماية سمعتك الرقمية من أي تقييم سلبي، لتركز أنت على إدارة وتطوير مشروعك.</p>
                 </div>
              )}
           </div>
         </div>
       </div>
 
-      {/* CTA Section - Re-engineered */}
+      {/* CTA Section - Re-engineered with new text and effects */}
       <div className="w-full max-w-[420px] space-y-5 mt-12 px-4 flex flex-col items-center">
           
-          {/* احجز الخصم الخاص بك - Small & Bottom */}
+          {/* المؤقت المصغر - نقل للأسفل */}
           <div className="bg-red-600/10 border border-red-500/30 py-2 px-6 rounded-full inline-flex items-center gap-3 animate-pulse">
               <Timer className="w-4 h-4 text-red-500" />
               <span className="text-[11px] font-black text-white tracking-widest uppercase">
@@ -187,11 +244,14 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
           </div>
 
           <div className="relative group w-full">
-             {/* Discount Badge */}
-             <div className="absolute -top-5 z-20 bg-yellow-400 text-black font-black text-[12px] px-4 py-1.5 rounded-xl shadow-xl border-2 border-black rotate-2 right-0 tracking-tighter">🔥 خصم 70% متاح الآن</div>
+             {/* Discount Badge with enhanced effects */}
+             <div className="absolute -top-5 z-20 bg-yellow-400 text-black font-black text-[12px] px-4 py-1.5 rounded-xl shadow-[0_0_15px_rgba(250,204,21,0.6)] animate-pulse border-2 border-black rotate-2 right-0 tracking-tighter">
+                🔥 خصم 70% متاح الآن
+             </div>
              
+             {/* Main CTA Button with new text */}
              <a href={waLink} target="_blank" className="relative block w-full py-6 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-black text-2xl rounded-[2rem] shadow-2xl text-center transform hover:-translate-y-1 transition-all border-b-4 border-green-800">
-                <span className="flex items-center justify-center gap-3"><Zap className="fill-yellow-300 text-yellow-300 w-6 h-6" /> خصم 70%</span>
+                <span className="flex items-center justify-center gap-3"><Zap className="fill-yellow-300 text-yellow-300 w-7 h-7" /> احصل على النظام الآن</span>
              </a>
           </div>
 
