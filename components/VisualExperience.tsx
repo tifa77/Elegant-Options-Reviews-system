@@ -52,7 +52,7 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
         ? `يعطيك العافية، مشكور على زيارتك لنا في **${data.projectName}**. عسى عجبك الأكل؟ يهمنا نعرف تجربتك معانا..`
         : `يعطيك العافية، مشكور على ثقتك في **${data.projectName}**. إن شاء الله الخدمة جازت لك وما قصرنا معاك؟ يهمنا رأيك..`;
     }
-    return `Thanks for visiting **${data.projectName}**! We value your feedback..`;
+    return `Thanks for choosing **${data.projectName}**! We value your feedback..`;
   };
 
   const waLink = `https://wa.me/96566305551?text=${encodeURIComponent(`مرحباً، قمت بتجربة المحاكي وأريد تفعيل نظام Elegant Options لمشروعي (${data.projectName}).`)}`;
@@ -108,7 +108,7 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                  : "System sends an automated custom message instantly to capture the feedback at peak satisfaction."}
              />
              <InternalGuide visible={stage === 'survey' && rating === 'sad'} title={isRTL ? "درع الحماية النشط 🛡️" : "Active Protection 🛡️"} color="red" icon={ShieldAlert}
-               text={isRTL ? "تم رصد استياء العميل! سيتم توجيه ملاحظته للادارة فوراً للتواصل معه والحرص على رضاء جميع العملاء." : "Dissatisfaction detected! We direct feedback to management to ensure customer happiness privately."}
+               text={isRTL ? "تم رصد استياء العميل! سيقوم النظام بتوجيه ملاحظته للإدارة فوراً للتواصل معه والحرص على رضاء جميع العملاء." : "Dissatisfaction detected! We direct feedback to management to ensure customer happiness privately."}
              />
              <InternalGuide visible={stage === 'survey' && rating === 'neutral'} title={isRTL ? "إجراء وقائي ذكي ⚠️" : "Precautionary Step ⚠️"} color="orange" icon={Info}
                text={isRTL ? "تقييم متوسط؟ يتم تحويل الملاحظة للإدارة داخلياً لمعالجة القصور، لضمان بقاء صدارتك في جوجل ماب دون أي تأثير سلبي." : "Average rating handled internally to maintain your top position on Google Maps."}
@@ -127,7 +127,7 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                         </div>
                         <div className="text-right overflow-hidden">
                            <div className="flex items-center justify-start gap-1">
-                              <h3 className="text-xs font-black truncate max-w-[100px]">{data.projectName}</h3>
+                              <h3 className="text-sm font-black truncate max-w-[150px]">{data.projectName}</h3>
                               <BadgeCheck size={14} className="text-blue-400 fill-blue-400 shrink-0" />
                            </div>
                            <p className="text-[8px] opacity-80 font-bold">نشط الآن • حساب تجاري</p>
@@ -151,7 +151,7 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                 </div>
              ) : stage === 'survey' ? (
                 <div className="flex-1 flex flex-col bg-white h-full overflow-hidden p-4 lg:p-6 items-center text-center mt-36" dir="rtl">
-                   <div className="w-24 h-24 bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center mb-4 text-slate-400">
+                   <div className="w-24 h-24 bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center mb-4 text-slate-400 shadow-inner">
                       <ImageIcon size={32} />
                       <span className="text-[10px] font-black tracking-widest mt-1 uppercase">Your Logo</span>
                    </div>
@@ -176,7 +176,7 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                    </div>
 
                    {rating && !isSent && (
-                      <div className="w-full animate-fade-in-up space-y-3">
+                      <div className="w-full animate-fade-in-up space-y-3 px-2">
                          <textarea 
                            value={feedbackText} 
                            onChange={(e) => setFeedbackText(e.target.value)} 
@@ -208,18 +208,20 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                                <p className="text-[8px] text-red-500 font-bold leading-tight">سيتم التواصل معك والحرص على رضاء جميع العملاء.</p>
                             </>
                          )}
-                         {/* استبدال الزر بجملة دعوة مخصصة */}
-                         <p className="mt-5 text-[9px] font-black text-blue-600 animate-pulse">تفضل بالضغط على الزر في أسفل الصفحة للحصول على العرض المميز والتجربة الحقيقية</p>
+                         {/* استعادة زر إنهاء العرض */}
+                         <button onClick={() => setStage('post-demo')} className="mt-4 text-[10px] font-black text-blue-500 uppercase tracking-widest underline decoration-2 underline-offset-4">{isRTL ? "إنهاء العرض" : "Finish Demo"}</button>
                       </div>
                    )}
                 </div>
              ) : (
+                /* استعادة الصفحة الختامية */
                 <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white h-full text-center mt-32" dir="rtl">
                    <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mb-4 border border-green-100 shadow-inner"><CheckCheck size={32} className="text-green-600 animate-bounce" /></div>
                    <h2 className="text-lg font-black text-slate-900 mb-2 leading-tight uppercase tracking-tighter">نظام ELEGANT OPTIONS: حماية مستمرة لا تتوقف</h2>
-                   <p className="text-slate-600 text-[10px] font-bold leading-relaxed px-2 mb-6">يضمن لك صدارة البحث وحماية سمعتك الرقمية تلقائياً وبشكل مستمر على مدار الساعة.</p>
+                   <p className="text-slate-600 text-[10px] font-bold leading-relaxed px-2 mb-8">يضمن لك صدارة البحث وحماية سمعتك الرقمية تلقائياً وبشكل مستمر على مدار الساعة.</p>
                    
-                   <a href={waLink} target="_blank" className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-full text-[10px] font-black shadow-lg animate-pulse">
+                   {/* دعوة لاخذ اجراء داخل شاشة الهاتف */}
+                   <a href={waLink} target="_blank" className="flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-full text-[10px] font-black shadow-lg animate-pulse">
                       احصل على العرض المميز الآن <ExternalLink size={12} />
                    </a>
                 </div>
