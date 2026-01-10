@@ -59,40 +59,25 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
 
   const waLink = `https://wa.me/96566305551?text=${encodeURIComponent(`مرحباً، أريد الاستفادة من خصم الـ 70% وتفعيل نظام Elegant Options لمشروعي (${data.projectName}).`)}`;
 
-  // --- مكون الإرشادات المطور ليتوافق مع الجوال (Mobile Responsive Guide) ---
-  const SidebarGuide = ({ side, title, text, icon: Icon, color, visible }: any) => {
+  // --- مكون الإرشادات المدمج داخل شاشة الهاتف ---
+  const InternalGuide = ({ title, text, icon: Icon, color, visible }: any) => {
     if (!visible) return null;
     const colorClasses = {
-      green: 'border-green-500/50 bg-green-950/40 text-green-400',
-      red: 'border-red-500/50 bg-red-950/40 text-red-400',
-      blue: 'border-blue-500/40 bg-slate-900/90 text-blue-400',
-      orange: 'border-orange-500/50 bg-orange-950/40 text-orange-400'
+      green: 'bg-green-600 border-green-400',
+      red: 'bg-red-600 border-red-400',
+      blue: 'bg-blue-600 border-blue-400',
+      orange: 'bg-orange-600 border-orange-400'
     };
     
     return (
-      <div className={`
-        /* تصميم الجوال: بطاقة فوق الهاتف */
-        relative w-full mb-6 p-4 rounded-2xl border-2 backdrop-blur-xl animate-fade-in
-        /* تصميم الكمبيوتر: تموضع جانبي فخم */
-        lg:absolute lg:z-50 lg:w-72 lg:p-5 lg:rounded-[2rem] lg:mb-0
-        ${colorClasses[color]} 
-        ${side === 'left' ? 'lg:-left-[20rem]' : 'lg:-right-[20rem]'} 
-        lg:top-1/4 shadow-2xl
-      `}>
-        <div className="flex items-center gap-2 mb-2 lg:mb-3 lg:justify-start justify-center">
-          <Icon className="w-5 h-5 lg:w-6 lg:h-6" />
-          <h4 className="text-white font-black text-xs lg:text-sm uppercase tracking-tighter">{title}</h4>
+      <div className={`absolute top-28 left-4 right-4 z-[60] p-3 rounded-2xl border-2 shadow-2xl animate-fade-in-up text-white ${colorClasses[color]}`}>
+        <div className="flex items-center gap-2 mb-1">
+          <Icon className="w-4 h-4" />
+          <h4 className="font-black text-[10px] uppercase tracking-tighter">{title}</h4>
         </div>
-        <p className="text-slate-200 text-[10px] lg:text-[11px] leading-relaxed font-bold text-center lg:text-right">{text}</p>
-        
-        {/* سهم الجوال (يشير للأسفل) */}
-        <div className="lg:hidden flex justify-center mt-2 text-white animate-bounce">
-           <MoveDown size={20} />
-        </div>
-        
-        {/* سهم الكمبيوتر (جانبي) */}
-        <div className={`hidden lg:block absolute top-1/2 -translate-y-1/2 ${side === 'left' ? '-right-10' : '-left-10'} text-white animate-pulse`}>
-           {side === 'left' ? <MoveRight size={28} /> : <MoveLeft size={28} />}
+        <p className="text-[9px] leading-relaxed font-bold">{text}</p>
+        <div className="flex justify-center mt-1 animate-bounce">
+           <MoveDown size={14} />
         </div>
       </div>
     );
@@ -106,35 +91,36 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
          <img src="https://storage.googleapis.com/msgsndr/vX7gQQOe9PXtkGes2GOJ/media/6944362aa49c0a6975236470.png" alt="Elegant Options" className="w-14 h-14 object-contain" />
       </div>
 
-      {/* Header */}
       <div className="space-y-4 w-full mb-8 lg:mb-12 text-center">
         <h2 className="text-2xl md:text-5xl font-black text-white uppercase tracking-tight leading-tight">نظام النمو الذكي وحماية السمعة</h2>
         <p className="text-blue-400 text-sm md:text-xl font-bold opacity-80 italic">« حوّل كل عملية بيع إلى جيش من التقييمات الإيجابية وسدّ الباب أمام السلبيات تلقائياً »</p>
       </div>
 
       <div className="relative w-full flex flex-col items-center">
-        
-        {/* إرشادات النظام - تعمل بذكاء في الجوال والكمبيوتر */}
-        <SidebarGuide side='left' visible={stage === 'chat'} title="الأتمتة اللحظية ⚡" color="blue" icon={Zap}
-          text={`بمجرد انتهاء الخدمة ${isRestaurant ? 'أو استلام الطلب من تطبيقات التوصيل' : ''}، يرسل النظام هذه الرسالة آلياً باسم مشروعك.`}
-        />
-        <SidebarGuide side='right' visible={stage === 'survey' && rating === 'sad'} title="درع الحماية النشط 🛡️" color="red" icon={ShieldAlert}
-          text="رصدنا استياءً! النظام سيحجب هذا التقييم عن جوجل فوراً، ويوجه العميل لرسالة خاصة للمدير لحل المشكلة."
-        />
-        <SidebarGuide side='right' visible={stage === 'survey' && rating === 'neutral'} title="إجراء وقائي ⚠️" color="orange" icon={Info}
-          text="تقييم متوسط؟ كإجراء احتياطي، يتم تحويل العميل للمدير لمعرفة السبب بدلاً من نشره لضمان جودة سمعتك."
-        />
-        <SidebarGuide side='right' visible={stage === 'survey' && rating === 'happy'} title="محرك الهيمنة 🚀" color="green" icon={TrendingUp}
-          text="العميل سعيد! النظام سيظهر له صفحة تقييم مشروعك على جوجل ماب مباشرة بـ 5 نجوم جاهزة."
-        />
-
-        {/* iPhone Simulation */}
+        {/* iPhone Simulation Container */}
         <div className="relative mx-auto w-full max-w-[330px] md:max-w-[360px] h-[680px] md:h-[740px] bg-black rounded-[50px] lg:rounded-[60px] shadow-[0_40px_100px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col z-10 border border-white/10">
+          
           <div className="absolute top-0 inset-x-0 h-12 z-20 flex justify-between items-center px-10 pt-4 text-white text-[12px] font-bold" dir="ltr">
              <span>9:41</span> <div className="flex gap-2"><Signal size={14} /><Wifi size={14} /><Battery size={14} /></div>
           </div>
           
+          {/* الشاشة البيضاء الداخلية للهاتف */}
           <div className="flex-1 relative flex flex-col overflow-hidden bg-white rounded-[40px] lg:rounded-[50px] m-1.5 lg:m-2 border border-black/20 mt-10 mb-4">
+             
+             {/* التنبيهات الذكية (الآن داخل الشاشة) */}
+             <InternalGuide visible={stage === 'chat'} title="الأتمتة اللحظية ⚡" color="blue" icon={Zap}
+               text={`بمجرد انتهاء الخدمة ${isRestaurant ? 'أو استلام الطلب من تطبيقات التوصيل' : ''}، يرسل النظام هذه الرسالة آلياً باسم مشروعك.`}
+             />
+             <InternalGuide visible={stage === 'survey' && rating === 'sad'} title="درع الحماية النشط 🛡️" color="red" icon={ShieldAlert}
+               text="رصدنا استياءً! النظام سيحجب هذا التقييم عن جوجل فوراً، ويوجه العميل لرسالة خاصة للمدير لحل المشكلة."
+             />
+             <InternalGuide visible={stage === 'survey' && rating === 'neutral'} title="إجراء وقائي ⚠️" color="orange" icon={Info}
+               text="تقييم متوسط؟ كإجراء احتياطي، يتم تحويل العميل للمدير لمعرفة السبب بدلاً من نشره لضمان جودة سمعتك."
+             />
+             <InternalGuide visible={stage === 'survey' && rating === 'happy'} title="محرك الهيمنة 🚀" color="green" icon={TrendingUp}
+               text="العميل سعيد! النظام سيظهر له صفحة تقييم مشروعك على جوجل ماب مباشرة بـ 5 نجوم جاهزة."
+             />
+
              {stage === 'chat' ? (
                 <div className="flex-1 flex flex-col bg-[#e5ddd5] h-full overflow-hidden">
                    {/* WhatsApp Header - Realistic RTL */}
@@ -149,7 +135,7 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                               <h3 className="text-xs font-black truncate max-w-[100px]">{data.projectName}</h3>
                               <BadgeCheck size={14} className="text-blue-400 fill-blue-400 shrink-0" />
                            </div>
-                           <p className="text-[8px] opacity-80 font-bold truncate">نشط الآن • حساب تجاري</p>
+                           <p className="text-[8px] opacity-80 font-bold truncate text-right">نشط الآن • حساب تجاري</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3 opacity-70 shrink-0">
@@ -159,7 +145,7 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
 
                    <div className="flex-1 p-4" style={{ backgroundImage: 'url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")', backgroundSize: '400px' }}>
                       {msgVisible && (
-                        <div className="bg-white p-3 lg:p-4 rounded-2xl rounded-tl-none shadow-xl max-w-[92%] animate-fade-in-up border border-slate-100 float-right relative" dir="rtl">
+                        <div className="bg-white p-3 lg:p-4 rounded-2xl rounded-tl-none shadow-xl max-w-[92%] animate-fade-in-up border border-slate-100 float-right relative mt-32" dir="rtl">
                            <div className="absolute -top-0 -right-2 w-4 h-4 bg-white border-t border-r border-slate-100 transform rotate-45"></div>
                            <p className="text-[12px] lg:text-[13px] text-slate-800 leading-relaxed font-bold text-right relative z-10">{getKuwaitiMessage()}</p>
                            <button onClick={() => setStage('survey')} className="w-full mt-3 bg-blue-600 py-2.5 rounded-xl text-white font-black text-xs lg:text-sm shadow-lg shadow-blue-100 relative z-10">تقييم التجربة الآن</button>
@@ -169,16 +155,17 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                    </div>
                 </div>
              ) : stage === 'survey' ? (
-                <div className="flex-1 flex flex-col bg-white h-full overflow-hidden p-4 lg:p-6 items-center text-center" dir="rtl">
-                   <div className="w-20 h-20 lg:w-24 lg:h-24 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center mb-4 text-slate-400">
-                      <ImageIcon size={28} />
-                      <span className="text-[9px] font-black tracking-widest mt-1 uppercase">Your Logo</span>
+                <div className="flex-1 flex flex-col bg-white h-full overflow-hidden p-4 lg:p-6 items-center text-center mt-32" dir="rtl">
+                   <div className="w-24 h-24 bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center mb-4 text-slate-400">
+                      <ImageIcon size={32} />
+                      <span className="text-[10px] font-black tracking-widest mt-1 uppercase">Your Logo</span>
                    </div>
                    <div className="mb-6 px-2">
                       <h3 className="font-black text-slate-800 text-base lg:text-lg mb-1">كيف كانت تجربتك معانا؟</h3>
                       <p className="text-[9px] text-slate-500 font-bold leading-tight">مشروع **{data.projectName}** يطلب مشاركة تجربتك بكل شفافية</p>
                    </div>
                    
+                   {/* Emoji Interaction */}
                    <div className="flex justify-between w-full mb-8 px-2">
                       <button onClick={() => setRating('happy')} className={`group flex flex-col items-center gap-2 transition-all ${rating === 'happy' ? 'scale-110' : 'opacity-30 grayscale'}`}>
                          <div className="w-14 h-14 lg:w-16 lg:h-16 bg-green-50 rounded-2xl flex items-center justify-center border-2 border-green-200 shadow-lg group-hover:border-green-500"><Smile size={40} className="text-green-500" /></div>
@@ -209,7 +196,7 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                          {rating === 'happy' ? (
                             <>
                                <h4 className="text-xs font-black text-slate-800 mb-1">سيتم التوجيه لجوجل الآن</h4>
-                               <p className="text-[8px] text-green-600 font-bold leading-tight">ستظهر الآن شاشة تقييمات جوجل لوضع 5 نجوم مباشرة</p>
+                               <p className="text-[8px] text-green-600 font-bold leading-tight">ستظهر الآن للعميل شاشة تقييمات جوجل لوضع تقييم 5 نجوم مباشرة</p>
                             </>
                          ) : (
                             <>
@@ -222,9 +209,9 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                    )}
                 </div>
              ) : (
-                <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white h-full text-center" dir="rtl">
+                <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white h-full text-center mt-32" dir="rtl">
                    <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mb-4 border border-green-100 shadow-inner"><CheckCheck size={32} className="text-green-600 animate-bounce" /></div>
-                   <h2 className="text-lg font-black text-slate-900 mb-2 leading-tight">نظام Elegant Options: حماية مستمرة لا تتوقف</h2>
+                   <h2 className="text-lg font-black text-slate-900 mb-2 leading-tight uppercase">نظام Elegant Options: حماية مستمرة لا تتوقف</h2>
                    <p className="text-slate-600 text-[10px] font-bold leading-relaxed px-2">يضمن لك صدارة البحث وحماية سمعتك الرقمية تلقائياً وبشكل مستمر.</p>
                 </div>
              )}
