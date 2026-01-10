@@ -6,7 +6,7 @@ import {
   ArrowLeft, ArrowRight, MoreVertical, Phone, Video, 
   CheckCheck, Zap, ShieldAlert, TrendingUp, UserCog, 
   Signal, Wifi, Battery, Sparkles, Timer, MoveDown,
-  Frown, Meh, Smile, BadgeCheck, Info, Image as ImageIcon
+  Frown, Meh, Smile, BadgeCheck, Info, Image as ImageIcon, ExternalLink
 } from 'lucide-react';
 
 interface VisualExperienceProps {
@@ -26,7 +26,7 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
   const [timeLeft, setTimeLeft] = useState(300);
   const [isSent, setIsSent] = useState(false);
 
-  const isRestaurant = data.projectType === 'restaurant' || data.projectType === 'cafe';
+  const isRestaurant = data.projectType === 'restaurant' || data.projectType === 'cafe' || data.projectType === 'مطعم';
 
   useEffect(() => {
     const timerId = setInterval(() => setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0)), 1000);
@@ -57,7 +57,7 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
 
   const waLink = `https://wa.me/96566305551?text=${encodeURIComponent(`مرحباً، قمت بتجربة المحاكي وأريد تفعيل نظام Elegant Options لمشروعي (${data.projectName}).`)}`;
 
-  // --- مكون الإرشادات المنسق (لا يحجب المحتوى) ---
+  // --- مكون الإرشادات المنسق (مع مؤثر حركي وبدون حجب الاسم) ---
   const InternalGuide = ({ title, text, icon: Icon, color, visible }: any) => {
     if (!visible) return null;
     const colorClasses = {
@@ -68,14 +68,14 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
     };
     
     return (
-      <div className={`absolute top-10 left-3 right-3 z-[70] p-3.5 rounded-[1.2rem] border-2 shadow-xl animate-fade-in-up text-black ${colorClasses[color]} backdrop-blur-md`}>
+      <div className={`absolute top-24 left-3 right-3 z-[70] p-3.5 rounded-[1.2rem] border-2 shadow-xl animate-bounce-subtle text-black ${colorClasses[color]} backdrop-blur-md transition-all duration-500`}>
         <div className={`flex items-center gap-2 mb-1 ${isRTL ? 'flex-row' : 'flex-row-reverse'}`}>
           <Icon className="w-4 h-4 text-black" />
           <h4 className="font-black text-[10px] uppercase tracking-tighter">{title}</h4>
         </div>
         <p className="text-[9px] leading-relaxed font-bold">{text}</p>
-        <div className="flex justify-center mt-1 animate-bounce">
-           <MoveDown size={16} className="text-black" />
+        <div className="flex justify-center mt-1 animate-pulse">
+           <MoveDown size={14} className="text-black" />
         </div>
       </div>
     );
@@ -95,7 +95,6 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
       </div>
 
       <div className="relative w-full flex flex-col items-center">
-        {/* iPhone Simulation Container */}
         <div className="relative mx-auto w-full max-w-[330px] md:max-w-[360px] h-[680px] md:h-[740px] bg-black rounded-[50px] lg:rounded-[60px] shadow-[0_40px_100px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col z-10 border border-white/10">
           
           <div className="absolute top-0 inset-x-0 h-12 z-20 flex justify-between items-center px-10 pt-4 text-white text-[12px] font-bold" dir="ltr">
@@ -104,18 +103,20 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
           
           <div className="flex-1 relative flex flex-col overflow-hidden bg-white rounded-[40px] lg:rounded-[50px] m-1.5 lg:m-2 border border-black/20 mt-10 mb-4">
              
-             {/* التنبيهات المنسقة بالفصحى واللون الأسود */}
-             <InternalGuide visible={stage === 'chat'} title={isRTL ? "الأتمتة الذكية ⚡" : "Smart Automation ⚡"} color="blue" icon={Zap}
-               text={isRTL ? "يقوم النظام بإرسال رسالة مخصصة آلياً فور انتهاء الخدمة لضمان الحصول على التقييم في ذروة رضا العميل." : "Automated custom message sent instantly after service to ensure peak-satisfaction reviews."}
+             {/* التنبيهات المنسقة حسب القطاع والقرار */}
+             <InternalGuide visible={stage === 'chat'} title={isRTL ? "الأتمتة اللحظية ⚡" : "Instant Automation ⚡"} color="blue" icon={Zap}
+               text={isRTL 
+                 ? (isRestaurant ? "عند استلام طلب الأكل من شركات التوصيل أو المطعم مباشرة، يرسل النظام هذه الرسالة المخصصة فوراً لضمان الحصول على التقييم في ذروة رضا العميل." : "يقوم النظام بإرسال رسالة مخصصة آلياً فور انتهاء الخدمة لضمان الحصول على التقييم في ذروة رضا العميل.")
+                 : "System sends an automated custom message instantly to capture the review at peak satisfaction."}
              />
-             <InternalGuide visible={stage === 'survey' && rating === 'sad'} title={isRTL ? "درع الحماية النشط 🛡️" : "Active Shield 🛡️"} color="red" icon={ShieldAlert}
-               text={isRTL ? "يتم رصد الاستياء فوراً وحجب التقييم السلبي عن جوجل، مع توجيه العميل كرسالة داخلية للإدارة لحل المشكلة." : "Dissatisfaction is intercepted; negative reviews are blocked from Google and sent as internal alerts."}
+             <InternalGuide visible={stage === 'survey' && rating === 'sad'} title={isRTL ? "درع الحماية النشط 🛡️" : "Active Protection 🛡️"} color="red" icon={ShieldAlert}
+               text={isRTL ? "تم رصد استياء العميل! سيتم توجيه ملاحظته للادارة فوراً للتواصل معه والحرص على رضاء جميع العملاء، بدلاً من نشرها علنياً." : "Dissatisfaction caught! We direct feedback to management to ensure customer happiness privately."}
              />
-             <InternalGuide visible={stage === 'survey' && rating === 'neutral'} title={isRTL ? "إجراء وقائي ذكي ⚠️" : "Smart Precaution ⚠️"} color="orange" icon={Info}
-               text={isRTL ? "يتم تحويل التقييمات المتوسطة كتنبيه داخلي للإدارة لمعالجة القصور، لضمان بقاء معدل نجومك في القمة." : "Average ratings are diverted internally to address service gaps without affecting your public score."}
+             <InternalGuide visible={stage === 'survey' && rating === 'neutral'} title={isRTL ? "إجراء وقائي ذكي ⚠️" : "Precautionary Step ⚠️"} color="orange" icon={Info}
+               text={isRTL ? "تقييم متوسط؟ يتم تحويل الملاحظة للإدارة داخلياً لمعالجة القصور، لضمان بقاء صدارتك في جوجل ماب دون أي تأثير سلبي." : "Average rating handled internally to maintain your top position on Google Maps."}
              />
-             <InternalGuide visible={stage === 'survey' && rating === 'happy'} title={isRTL ? "محرك الهيمنة الرقمية 🚀" : "Dominance Engine 🚀"} color="green" icon={TrendingUp}
-               text={isRTL ? "يتم توجيه العميل السعيد مباشرة لصفحة التقييم في جوجل لتحفيزه على وضع 5 نجوم وصدارة نتائج البحث." : "Happy customers are directed to the review page directly to encourage a public 5-star rating."}
+             <InternalGuide visible={stage === 'survey' && rating === 'happy'} title={isRTL ? "محرك الهيمنة الرقمية 🚀" : "Digital Dominance 🚀"} color="green" icon={TrendingUp}
+               text={isRTL ? "ستظهر الآن صفحة التقييمات للعميل.. وهذا هو الوقت المناسب وأقوى تحفيز لتقييمك بـ 5 نجوم لتعزيز صدارتك الرقمية." : "The review page appears now—this is the perfect time and strongest motivator for a 5-star rating."}
              />
 
              {stage === 'chat' ? (
@@ -131,7 +132,7 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                               <h3 className="text-xs font-black truncate max-w-[100px]">{data.projectName}</h3>
                               <BadgeCheck size={14} className="text-blue-400 fill-blue-400 shrink-0" />
                            </div>
-                           <p className="text-[8px] opacity-80 font-bold truncate">نشط الآن • حساب تجاري</p>
+                           <p className="text-[8px] opacity-80 font-bold">نشط الآن • حساب تجاري</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3 opacity-70 shrink-0">
@@ -139,10 +140,9 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                       </div>
                    </div>
 
-                   {/* زيادة الهامش العلوي (mt-44) لعدم حجب المحتوى بالتنبيه */}
                    <div className="flex-1 p-4" style={{ backgroundImage: 'url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")', backgroundSize: '400px' }}>
                       {msgVisible && (
-                        <div className="bg-white p-3 lg:p-4 rounded-2xl rounded-tl-none shadow-xl max-w-[92%] animate-fade-in-up border border-slate-100 float-right relative mt-44" dir="rtl">
+                        <div className="bg-white p-3 lg:p-4 rounded-2xl rounded-tl-none shadow-xl max-w-[92%] animate-fade-in-up border border-slate-100 float-right relative mt-52" dir="rtl">
                            <div className="absolute -top-0 -right-2 w-4 h-4 bg-white border-t border-r border-slate-100 transform rotate-45"></div>
                            <p className="text-[12px] lg:text-[13px] text-slate-800 leading-relaxed font-bold text-right relative z-10">{getKuwaitiMessage()}</p>
                            <button onClick={() => setStage('survey')} className="w-full mt-3 bg-blue-600 py-2.5 rounded-xl text-white font-black text-xs lg:text-sm shadow-lg shadow-blue-100 relative z-10">تقييم التجربة الآن</button>
@@ -153,7 +153,6 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                 </div>
              ) : stage === 'survey' ? (
                 <div className="flex-1 flex flex-col bg-white h-full overflow-hidden p-4 lg:p-6 items-center text-center mt-36" dir="rtl">
-                   {/* YOUR LOGO */}
                    <div className="w-24 h-24 bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center mb-4 text-slate-400">
                       <ImageIcon size={32} />
                       <span className="text-[10px] font-black tracking-widest mt-1 uppercase">Your Logo</span>
@@ -163,7 +162,6 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                       <p className="text-[9px] text-slate-500 font-bold leading-tight">مشروع **{data.projectName}** يطلب مشاركة تجربتك بكل شفافية</p>
                    </div>
                    
-                   {/* Emoji Selection */}
                    <div className="flex justify-between w-full mb-8 px-2">
                       <button onClick={() => setRating('happy')} className={`group flex flex-col items-center gap-2 transition-all ${rating === 'happy' ? 'scale-110' : 'opacity-30 grayscale'}`}>
                          <div className="w-14 h-14 lg:w-16 lg:h-16 bg-green-50 rounded-2xl flex items-center justify-center border-2 border-green-200 shadow-lg group-hover:border-green-500"><Smile size={40} className="text-green-500" /></div>
@@ -184,7 +182,7 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                          <textarea 
                            value={feedbackText} 
                            onChange={(e) => setFeedbackText(e.target.value)} 
-                           placeholder={isRTL ? "أخبرنا بتجربتك لتحسين خدمتنا..." : "Share your experience to help us improve..."} 
+                           placeholder={isRTL ? "أخبرنا بتجربتك لتحسين خدمتنا..." : "Share your experience..."} 
                            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none h-20 resize-none focus:border-blue-500 transition-all text-black"
                          ></textarea>
                          <button onClick={() => setIsSent(true)} className={`w-full py-3 rounded-xl font-black text-xs flex items-center justify-center gap-2 shadow-xl transform active:scale-95 transition-transform ${rating === 'happy' ? 'bg-[#4285F4] text-white' : 'bg-slate-900 text-white'}`}>
@@ -193,7 +191,7 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                                  <img src="https://www.google.com/images/branding/googleg/1x/googleg_standard_color_128dp.png" className="w-4 h-4 bg-white rounded-full p-0.5" alt="Google" />
                                  {isRTL ? "ارسال ونشر على جوجل ماب" : "Send & Post on Google Maps"}
                                </>
-                            ) : (isRTL ? "إرسال ملاحظة خاصة للإدارة" : "Send Private Feedback")}
+                            ) : (isRTL ? "إرسال ملاحظة خاصة للمدير" : "Send Private Feedback")}
                          </button>
                       </div>
                    )}
@@ -203,13 +201,13 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                          <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mb-2"><CheckCheck size={20} className="text-green-600" /></div>
                          {rating === 'happy' ? (
                             <>
-                               <h4 className="text-xs font-black text-slate-800 mb-1">سيتم توجيهك لصفحة التقييمات الآن</h4>
-                               <p className="text-[8px] text-green-600 font-bold leading-tight">سيتم فتح صفحة التقييم المباشر لتحفيزك على وضع 5 نجوم وتعزيز الصدارة الرقمية.</p>
+                               <h4 className="text-xs font-black text-slate-800 mb-1">ستظهر صفحة التقييمات الآن</h4>
+                               <p className="text-[8px] text-green-600 font-bold leading-tight">هذا هو أقوى تحفيز والوقت المناسب للعميل لتقييمك بـ 5 نجوم لتعزيز صدارتك الرقمية.</p>
                             </>
                          ) : (
                             <>
-                               <h4 className="text-xs font-black text-slate-800 mb-1">هذه رسالة عميل خاصة</h4>
-                               <p className="text-[8px] text-red-500 font-bold leading-tight">تم تحويل ملاحظتك كتنبيه داخلي سري للإدارة لضمان رضاك، ولن تظهر للعامة في جوجل.</p>
+                               <h4 className="text-xs font-black text-slate-800 mb-1">تم توجيه ملاحظتك للادارة</h4>
+                               <p className="text-[8px] text-red-500 font-bold leading-tight">سيتم التواصل معك والحرص على رضاء جميع العملاء، ولن تظهر هذه الرسالة للعامة.</p>
                             </>
                          )}
                          <button onClick={() => setStage('post-demo')} className="mt-4 text-[9px] font-black text-blue-500 uppercase tracking-widest underline decoration-2 underline-offset-4">{isRTL ? "إنهاء العرض" : "Finish Demo"}</button>
@@ -219,8 +217,13 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
              ) : (
                 <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white h-full text-center mt-32" dir="rtl">
                    <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mb-4 border border-green-100 shadow-inner"><CheckCheck size={32} className="text-green-600 animate-bounce" /></div>
-                   <h2 className="text-lg font-black text-slate-900 mb-2 leading-tight uppercase tracking-tighter">نظام Elegant Options: حماية مستمرة لا تتوقف</h2>
-                   <p className="text-slate-600 text-[10px] font-bold leading-relaxed px-2">يضمن لك صدارة البحث وحماية سمعتك الرقمية تلقائياً وبشكل مستمر على مدار الساعة.</p>
+                   <h2 className="text-lg font-black text-slate-900 mb-2 leading-tight uppercase tracking-tighter">نظام ELEGANT OPTIONS: حماية مستمرة لا تتوقف</h2>
+                   <p className="text-slate-600 text-[10px] font-bold leading-relaxed px-2 mb-6">يضمن لك صدارة البحث وحماية سمعتك الرقمية تلقائياً وبشكل مستمر على مدار الساعة.</p>
+                   
+                   {/* دعوة لاخذ اجراء في نهاية المحاكي */}
+                   <a href={waLink} target="_blank" className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-full text-[10px] font-black shadow-lg animate-pulse">
+                      احصل على العرض المميز الآن <ExternalLink size={12} />
+                   </a>
                 </div>
              )}
           </div>
