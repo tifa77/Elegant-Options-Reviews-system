@@ -5,7 +5,7 @@ import { TEXTS } from '../constants';
 import { 
   ArrowRight, ArrowLeft, Target, Ghost, Crown, Activity, Zap, Bike, 
   ShieldAlert, TrendingDown, Eye, Quote, CheckCircle2, Sparkles, Lock, 
-  AlertOctagon, Loader2, RotateCw, TrendingUp, History, UserCheck, BarChart3, Heart, SearchCheck
+  AlertOctagon, Loader2, RotateCw, TrendingUp, History, UserCheck, BarChart3, Heart, SearchCheck, MessageSquareText
 } from 'lucide-react';
 
 interface ResultsDashboardProps {
@@ -31,11 +31,11 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
 
   const regional = getRegionalData();
   const dailyCustomers = Number(data.dailyCustomers) || 50; 
-  const potWeekly = Math.max(3, Math.min(5, Math.floor(dailyCustomers * 0.08))) * 7;
-  const potMonthly = Math.max(3, Math.min(5, Math.floor(dailyCustomers * 0.08))) * 30;
+  const potDaily = Math.max(3, Math.min(5, Math.floor(dailyCustomers * 0.08)));
+  const potWeekly = potDaily * 7;
+  const potMonthly = potDaily * 30;
   const potYearly = potMonthly * 12;
 
-  // أرباح كسب ثقة العملاء الجدد (X2)
   const yearlyPotentialProfit = potYearly * regional.factor * 10; 
 
   const currentMonthly = data.monthlyGrowth || 0;
@@ -60,7 +60,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
           {isRTL ? <ArrowRight className="group-hover:translate-x-1" /> : <ArrowLeft className="group-hover:-translate-x-1" />}
           <span className="text-sm font-bold">{isRTL ? "رجوع" : "Back"}</span>
         </button>
-        <span className="bg-slate-900 border border-slate-700 px-3 py-1 rounded-full text-[10px] font-black text-blue-400 tracking-widest uppercase">
+        <span className="bg-slate-900 border border-slate-700 px-3 py-1 rounded-full text-[10px] font-black text-blue-400 uppercase tracking-widest uppercase">
           STRATEGIC AUDIT REPORT 2026
         </span>
       </div>
@@ -70,7 +70,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
         <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
           <div className={`p-5 rounded-full bg-slate-950 shadow-2xl ${status.color}`}><status.icon size={40} /></div>
           <div className="flex-1 text-center md:text-right">
-            <h3 className="text-slate-400 text-xs font-black uppercase mb-1">{isRTL ? "التشخيص السوقي الفعلي" : "MARKET DIAGNOSIS"}</h3>
+            <h3 className="text-slate-400 text-xs font-black uppercase mb-1">{isRTL ? "التشخيص السوقي الفعلي" : "ACTUAL MARKET DIAGNOSIS"}</h3>
             <div className={`text-4xl font-black ${status.color} tracking-tighter`}>{status.title}</div>
           </div>
         </div>
@@ -90,7 +90,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
           <div className="bg-red-500/5 p-6 rounded-3xl border border-red-500/20 relative overflow-hidden">
             <span className="text-red-500 text-[10px] font-black uppercase block mb-1">{isRTL ? "سلبية (يتم حجبها)" : "NEGATIVES (FILTERED)"}</span>
             <div className="text-3xl font-black text-red-500">{data.negativeReviews || 0}</div>
-            <div className="mt-2 flex items-start gap-1.5"><ShieldAlert size={12} className="text-red-400 shrink-0 mt-0.5" /><p className="text-[9px] text-red-300 font-bold leading-tight">{isRTL ? "تنبيه: جوجل لا يحذف السلبيات؛ نظامنا يضمن حجبها ومنع وصولها للعامة." : "Google doesn't delete negatives; our system ensures they are blocked."}</p></div>
+            <div className="mt-2 flex items-start gap-1.5"><ShieldAlert size={12} className="text-red-400 shrink-0 mt-0.5" /><p className="text-[9px] text-red-300 font-bold leading-tight">{isRTL ? "تنبيه: جوجل لا يحذف السلبيات؛ نظامنا يضمن حجبها ومنع وصولها للعامة." : "Note: Google doesn't delete negatives; our system ensures they are blocked from public view."}</p></div>
           </div>
         </div>
         <div className="bg-blue-500/5 border border-blue-500/10 p-3 rounded-2xl flex items-center gap-3">
@@ -98,15 +98,14 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
            <p className="text-[10px] text-slate-400 font-bold leading-relaxed">
               {isRTL 
                 ? "هذا الفرز يعتمد على التقييمات والنصوص المذكورة؛ حيث يقوم النظام بتحليل الملاحظات والشكاوى الضمنية لضمان دقة التشخيص."
-                : "Sorting is based on ratings and text analysis; our AI detects implicit complaints to ensure diagnostic accuracy."}
+                : "This analysis is based on ratings and text context; the system detects implicit complaints for maximum accuracy."}
            </p>
         </div>
       </div>
 
       {/* 4. Horizontal Comparison Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* الوضع الحالي */}
-        <div className="bg-slate-900/50 p-8 rounded-[2rem] border border-slate-800 relative group">
+        <div className="bg-slate-900/50 p-8 rounded-[2rem] border border-slate-800">
            <div className="flex items-center gap-3 mb-8 opacity-60">
               <History size={18} /> <h3 className="text-sm font-black uppercase tracking-widest">{isRTL ? "الوضع الحالي (بدون نظام)" : "CURRENT STATUS"}</h3>
            </div>
@@ -118,7 +117,6 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
            <div className="mt-8 text-[9px] text-slate-500 italic font-bold border-r-2 border-slate-700 pr-3">{isRTL ? "* تحليل مبني على أداء حسابك الفعلي خلال فترة عمله السابقة." : "* Analysis based on your actual historical performance."}</div>
         </div>
 
-        {/* مع النظام */}
         <div className="bg-gradient-to-br from-indigo-900/20 to-slate-950 p-8 rounded-[2rem] border border-blue-500/30 shadow-[0_0_50px_rgba(59,130,246,0.1)] relative overflow-hidden">
            <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-l from-blue-400 to-indigo-600"></div>
            <div className="flex items-center gap-3 mb-8">
@@ -133,7 +131,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
         </div>
       </div>
 
-      {/* 5. Profits with New Trust Logic (X2) */}
+      {/* 5. Profits with Trust & Recommendation Logic */}
       <div className="bg-slate-900 p-8 rounded-[2.5rem] border border-blue-500/30 relative shadow-2xl group overflow-hidden">
           <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
               <div className="flex-1 text-center md:text-right">
@@ -143,28 +141,46 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
                   </div>
                   <div className="text-5xl font-black text-white tracking-tighter mb-4">{yearlyPotentialProfit.toLocaleString()} <span className="text-2xl text-slate-500">{regional.symbol}</span></div>
                   <div className="flex flex-col gap-3">
-                    <div className="bg-blue-950/40 p-4 rounded-2xl border border-blue-500/10 text-xs text-slate-300 font-bold leading-relaxed">{isRTL ? "نحن نضاعف العائد المادي لكل تقييم إيجابي؛ لأن العميل الراضي لا يجلب نجمة فقط، بل يعود بتجربة شراء متكررة." : "We double the ROI per positive review; happy customers mean repeat business."}</div>
-                    <div className="flex items-start gap-2 text-yellow-500/90 bg-yellow-500/5 p-3 rounded-xl border border-yellow-500/10"><Heart size={14} className="shrink-0 mt-0.5" /><p className="text-[10px] font-black italic">{isRTL ? "تنبيه استراتيجي: تدل بياناتنا أن أغلب العملاء الذين يقيمون بـ 5 نجوم يعودون إليك لتجربة الخدمة مرة أخرى." : "Strategic Alert: Most 5-star reviewers return to experience your service again."}</p></div>
+                    <div className="bg-blue-950/40 p-4 rounded-2xl border border-blue-500/10 text-xs text-slate-300 font-bold leading-relaxed">
+                        {isRTL 
+                          ? "نحن نضاعف العائد المادي لكل تقييم إيجابي؛ لأن العميل الراضي لا يكتفي بمنحك نجمة، بل يعود بتجربة شراء متكررة ويجلب معه عملاء آخرين يثقون برأيه." 
+                          : "We double the ROI per positive review; a satisfied customer doesn't just leave a star, they return for repeat business and bring other customers who trust their recommendation."}
+                    </div>
+                    <div className="flex items-start gap-2 text-yellow-500/90 bg-yellow-500/5 p-3 rounded-xl border border-yellow-500/10">
+                        <Heart size={14} className="shrink-0 mt-0.5" />
+                        <p className="text-[10px] font-black italic">{isRTL ? "تنبيه استراتيجي: تدل بياناتنا أن أغلب العملاء الذين يقيمون بـ 5 نجوم يعودون إليك لتجربة الخدمة مرة أخرى." : "Strategic Alert: Data shows that most 5-star reviewers return to experience your service again."}</p>
+                    </div>
                   </div>
               </div>
           </div>
       </div>
 
-      {/* 6. Protection & Delivery Integration */}
+      {/* 6. Protection & AI Interaction */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-6 flex items-start gap-4">
            <div className="p-3 bg-orange-500/10 rounded-2xl text-orange-500"><Lock size={24} /></div>
-           <div><h4 className="text-white font-bold text-sm mb-1">{isRTL ? "درع حماية السمعة" : "Reputation Shield"}</h4><p className="text-slate-400 text-[11px] font-bold leading-relaxed">{isRTL ? "فلترة ذكية تحجب التقييمات السلبية وتوجهها كرسالة سرية للإدارة لحل المشكلة فوراً." : "Smart filtering blocks negative reviews and directs them privately to management."}</p></div>
+           <div><h4 className="text-white font-bold text-sm mb-1">{isRTL ? "درع حماية السمعة" : "Reputation Shield"}</h4><p className="text-slate-400 text-[11px] font-bold leading-relaxed">{isRTL ? "فلترة ذكية تحجب التقييمات السلبية وتوجهها كرسالة سرية للإدارة لحل المشكلة فوراً قبل وصولها لجوجل." : "Smart filtering blocks negative reviews and directs them privately to management before they hit Google."}</p></div>
+        </div>
+        <div className="bg-slate-900/50 border border-blue-500/20 rounded-3xl p-6 flex items-start gap-4">
+           <div className="p-3 bg-blue-500/10 rounded-2xl text-blue-500"><Sparkles size={24} /></div>
+           <div>
+              <h4 className="text-white font-bold text-sm mb-1">{isRTL ? "ردود آلية متطورة بواسطة AI" : "Advanced AI Auto-Replies"}</h4>
+              <p className="text-slate-400 text-[11px] font-bold leading-relaxed">
+                  {isRTL 
+                    ? "الرد على التقييمات عن طريق AI وهذا سيجعلك لا تشغل بالك في الردود ويجعلك من المفضلين في تصنيف جوجل بفضل التفاعل اللحظي." 
+                    : "Replies to reviews via AI, saving you time and effort while making you a favorite in Google rankings through instant interaction."}
+              </p>
+           </div>
         </div>
         {isRestaurant && (
-          <div className="bg-slate-900/50 border border-orange-500/20 rounded-3xl p-6 flex items-start gap-4">
+          <div className="bg-slate-900/50 border border-orange-500/20 rounded-3xl p-6 flex items-start gap-4 md:col-span-2">
              <div className="p-3 bg-orange-500/10 rounded-2xl text-orange-500"><Bike size={24} /></div>
-             <div><h4 className="text-white font-bold text-sm mb-1">{isRTL ? "دمج تطبيقات التوصيل" : "Delivery Integration"}</h4><p className="text-slate-400 text-[11px] font-bold leading-relaxed">{isRTL ? "إرسال رسالة واتساب فور استلام الطلب من (طلبات/كيتا) لتحويل تجربة التوصيل لتقييم إيجابي." : "Auto-WhatsApp after Talabat/Keeta delivery to capture positive feedback instantly."}</p></div>
+             <div><h4 className="text-white font-bold text-sm mb-1">{isRTL ? "دمج تطبيقات التوصيل (طلبات/كيتا)" : "Delivery Integration (Talabat/Keeta)"}</h4><p className="text-slate-400 text-[11px] font-bold leading-relaxed">{isRTL ? "إرسال رسالة واتساب فور استلام الطلب من شركات التوصيل أو من المطعم مباشرة لتحويل تجربة التوصيل لتقييم إيجابي مضمون." : "Send auto-WhatsApp after delivery orders to turn delivery experiences into guaranteed positive reviews."}</p></div>
           </div>
         )}
       </div>
 
-      {/* 7. Harvard Quote */}
+      {/* 7. Harvard Business Quote */}
       <div className="text-center py-6">
           <Quote className="text-yellow-500/30 mx-auto mb-4" size={32} />
           <h3 className="text-xl font-serif text-slate-200 italic mb-4">{isRTL ? "\"زيادة نجمة واحدة في التقييم تؤدي لزيادة في الإيرادات بنسبة 5% إلى 9%.\"" : "\"A one-star increase in rating leads to a 5-9% increase in revenue.\""}</h3>
@@ -174,7 +190,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
       {/* 8. Recommendation */}
       <div className="bg-blue-600/5 border border-blue-500/20 p-8 rounded-[2.5rem] relative">
         <h4 className="text-white font-black text-lg mb-3 flex items-center gap-2"><TrendingUp className="text-blue-400" /> {isRTL ? "التوصية الاستراتيجية النهائية" : "FINAL RECOMMENDATION"}</h4>
-        <p className="text-slate-300 text-sm font-bold leading-relaxed">{isRTL ? `بناءً على تحليل بيانات (${data.projectName})، ننصح ببدء خطة الهيمنة لـ 12 شهراً القادمة للسيطرة المطلقة على منطقتك وتصدر نتائج البحث.` : `We recommend the 12-month dominance plan for (${data.projectName}) to dominate your area and top Google search results.`}</p>
+        <p className="text-slate-300 text-sm font-bold leading-relaxed">{isRTL ? `بناءً على تحليل بيانات (${data.projectName})، ننصح ببدء خطة الهيمنة لـ 12 شهراً القادمة للسيطرة المطلقة على منطقتك وتصدر نتائج البحث بمصداقية عالية.` : `Based on (${data.projectName}) data, we recommend starting the 12-month dominance plan to dominate your area and top Google results.`}</p>
       </div>
 
       {/* 9. CTAs */}
