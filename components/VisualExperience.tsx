@@ -52,32 +52,30 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
         ? `يعطيك العافية، مشكور على زيارتك لنا في **${data.projectName}**. عسى عجبك الأكل؟ يهمنا نعرف تجربتك معانا..`
         : `يعطيك العافية، مشكور على ثقتك في **${data.projectName}**. إن شاء الله الخدمة جازت لك وما قصرنا معاك؟ يهمنا رأيك..`;
     }
-    return isRestaurant 
-      ? `Thanks for visiting **${data.projectName}**! Hope you enjoyed the food. We value your feedback..`
-      : `Thanks for choosing **${data.projectName}**. We hope you enjoyed the service. We value your feedback..`;
+    return `Thanks for visiting **${data.projectName}**! We value your feedback..`;
   };
 
-  const waLink = `https://wa.me/96566305551?text=${encodeURIComponent(`مرحباً، أريد تفعيل نظام Elegant Options لمشروعي (${data.projectName}).`)}`;
+  const waLink = `https://wa.me/96566305551?text=${encodeURIComponent(`مرحباً، قمت بتجربة المحاكي وأريد تفعيل نظام Elegant Options لمشروعي (${data.projectName}).`)}`;
 
-  // --- مكون الإرشادات البيعية (خط أسود وتنسيق أنيق) ---
+  // --- مكون الإرشادات المنسق (لا يحجب المحتوى) ---
   const InternalGuide = ({ title, text, icon: Icon, color, visible }: any) => {
     if (!visible) return null;
     const colorClasses = {
-      green: 'bg-green-400/90 border-green-500 shadow-green-900/10',
-      red: 'bg-red-400/90 border-red-500 shadow-red-900/10',
-      blue: 'bg-blue-400/90 border-blue-500 shadow-blue-900/10',
-      orange: 'bg-orange-400/90 border-orange-500 shadow-orange-900/10'
+      green: 'bg-green-400 border-green-500 shadow-green-900/10',
+      red: 'bg-red-400 border-red-500 shadow-red-900/10',
+      blue: 'bg-blue-400 border-blue-500 shadow-blue-900/10',
+      orange: 'bg-orange-400 border-orange-500 shadow-orange-900/10'
     };
     
     return (
-      <div className={`absolute top-12 left-4 right-4 z-[70] p-4 rounded-[1.5rem] border-2 shadow-xl animate-fade-in-up text-black ${colorClasses[color]} backdrop-blur-sm`}>
-        <div className={`flex items-center gap-2 mb-1.5 ${isRTL ? 'flex-row' : 'flex-row-reverse'}`}>
-          <Icon className="w-5 h-5 text-black" />
-          <h4 className="font-black text-[11px] uppercase tracking-tighter">{title}</h4>
+      <div className={`absolute top-10 left-3 right-3 z-[70] p-3.5 rounded-[1.2rem] border-2 shadow-xl animate-fade-in-up text-black ${colorClasses[color]} backdrop-blur-md`}>
+        <div className={`flex items-center gap-2 mb-1 ${isRTL ? 'flex-row' : 'flex-row-reverse'}`}>
+          <Icon className="w-4 h-4 text-black" />
+          <h4 className="font-black text-[10px] uppercase tracking-tighter">{title}</h4>
         </div>
-        <p className="text-[10px] leading-relaxed font-bold">{text}</p>
-        <div className="flex justify-center mt-2 animate-bounce">
-           <MoveDown size={18} className="text-black" />
+        <p className="text-[9px] leading-relaxed font-bold">{text}</p>
+        <div className="flex justify-center mt-1 animate-bounce">
+           <MoveDown size={16} className="text-black" />
         </div>
       </div>
     );
@@ -86,7 +84,7 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
   return (
     <div className={`max-w-6xl mx-auto flex flex-col items-center animate-fade-in pb-10 relative font-tajawal ${isRTL ? 'text-right' : 'text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       
-      {/* لوجو Elegant Options الأزرق - ثابت أسفل يسار */}
+      {/* لوجو Elegant Options الأزرق */}
       <div className={`fixed bottom-6 ${isRTL ? 'left-6' : 'right-6'} z-[100] hidden md:block`}>
          <img src="https://storage.googleapis.com/msgsndr/vX7gQQOe9PXtkGes2GOJ/media/6944362aa49c0a6975236470.png" alt="Elegant Options" className="w-16 h-16 object-contain" />
       </div>
@@ -106,23 +104,22 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
           
           <div className="flex-1 relative flex flex-col overflow-hidden bg-white rounded-[40px] lg:rounded-[50px] m-1.5 lg:m-2 border border-black/20 mt-10 mb-4">
              
-             {/* إرشادات النظام بالفصحى واللون الأسود */}
+             {/* التنبيهات المنسقة بالفصحى واللون الأسود */}
              <InternalGuide visible={stage === 'chat'} title={isRTL ? "الأتمتة الذكية ⚡" : "Smart Automation ⚡"} color="blue" icon={Zap}
-               text={isRTL ? "يقوم النظام بإرسال رسالة مخصصة آلياً فور انتهاء الخدمة لضمان الحصول على التقييم في ذروة رضا العميل." : "The system sends an automated custom message once service ends to ensure ratings at peak satisfaction."}
+               text={isRTL ? "يقوم النظام بإرسال رسالة مخصصة آلياً فور انتهاء الخدمة لضمان الحصول على التقييم في ذروة رضا العميل." : "Automated custom message sent instantly after service to ensure peak-satisfaction reviews."}
              />
-             <InternalGuide visible={stage === 'survey' && rating === 'sad'} title={isRTL ? "درع الحماية النشط 🛡️" : "Active Protection Shield 🛡️"} color="red" icon={ShieldAlert}
-               text={isRTL ? "يتم رصد الاستياء فوراً وحجب التقييم السلبي عن جوجل، مع فتح قناة تواصل سرية لحل المشكلة داخلياً." : "Dissatisfaction is detected instantly, blocking negative reviews from Google while opening a private channel."}
+             <InternalGuide visible={stage === 'survey' && rating === 'sad'} title={isRTL ? "درع الحماية النشط 🛡️" : "Active Shield 🛡️"} color="red" icon={ShieldAlert}
+               text={isRTL ? "يتم رصد الاستياء فوراً وحجب التقييم السلبي عن جوجل، مع توجيه العميل كرسالة داخلية للإدارة لحل المشكلة." : "Dissatisfaction is intercepted; negative reviews are blocked from Google and sent as internal alerts."}
              />
-             <InternalGuide visible={stage === 'survey' && rating === 'neutral'} title={isRTL ? "إجراء وقائي ذكي ⚠️" : "Smart Precautionary Step ⚠️"} color="orange" icon={Info}
-               text={isRTL ? "يتم تحويل التقييمات المتوسطة للإدارة لمعالجة القصور، مما يضمن بقاء معدل نجومك في القمة دائماً." : "Average ratings are diverted to management to address gaps, ensuring your star rating stays at the top."}
+             <InternalGuide visible={stage === 'survey' && rating === 'neutral'} title={isRTL ? "إجراء وقائي ذكي ⚠️" : "Smart Precaution ⚠️"} color="orange" icon={Info}
+               text={isRTL ? "يتم تحويل التقييمات المتوسطة كتنبيه داخلي للإدارة لمعالجة القصور، لضمان بقاء معدل نجومك في القمة." : "Average ratings are diverted internally to address service gaps without affecting your public score."}
              />
-             <InternalGuide visible={stage === 'survey' && rating === 'happy'} title={isRTL ? "محرك الهيمنة الرقمية 🚀" : "Digital Dominance Engine 🚀"} color="green" icon={TrendingUp}
-               text={isRTL ? "يتم توجيه العميل السعيد مباشرة لصفحة التقييم في جوجل بـ 5 نجوم جاهزة، لتحويل رضاه إلى صدارة رقمية." : "Happy customers are directed straight to Google with 5 stars ready, turning satisfaction into digital ranking."}
+             <InternalGuide visible={stage === 'survey' && rating === 'happy'} title={isRTL ? "محرك الهيمنة الرقمية 🚀" : "Dominance Engine 🚀"} color="green" icon={TrendingUp}
+               text={isRTL ? "يتم توجيه العميل السعيد مباشرة لصفحة التقييم في جوجل لتحفيزه على وضع 5 نجوم وصدارة نتائج البحث." : "Happy customers are directed to the review page directly to encourage a public 5-star rating."}
              />
 
              {stage === 'chat' ? (
                 <div className="flex-1 flex flex-col bg-[#e5ddd5] h-full overflow-hidden">
-                   {/* WhatsApp Header - Realistic RTL */}
                    <div className="bg-[#075e54] p-3 pt-6 flex items-center justify-between text-white shadow-md" dir="rtl">
                       <div className="flex items-center justify-start gap-2 flex-1">
                         <ArrowRight size={22} className="cursor-pointer opacity-90" onClick={onBack} />
@@ -142,12 +139,13 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                       </div>
                    </div>
 
+                   {/* زيادة الهامش العلوي (mt-44) لعدم حجب المحتوى بالتنبيه */}
                    <div className="flex-1 p-4" style={{ backgroundImage: 'url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")', backgroundSize: '400px' }}>
                       {msgVisible && (
-                        <div className="bg-white p-3 lg:p-4 rounded-2xl rounded-tl-none shadow-xl max-w-[92%] animate-fade-in-up border border-slate-100 float-right relative mt-48" dir="rtl">
+                        <div className="bg-white p-3 lg:p-4 rounded-2xl rounded-tl-none shadow-xl max-w-[92%] animate-fade-in-up border border-slate-100 float-right relative mt-44" dir="rtl">
                            <div className="absolute -top-0 -right-2 w-4 h-4 bg-white border-t border-r border-slate-100 transform rotate-45"></div>
                            <p className="text-[12px] lg:text-[13px] text-slate-800 leading-relaxed font-bold text-right relative z-10">{getKuwaitiMessage()}</p>
-                           <button onClick={() => setStage('survey')} className="w-full mt-3 bg-blue-600 py-2.5 rounded-xl text-white font-black text-xs lg:text-sm shadow-lg shadow-blue-100 relative z-10 uppercase tracking-tighter">تقييم التجربة الآن</button>
+                           <button onClick={() => setStage('survey')} className="w-full mt-3 bg-blue-600 py-2.5 rounded-xl text-white font-black text-xs lg:text-sm shadow-lg shadow-blue-100 relative z-10">تقييم التجربة الآن</button>
                            <div className="flex justify-end mt-1 items-center gap-0.5 text-[#53bdeb] relative z-10"><span className="text-[9px] text-slate-400 font-bold">1:21 PM</span> <CheckCheck size={12} /></div>
                         </div>
                       )}
@@ -187,7 +185,7 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                            value={feedbackText} 
                            onChange={(e) => setFeedbackText(e.target.value)} 
                            placeholder={isRTL ? "أخبرنا بتجربتك لتحسين خدمتنا..." : "Share your experience to help us improve..."} 
-                           className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none h-20 resize-none focus:border-blue-500 transition-all"
+                           className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none h-20 resize-none focus:border-blue-500 transition-all text-black"
                          ></textarea>
                          <button onClick={() => setIsSent(true)} className={`w-full py-3 rounded-xl font-black text-xs flex items-center justify-center gap-2 shadow-xl transform active:scale-95 transition-transform ${rating === 'happy' ? 'bg-[#4285F4] text-white' : 'bg-slate-900 text-white'}`}>
                             {rating === 'happy' ? (
@@ -195,7 +193,7 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                                  <img src="https://www.google.com/images/branding/googleg/1x/googleg_standard_color_128dp.png" className="w-4 h-4 bg-white rounded-full p-0.5" alt="Google" />
                                  {isRTL ? "ارسال ونشر على جوجل ماب" : "Send & Post on Google Maps"}
                                </>
-                            ) : (isRTL ? "إرسال ملاحظة خاصة للمدير" : "Send Private Feedback")}
+                            ) : (isRTL ? "إرسال ملاحظة خاصة للإدارة" : "Send Private Feedback")}
                          </button>
                       </div>
                    )}
@@ -206,12 +204,12 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                          {rating === 'happy' ? (
                             <>
                                <h4 className="text-xs font-black text-slate-800 mb-1">سيتم توجيهك لصفحة التقييمات الآن</h4>
-                               <p className="text-[8px] text-green-600 font-bold leading-tight">سيتم فتح شاشة تقييمات جوجل لوضع 5 نجوم مباشرة لتعزيز صدارتك الرقمية.</p>
+                               <p className="text-[8px] text-green-600 font-bold leading-tight">سيتم فتح صفحة التقييم المباشر لتحفيزك على وضع 5 نجوم وتعزيز الصدارة الرقمية.</p>
                             </>
                          ) : (
                             <>
-                               <h4 className="text-xs font-black text-slate-800 mb-1">تم تحويل شكواك للإدارة بنجاح</h4>
-                               <p className="text-[8px] text-red-500 font-bold leading-tight uppercase">سنحرص على معالجة ملاحظاتك لضمان رضاك التام، ولن تظهر للعامة في جوجل.</p>
+                               <h4 className="text-xs font-black text-slate-800 mb-1">هذه رسالة عميل خاصة</h4>
+                               <p className="text-[8px] text-red-500 font-bold leading-tight">تم تحويل ملاحظتك كتنبيه داخلي سري للإدارة لضمان رضاك، ولن تظهر للعامة في جوجل.</p>
                             </>
                          )}
                          <button onClick={() => setStage('post-demo')} className="mt-4 text-[9px] font-black text-blue-500 uppercase tracking-widest underline decoration-2 underline-offset-4">{isRTL ? "إنهاء العرض" : "Finish Demo"}</button>
