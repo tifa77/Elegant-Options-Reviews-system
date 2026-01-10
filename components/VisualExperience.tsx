@@ -57,7 +57,6 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
 
   const waLink = `https://wa.me/96566305551?text=${encodeURIComponent(`مرحباً، قمت بتجربة المحاكي وأريد تفعيل نظام Elegant Options لمشروعي (${data.projectName}).`)}`;
 
-  // --- مكون الإرشادات المنسق (مع مؤثر حركي وبدون حجب الاسم) ---
   const InternalGuide = ({ title, text, icon: Icon, color, visible }: any) => {
     if (!visible) return null;
     const colorClasses = {
@@ -68,13 +67,13 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
     };
     
     return (
-      <div className={`absolute top-24 left-3 right-3 z-[70] p-3.5 rounded-[1.2rem] border-2 shadow-xl animate-bounce-subtle text-black ${colorClasses[color]} backdrop-blur-md transition-all duration-500`}>
+      <div className={`absolute top-24 left-3 right-3 z-[70] p-3.5 rounded-[1.2rem] border-2 shadow-xl animate-fade-in text-black ${colorClasses[color]} backdrop-blur-md`}>
         <div className={`flex items-center gap-2 mb-1 ${isRTL ? 'flex-row' : 'flex-row-reverse'}`}>
           <Icon className="w-4 h-4 text-black" />
           <h4 className="font-black text-[10px] uppercase tracking-tighter">{title}</h4>
         </div>
         <p className="text-[9px] leading-relaxed font-bold">{text}</p>
-        <div className="flex justify-center mt-1 animate-pulse">
+        <div className="flex justify-center mt-1 animate-bounce">
            <MoveDown size={14} className="text-black" />
         </div>
       </div>
@@ -84,7 +83,7 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
   return (
     <div className={`max-w-6xl mx-auto flex flex-col items-center animate-fade-in pb-10 relative font-tajawal ${isRTL ? 'text-right' : 'text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       
-      {/* لوجو Elegant Options الأزرق */}
+      {/* لوجو Elegant Options الأزرق الثابت */}
       <div className={`fixed bottom-6 ${isRTL ? 'left-6' : 'right-6'} z-[100] hidden md:block`}>
          <img src="https://storage.googleapis.com/msgsndr/vX7gQQOe9PXtkGes2GOJ/media/6944362aa49c0a6975236470.png" alt="Elegant Options" className="w-16 h-16 object-contain" />
       </div>
@@ -103,20 +102,19 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
           
           <div className="flex-1 relative flex flex-col overflow-hidden bg-white rounded-[40px] lg:rounded-[50px] m-1.5 lg:m-2 border border-black/20 mt-10 mb-4">
              
-             {/* التنبيهات المنسقة حسب القطاع والقرار */}
              <InternalGuide visible={stage === 'chat'} title={isRTL ? "الأتمتة اللحظية ⚡" : "Instant Automation ⚡"} color="blue" icon={Zap}
                text={isRTL 
                  ? (isRestaurant ? "عند استلام طلب الأكل من شركات التوصيل أو المطعم مباشرة، يرسل النظام هذه الرسالة المخصصة فوراً لضمان الحصول على التقييم في ذروة رضا العميل." : "يقوم النظام بإرسال رسالة مخصصة آلياً فور انتهاء الخدمة لضمان الحصول على التقييم في ذروة رضا العميل.")
-                 : "System sends an automated custom message instantly to capture the review at peak satisfaction."}
+                 : "System sends an automated custom message instantly to capture the feedback at peak satisfaction."}
              />
              <InternalGuide visible={stage === 'survey' && rating === 'sad'} title={isRTL ? "درع الحماية النشط 🛡️" : "Active Protection 🛡️"} color="red" icon={ShieldAlert}
-               text={isRTL ? "تم رصد استياء العميل! سيتم توجيه ملاحظته للادارة فوراً للتواصل معه والحرص على رضاء جميع العملاء، بدلاً من نشرها علنياً." : "Dissatisfaction caught! We direct feedback to management to ensure customer happiness privately."}
+               text={isRTL ? "تم رصد استياء العميل! سيتم توجيه ملاحظته للادارة فوراً للتواصل معه والحرص على رضاء جميع العملاء." : "Dissatisfaction detected! We direct feedback to management to ensure customer happiness privately."}
              />
              <InternalGuide visible={stage === 'survey' && rating === 'neutral'} title={isRTL ? "إجراء وقائي ذكي ⚠️" : "Precautionary Step ⚠️"} color="orange" icon={Info}
                text={isRTL ? "تقييم متوسط؟ يتم تحويل الملاحظة للإدارة داخلياً لمعالجة القصور، لضمان بقاء صدارتك في جوجل ماب دون أي تأثير سلبي." : "Average rating handled internally to maintain your top position on Google Maps."}
              />
              <InternalGuide visible={stage === 'survey' && rating === 'happy'} title={isRTL ? "محرك الهيمنة الرقمية 🚀" : "Digital Dominance 🚀"} color="green" icon={TrendingUp}
-               text={isRTL ? "ستظهر الآن صفحة التقييمات للعميل.. وهذا هو الوقت المناسب وأقوى تحفيز لتقييمك بـ 5 نجوم لتعزيز صدارتك الرقمية." : "The review page appears now—this is the perfect time and strongest motivator for a 5-star rating."}
+               text={isRTL ? "ستظهر الآن صفحة التقييمات للعميل.. وهذا هو الوقت المناسب وأقوى تحفيز لتقييمك بـ 5 نجوم لتعزيز صدارتك الرقمية." : "The review page appears now—this is the perfect time and strongest motivator for a public 5-star rating."}
              />
 
              {stage === 'chat' ? (
@@ -207,10 +205,11 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                          ) : (
                             <>
                                <h4 className="text-xs font-black text-slate-800 mb-1">تم توجيه ملاحظتك للادارة</h4>
-                               <p className="text-[8px] text-red-500 font-bold leading-tight">سيتم التواصل معك والحرص على رضاء جميع العملاء، ولن تظهر هذه الرسالة للعامة.</p>
+                               <p className="text-[8px] text-red-500 font-bold leading-tight">سيتم التواصل معك والحرص على رضاء جميع العملاء.</p>
                             </>
                          )}
-                         <button onClick={() => setStage('post-demo')} className="mt-4 text-[9px] font-black text-blue-500 uppercase tracking-widest underline decoration-2 underline-offset-4">{isRTL ? "إنهاء العرض" : "Finish Demo"}</button>
+                         {/* استبدال الزر بجملة دعوة مخصصة */}
+                         <p className="mt-5 text-[9px] font-black text-blue-600 animate-pulse">تفضل بالضغط على الزر في أسفل الصفحة للحصول على العرض المميز والتجربة الحقيقية</p>
                       </div>
                    )}
                 </div>
@@ -220,7 +219,6 @@ const VisualExperience: React.FC<VisualExperienceProps> = ({ language, data, onB
                    <h2 className="text-lg font-black text-slate-900 mb-2 leading-tight uppercase tracking-tighter">نظام ELEGANT OPTIONS: حماية مستمرة لا تتوقف</h2>
                    <p className="text-slate-600 text-[10px] font-bold leading-relaxed px-2 mb-6">يضمن لك صدارة البحث وحماية سمعتك الرقمية تلقائياً وبشكل مستمر على مدار الساعة.</p>
                    
-                   {/* دعوة لاخذ اجراء في نهاية المحاكي */}
                    <a href={waLink} target="_blank" className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-full text-[10px] font-black shadow-lg animate-pulse">
                       احصل على العرض المميز الآن <ExternalLink size={12} />
                    </a>
