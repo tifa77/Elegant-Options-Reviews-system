@@ -1,97 +1,101 @@
 // @ts-nocheck
-import React from 'react';
-import { 
-  Ghost, Info, TrendingUp, DollarSign, Rocket, Star, 
-  Bot, MessageSquare, Bike, ChevronRight, Zap, CheckCircle2 
-} from 'lucide-react';
-import { AuditData, Language } from '../types';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, Utensils, Coffee, ShoppingBag, Stethoscope, Globe, Hotel, Calendar, Users, DollarSign, Star, Zap, Loader2, TrendingUp } from 'lucide-react';
 
-const ResultsDashboard: React.FC<{ data: AuditData, language: Language }> = ({ data, language }) => {
+const DataIntake = ({ language, onSubmit }) => {
   const isRTL = language === 'ar';
+  const inputRef = useRef(null);
+  const mapRef = useRef(null);
   
-  // --- المحرك الحسابي لمنع الأصفار (بناءً على تاريخ اليوم 12 يناير 2026) ---
-  const yearsActive = Math.max(1, 2026 - parseInt(data.establishmentYear));
-  const totalDays = yearsActive * 365;
-  const dailyRate = (data.currentReviews / totalDays).toFixed(2);
-  const weeklyRate = (parseFloat(dailyRate) * 7).toFixed(1);
+  const [loading, setLoading] = useState(false);
+  const [projectType, setProjectType] = useState('restaurant');
+  const [formData, setFormData] = useState({
+    projectName: '', establishmentYear: '2024', currentReviews: 0,
+    googleRating: 0, dailyCustomers: 50, averageCheck: 15, address: ''
+  });
+
+  useEffect(() => {
+    if (window.google && mapRef.current) {
+      const map = new window.google.maps.Map(mapRef.current, {
+        center: { lat: 29.3759, lng: 47.9774 }, zoom: 12,
+        styles: [{ "elementType": "geometry", "stylers": [{ "color": "#0a121e" }] }],
+        disableDefaultUI: true
+      });
+      const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current);
+      autocomplete.addListener('place_changed', () => {
+        const place = autocomplete.getPlace();
+        setFormData(prev => ({
+          ...prev, projectName: place.name, currentReviews: place.user_ratings_total || 0,
+          googleRating: place.rating || 0, address: place.formatted_address || ''
+        }));
+      });
+    }
+  }, []);
+
+  const types = [
+    { id: 'restaurant', icon: Utensils, label: isRTL ? 'مطعم' : 'Restaurant' },
+    { id: 'cafe', icon: Coffee, label: isRTL ? 'كافيه' : 'Café' },
+    { id: 'hotel', icon: Hotel, label: isRTL ? 'فندق' : 'Hotel' },
+    { id: 'shop', icon: ShoppingBag, label: isRTL ? 'متجر' : 'Shop' },
+    { id: 'clinic', icon: Stethoscope, label: isRTL ? 'عيادة' : 'Clinic' },
+    { id: 'other', icon: Globe, label: isRTL ? 'أخرى' : 'Other' },
+  ];
 
   return (
-    <div className={`space-y-10 animate-fade-in pb-20 ${isRTL ? 'font-tajawal text-right' : 'font-sans text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
-      
-      {/* 1. التشخيص السوقي الفعلي (Ghost Alert) */}
-      <div className="bg-[#1a0a10] border border-red-900/30 rounded-[2.5rem] p-8 flex items-center justify-between overflow-hidden relative shadow-2xl">
-        <div className="space-y-2 z-10">
-          <span className="text-red-500 font-bold text-sm uppercase">{isRTL ? 'التشخيص السوقي الفعلي' : 'Market Diagnosis'}</span>
-          <h2 className="text-red-500 text-5xl font-black">{isRTL ? 'خارج المنافسة' : 'Out of Competition'}</h2>
-          <p className="text-slate-400 font-bold max-w-xl">{isRTL ? 'تحليل الحساب يظهر غياباً تاماً عن النتائج الأولى، مما يعني خسارة يومية للحصة السوقية.' : 'Your account is absent from top results.'}</p>
-        </div>
-        <div className="bg-red-500/10 p-6 rounded-full shrink-0 animate-pulse"><Ghost className="text-red-500" size={60} /></div>
-      </div>
-
-      {/* 2. التقييمات مع النصوص التوضيحية العريضة */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[
-          { label: isRTL ? 'إجمالي التقييمات' : 'TOTAL REVIEWS', value: data.currentReviews, color: 'white', bg: '#0a121e', note: isRTL ? 'تحليل شامل لجميع النصوص المنشورة تاريخياً' : 'Historical text analysis' },
-          { label: isRTL ? 'إيجابية مستحقة' : 'DESERVED POSITIVE', value: Math.floor(data.currentReviews * 0.85), color: 'green-400', bg: '#051a14', note: isRTL ? 'هذه التقييمات ناتجة عن تحليل نصوص الرضا الفعلي' : 'Actual satisfaction analysis' },
-          { label: isRTL ? 'سلبية (يتم حجبها)' : 'NEGATIVE (BLOCKED)', value: Math.floor(data.currentReviews * 0.15), color: 'red-500', bg: '#1a0a0a', note: isRTL ? 'نظامنا يضمن تحليل وحجب هذه الفئة من الظهور' : 'Analysis prevents these from appearing' }
-        ].map((card, i) => (
-          <div key={i} className={`bg-[${card.bg}] border border-white/5 rounded-[2.5rem] p-8 text-center transition-transform hover:scale-[1.02]`}>
-            <span className={`text-${card.color} text-xs font-bold block mb-2 uppercase tracking-widest`}>{card.label}</span>
-            <div className={`text-6xl font-black text-${card.color} mb-4`}>{card.value}</div>
-            <p className={`text-${card.color} font-black text-xl leading-tight border-t border-white/5 pt-4 opacity-90`}>{card.note}</p>
+    <div className={`max-w-6xl mx-auto pb-16 px-4 ${isRTL ? 'font-tajawal text-right' : 'font-sans text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+      <div className="bg-[#050a12] border border-white/10 rounded-[2.5rem] p-8 shadow-2xl relative">
+        <form onSubmit={(e) => { e.preventDefault(); setLoading(true); setTimeout(() => onSubmit(formData), 1000); }} className="space-y-8">
+          
+          <div className="space-y-3">
+             <label className="text-blue-500 font-bold text-sm px-2 flex items-center gap-2"><Search size={16}/> {isRTL ? 'ابحث عن نشاطك التجاري في جوجل' : 'Search your business'}</label>
+             <input ref={inputRef} type="text" placeholder={isRTL ? "اكتب اسم المطعم/النشاط هنا..." : "Type business name..."} className="w-full bg-[#0e1623] border border-[#1f2937] rounded-2xl py-6 px-6 text-white text-xl font-bold focus:border-blue-500 outline-none" />
           </div>
-        ))}
-      </div>
 
-      {/* 3. الرد الآلي بالـ AI (التجربة البصرية الجديدة) */}
-      <div className="bg-[#0a121e] border border-blue-500/20 rounded-[2.5rem] p-8 relative overflow-hidden">
-        <div className="flex items-center gap-3 mb-6 text-blue-400 font-black text-xl uppercase">
-          <Bot size={28} className="animate-bounce" /> {isRTL ? 'نظام الرد الذكي الفوري (AI)' : 'Instant AI Response System'}
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-          <div className="space-y-4">
-            <p className="text-slate-300 text-lg leading-relaxed">
-              {isRTL 
-                ? 'يقوم نظامنا بالرد على كل عميل في أقل من 30 ثانية، مما يرفع تصنيفك في خوارزميات جوجل بنسبة 400%.' 
-                : 'Our AI responds to every customer in under 30 seconds, boosting your Google ranking by 400%.'}
-            </p>
-            <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-2xl space-y-3">
-              <div className="flex items-center gap-2 text-xs font-bold text-blue-400 uppercase"><MessageSquare size={14}/> {isRTL ? 'مثال حي للرد الآلي:' : 'Live AI Example:'}</div>
-              <div className="text-sm text-slate-400 italic">"{isRTL ? 'شكراً لزيارتك مطعمنا، نحن سعداء لأنك استمتعت بوجبة الفتوش...' : 'Thank you for visiting, we are glad you enjoyed the Fattoush...'}"</div>
-            </div>
-          </div>
-          <div className="relative group cursor-pointer">
-             <div className="absolute inset-0 bg-blue-500/20 blur-3xl group-hover:bg-blue-500/40 transition-all"></div>
-             <div className="relative bg-[#050a12] border-2 border-blue-500/30 p-6 rounded-3xl text-center">
-                <Zap className="text-yellow-400 mx-auto mb-2" size={32} />
-                <span className="text-white font-black text-2xl tracking-tighter uppercase">{isRTL ? 'تفعيل الرد التلقائي' : 'ACTIVATE AI REPLY'}</span>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-auto lg:h-[300px]">
+             <div className="lg:col-span-5 grid grid-cols-2 gap-3">
+                {types.map((type) => (
+                    <button key={type.id} type="button" onClick={() => setProjectType(type.id)} className={`flex flex-col items-center justify-center p-4 rounded-2xl border transition-all ${projectType === type.id ? 'bg-blue-600 border-blue-500 text-white shadow-lg' : 'bg-[#0e1623] border-[#1f2937] text-slate-400'}`}>
+                        <type.icon size={22} className="mb-2" /><span className="text-xs font-bold">{type.label}</span>
+                    </button>
+                ))}
+             </div>
+             <div className="lg:col-span-7 rounded-3xl overflow-hidden border border-[#1f2937] bg-[#0e1623]">
+                <div ref={mapRef} className="w-full h-full opacity-70" />
              </div>
           </div>
-        </div>
-      </div>
 
-      {/* 4. تحسين نظام التوصيل والطلبات (Restaurant Delivery) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-[#0a121e] border border-white/10 rounded-[2.5rem] p-8">
-           <div className="flex items-center gap-3 mb-8 text-green-400 font-black text-xl">
-             <Bike size={24} /> {isRTL ? 'أتمتة طلبات التوصيل' : 'Delivery Order Automation'}
-           </div>
-           <div className="space-y-6">
-              {[
-                { t: isRTL ? 'تتبع فوري عبر WhatsApp' : 'Real-time WhatsApp Tracking', d: isRTL ? 'إرسال رابط التتبع فور خروج الطلب.' : 'Automated tracking links.' },
-                { t: isRTL ? 'إعادة الاستهداف الذكي' : 'Smart Retargeting', d: isRTL ? 'دعوة العملاء للطلب مرة أخرى بعد 7 أيام.' : 'Inviting customers to re-order.' }
-              ].map((item, i) => (
-                <div key={i} className="flex gap-4 items-start">
-                   <div className="bg-green-500/20 p-2 rounded-lg text-green-500"><CheckCircle2 size={18}/></div>
-                   <div>
-                     <h4 className="text-white font-bold">{item.t}</h4>
-                     <p className="text-slate-500 text-sm">{item.d}</p>
-                   </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 border-t border-white/5 pt-6">
+            <div className="bg-[#0b121e] border border-green-500/30 rounded-3xl p-6">
+                <label className="text-[11px] font-bold text-green-500 flex items-center gap-1 mb-2"><DollarSign size={12}/> {isRTL ? 'متوسط الفاتورة' : 'AVG TICKET'}</label>
+                <div className="flex items-center gap-2">
+                    <span className="text-green-600 font-bold">KWD</span>
+                    <input type="number" value={formData.averageCheck} onChange={(e) => setFormData({...formData, averageCheck: e.target.value})} className="bg-transparent text-3xl font-black text-white w-full outline-none" />
                 </div>
-              ))}
-           </div>
-        </div>
+                <div className="mt-3 flex justify-between text-[10px] text-slate-500 border-t border-white/5 pt-2">
+                    <span>{isRTL ? 'سنة الافتتاح:' : 'Opened:'}</span>
+                    <input type="number" value={formData.establishmentYear} onChange={(e) => setFormData({...formData, establishmentYear: e.target.value})} className="bg-transparent text-white font-bold w-12 text-right outline-none" />
+                </div>
+            </div>
+            {/* بطاقات البيانات الأخرى */}
+            <div className="bg-[#0e1623] border border-[#1f2937] rounded-3xl p-6 flex flex-col justify-center">
+                <label className="text-[11px] font-bold text-slate-400 uppercase mb-2 block">{isRTL ? 'متوسط العملاء (يومياً)' : 'DAILY CUSTOMERS'}</label>
+                <input type="number" value={formData.dailyCustomers} onChange={(e) => setFormData({...formData, dailyCustomers: e.target.value})} className="bg-transparent text-3xl font-black text-white outline-none" />
+            </div>
+            <div className="bg-[#0e1623] border border-[#1f2937] rounded-3xl p-6 flex flex-col justify-center">
+                <label className="text-[11px] font-bold text-slate-400 uppercase mb-2 block">{isRTL ? 'تقييم جوجل الحالي' : 'RATING'}</label>
+                <div className="flex items-center gap-2 text-3xl font-black text-white">
+                  {formData.googleRating} <Star className="text-yellow-400 fill-yellow-400" size={20} />
+                </div>
+            </div>
+          </div>
 
-        {/* كارت المقارنة مع Elegant Options */}
-        <div className="bg-gradient-to-br from-[#0a121e] to-[#0d1b33] border-2 border-blue-500/30 rounded-[2.5rem] p-8 shadow-xl relative overflow-hidden">
-           <div className="flex items-center gap-2 mb-8 text-blue-400 font-black uppercase tracking-tighter"><TrendingUp size={20}/> مع نظام ELEGANT OPTIONS
+          <button type="submit" className="w-full bg-[#1c1c1c] hover:bg-blue-600 py-6 rounded-3xl text-white font-black text-xl border border-white/10 transition-all shadow-xl">
+             {loading ? <Loader2 className="animate-spin mx-auto"/> : isRTL ? 'كشف الأرباح الضائعة وتفعيل النظام' : 'ACTIVATE SYSTEM'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default DataIntake;
