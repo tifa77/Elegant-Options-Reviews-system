@@ -34,27 +34,29 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
     negativeReviews: 0
   });
 
-  // --- 1. تهيئة الخريطة وتحديد موقع العميل عند الفتح ---
+  // --- تهيئة الخريطة وتحديد الموقع ---
   useEffect(() => {
     if (window.google && mapRef.current) {
       const map = new window.google.maps.Map(mapRef.current, {
         center: { lat: 29.3759, lng: 47.9774 }, // إحداثيات الكويت كافتراضي
         zoom: 13,
-        styles: [ { "elementType": "geometry", "stylers": [ { "color": "#212121" } ] }, { "elementType": "labels.text.fill", "stylers": [ { "color": "#757575" } ] } ], // ستايل داكن فخم
+        styles: [ { "elementType": "geometry", "stylers": [ { "color": "#212121" } ] }, { "elementType": "labels.text.fill", "stylers": [ { "color": "#757575" } ] } ], 
         disableDefaultUI: true
       });
       setGoogleMap(map);
 
-      // طلب موقع العميل الحالي
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((position) => {
           const pos = { lat: position.coords.latitude, lng: position.coords.longitude };
           map.setCenter(pos);
-          new window.google.maps.Marker({ position: pos, map: map, icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' });
+          new window.google.maps.Marker({ 
+            position: pos, 
+            map: map,
+            title: isRTL ? "موقعك الحالي" : "Your Location"
+          });
         });
       }
 
-      // تهيئة Autocomplete مع شريط الخيارات
       const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current!, {
         types: ['establishment'],
         fields: ['name', 'formatted_address', 'rating', 'user_ratings_total', 'geometry']
@@ -70,22 +72,27 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
         }
       });
     }
-  }, []);
+  }, [isRTL]);
 
   const handleAutoFill = (place: any) => {
     setIsExtracting(true);
     setTimeout(() => {
-      const totalReviews = place.user_ratings_total || Math.floor(Math.random() * 150) + 10;
+      const totalReviews = place.user_ratings_total || 0;
+      const rating = place.rating || 0;
+      
+      // منطق حسابي تقريبي للمراجعات بناءً على التقييم الفعلي من جوجل
+      const posRatio = rating ? (rating / 5) : 0.85;
+      
       setFormData(prev => ({
         ...prev,
         projectName: place.name,
         address: place.formatted_address || '',
         currentReviews: totalReviews,
-        positiveReviews: Math.floor(totalReviews * 0.85),
-        negativeReviews: totalReviews - Math.floor(totalReviews * 0.85)
+        positiveReviews: Math.floor(totalReviews * posRatio),
+        negativeReviews: totalReviews - Math.floor(totalReviews * posRatio)
       }));
       setIsExtracting(false);
-    }, 1000);
+    }, 1200);
   };
 
   const types = [
@@ -104,7 +111,7 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
         ...formData, 
         projectType: projectType === 'other' ? formData.customType : projectType 
       });
-    }, 800);
+    }, 1500);
   };
 
   return (
@@ -122,7 +129,7 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
       <div className="bg-[#050a12] border-4 border-solid border-white/10 rounded-[3rem] p-6 md:p-12 shadow-2xl relative overflow-hidden">
         <form onSubmit={handleSubmit} className="space-y-10 relative z-10">
           
-          {/* اختيار النوع مع خيار "أخرى" */}
+          {/* اختيار النوع */}
           <div className="space-y-4">
             <div className="text-[13px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-2">
                <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
@@ -139,15 +146,15 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
             </div>
             {projectType === 'other' && (
               <div className="animate-fade-in-up mt-4 relative">
-                <PenTool className="absolute right-4 top-1/2 -translate-y-1/2 text-blue-400" size={18} />
+                <PenTool className={`absolute ${isRTL ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 text-blue-400`} size={18} />
                 <input type="text" required placeholder={isRTL ? "اكتب تخصص مشروعك هنا..." : "Enter custom type..."}
                   value={formData.customType} onChange={(e) => setFormData({...formData, customType: e.target.value})}
-                  className="w-full bg-[#0a121e] border-2 border-solid border-blue-500/50 rounded-2xl py-4 pr-12 pl-4 text-white font-bold outline-none" />
+                  className={`w-full bg-[#0a121e] border-2 border-solid border-blue-500/50 rounded-2xl py-4 ${isRTL ? 'pr-12 pl-4' : 'pl-12 pr-4'} text-white font-bold outline-none`} />
               </div>
             )}
           </div>
 
-          {/* الخريطة الحية الفعالة */}
+          {/* الخريطة */}
           <div className="space-y-4">
              <div className="text-[13px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-2">
                <div className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse"></div>
@@ -160,14 +167,14 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
             </div>
           </div>
 
-          {/* مدخل اسم المشروع المرتبط بالـ API */}
+          {/* اسم المشروع */}
           <div className="space-y-4">
             <label className="text-[13px] font-black text-blue-400 uppercase tracking-widest block">{isRTL ? 'اسم المشروع (كما يظهر في جوجل)' : 'PROJECT NAME'}</label>
             <div className="relative">
-              <Search className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-500" size={28} />
-              <input ref={inputRef} type="text" required placeholder={isRTL ? "ابدأ بكتابة الاسم واشترِ الموقع من القائمة..." : "Type and select from list..."}
+              <Search className={`absolute ${isRTL ? 'right-6' : 'left-6'} top-1/2 -translate-y-1/2 text-slate-500`} size={28} />
+              <input ref={inputRef} type="text" required placeholder={isRTL ? "ابدأ بكتابة الاسم واختاره من القائمة..." : "Type and select from list..."}
                 value={formData.projectName} onChange={(e) => setFormData({...formData, projectName: e.target.value})}
-                className="w-full bg-[#0a121e] border-4 border-solid border-white/10 rounded-3xl py-6 pr-16 pl-8 text-white text-xl font-black focus:border-blue-500 outline-none transition-all" />
+                className={`w-full bg-[#0a121e] border-4 border-solid border-white/10 rounded-3xl py-6 ${isRTL ? 'pr-16 pl-8' : 'pl-16 pr-8'} text-white text-xl font-black focus:border-blue-500 outline-none transition-all`} />
             </div>
           </div>
 
