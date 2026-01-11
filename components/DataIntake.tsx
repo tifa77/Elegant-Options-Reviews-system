@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, Utensils, Coffee, ShoppingBag, Stethoscope, 
-  Globe, Calendar, Star, Users, Zap, Loader2, Radar, 
-  MapPin, Hotel, CheckCircle2, Activity, PenTool
+  Globe, Calendar, Star, Users, Zap, Loader2, 
+  MapPin, Hotel, CheckCircle2, DollarSign, TrendingUp, Calculator
 } from 'lucide-react';
 import { AuditData, Language } from '../types';
 
@@ -18,6 +18,7 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
   const inputRef = useRef<HTMLInputElement>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const [googleMap, setGoogleMap] = useState<google.maps.Map | null>(null);
+  const [placesService, setPlacesService] = useState<google.maps.places.PlacesService | null>(null);
   
   const [loading, setLoading] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
@@ -25,41 +26,41 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
 
   const [formData, setFormData] = useState({
     projectName: '',
-    customType: '',
-    establishmentYear: '2026',
+    establishmentYear: '2024',
     currentReviews: 0,
+    googleRating: 0.0, // التقييم الحقيقي من جوجل
     dailyCustomers: 50,
+    averageCheck: 15, // متوسط قيمة الفاتورة (مهم جداً للأرباح)
     address: '',
     positiveReviews: 0,
-    negativeReviews: 0
+    negativeReviews: 0, // السلبيات المحتملة بناءً على التقييم
+    projectedRevenue: 0 // الأرباح المتوقعة
   });
 
-  // --- تهيئة الخريطة وتحديد الموقع ---
+  // --- تهيئة الخريطة ---
   useEffect(() => {
     if (window.google && mapRef.current) {
       const map = new window.google.maps.Map(mapRef.current, {
-        center: { lat: 29.3759, lng: 47.9774 }, // إحداثيات الكويت كافتراضي
+        center: { lat: 29.3759, lng: 47.9774 },
         zoom: 13,
         styles: [ { "elementType": "geometry", "stylers": [ { "color": "#212121" } ] }, { "elementType": "labels.text.fill", "stylers": [ { "color": "#757575" } ] } ], 
         disableDefaultUI: true
       });
       setGoogleMap(map);
+      setPlacesService(new window.google.maps.places.PlacesService(map));
 
+      // تحديد الموقع الحالي
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((position) => {
           const pos = { lat: position.coords.latitude, lng: position.coords.longitude };
           map.setCenter(pos);
-          new window.google.maps.Marker({ 
-            position: pos, 
-            map: map,
-            title: isRTL ? "موقعك الحالي" : "Your Location"
-          });
+          new window.google.maps.Marker({ position: pos, map: map });
         });
       }
 
       const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current!, {
         types: ['establishment'],
-        fields: ['name', 'formatted_address', 'rating', 'user_ratings_total', 'geometry']
+        fields: ['place_id', 'name', 'formatted_address', 'geometry', 'rating', 'user_ratings_total']
       });
 
       autocomplete.addListener('place_changed', () => {
@@ -72,44 +73,72 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
         }
       });
     }
-  }, [isRTL]);
+  }, []);
 
+  // --- الخوارزمية الذكية لاستخراج البيانات الواقعية ---
   const handleAutoFill = (place: any) => {
     setIsExtracting(true);
+    
+    // محاكاة بسيطة للوقت لجعل العميل يشعر أن النظام "يحلل"
     setTimeout(() => {
       const totalReviews = place.user_ratings_total || 0;
-      const rating = place.rating || 0;
+      const rating = place.rating || 0; // سحب التقييم الحقيقي (مثلاً 3.8)
       
-      // منطق حسابي تقريبي للمراجعات بناءً على التقييم الفعلي من جوجل
-      const posRatio = rating ? (rating / 5) : 0.85;
-      
+      // معادلة حساب "السلبيات المحجوبة" (The Blocked Negatives Algorithm)
+      // كلما قل التقييم عن 5، زادت نسبة السلبيات التي يمكن لنظامنا حجبها
+      // المعادلة: (5 - التقييم) / 5 * عدد الريفيوهات * معامل تصحيح
+      let negativeFactor = 0;
+      if (rating > 0) {
+        negativeFactor = (5 - rating) / 5; // مثال: تقييم 4.0 يعني 20% سلبيات محتملة
+      } else {
+        negativeFactor = 0.1; // افتراضي للمشاريع الجديدة
+      }
+
+      // تصحيح النسبة لتكون واقعية (ليست كل التقييمات غير الـ 5 نجوم هي سلبية كارثية)
+      const calculatedNegatives = Math.floor(totalReviews * negativeFactor); 
+      const calculatedPositives = totalReviews - calculatedNegatives;
+
       setFormData(prev => ({
         ...prev,
         projectName: place.name,
         address: place.formatted_address || '',
         currentReviews: totalReviews,
-        positiveReviews: Math.floor(totalReviews * posRatio),
-        negativeReviews: totalReviews - Math.floor(totalReviews * posRatio)
+        googleRating: rating,
+        positiveReviews: calculatedPositives,
+        negativeReviews: calculatedNegatives,
+        // نعيد تعيين الأرباح لتتم إعادة حسابها عند الضغط على زر الفحص
       }));
       setIsExtracting(false);
-    }, 1200);
+    }, 1500);
   };
 
   const types = [
-    { id: 'clinic', icon: Stethoscope, label: isRTL ? 'عيادة طبية' : 'Clinic' },
-    { id: 'cafe', icon: Coffee, label: isRTL ? 'كافيه' : 'Café' },
     { id: 'restaurant', icon: Utensils, label: isRTL ? 'مطعم' : 'Restaurant' },
+    { id: 'cafe', icon: Coffee, label: isRTL ? 'كافيه' : 'Café' },
+    { id: 'clinic', icon: Stethoscope, label: isRTL ? 'عيادة' : 'Clinic' },
+    { id: 'shop', icon: ShoppingBag, label: isRTL ? 'متجر' : 'Shop' },
     { id: 'hotel', icon: Hotel, label: isRTL ? 'فندق' : 'Hotel' },
-    { id: 'other', icon: Globe, label: isRTL ? 'أخرى' : 'Other' },
   ];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    // --- معادلة التوقع المالي (The Financial Projection) ---
+    // الافتراض: النظام سيقوم بزيادة التقييمات بنسبة 300% سنوياً على الأقل بناءً على عدد الزبائن اليومي
+    // الزبائن السعداء الذين لا يكتبون تقييم عادة نسبتهم 90%
+    const annualPotentialReviews = formData.dailyCustomers * 365 * 0.1; // نفترض أننا سنقنع 10% فقط
+    const projectedAdditionalRevenue = annualPotentialReviews * formData.averageCheck;
+
     setTimeout(() => {
       onSubmit({ 
         ...formData, 
-        projectType: projectType === 'other' ? formData.customType : projectType 
+        projectType,
+        // نمرر البيانات المالية المحسوبة بدقة
+        financialData: {
+            projectedRevenue: projectedAdditionalRevenue, // الأرباح المتوقعة خلال سنة
+            missedRevenue: formData.negativeReviews * formData.averageCheck * 10 // الخسارة بسبب السمعة (كل تقييم سيء يطرد 10 عملاء)
+        }
       });
     }, 1500);
   };
@@ -117,92 +146,106 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
   return (
     <div className={`max-w-4xl mx-auto animate-fade-in pb-16 px-4 ${isRTL ? 'text-right font-tajawal' : 'text-left font-sans'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       
-      <div className="text-center mb-10">
+      <div className="text-center mb-8">
          <h1 className="text-3xl md:text-5xl font-black text-white mb-4 leading-tight">
-            {isRTL ? 'اكتشف حصتك السوقية الآن' : 'Discover Your Market Share'}
+            {isRTL ? 'تحليل الهيمنة السوقية' : 'Market Dominance Audit'}
          </h1>
-         <p className="text-blue-400 font-black text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
-            {isRTL ? 'أدخل بيانات مشروعك بدقة للحصول على تقرير يحلل وضعك التنافسي.' : 'Enter project data for a competitive market report.'}
+         <p className="text-blue-400 font-bold text-lg max-w-2xl mx-auto">
+            {isRTL ? 'دع الأرقام الحقيقية تخبرك بما تخسره وكيف يمكن لـ Elegant Options مضاعفة أرباحك.' : 'Let real numbers show you lost revenue and potential growth.'}
          </p>
       </div>
 
-      <div className="bg-[#050a12] border-4 border-solid border-white/10 rounded-[3rem] p-6 md:p-12 shadow-2xl relative overflow-hidden">
-        <form onSubmit={handleSubmit} className="space-y-10 relative z-10">
+      <div className="bg-[#050a12] border-4 border-white/10 rounded-[3rem] p-6 md:p-10 shadow-2xl relative overflow-hidden">
+        <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
           
-          {/* اختيار النوع */}
-          <div className="space-y-4">
-            <div className="text-[13px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-2">
-               <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"></div>
-               {isRTL ? 'نوع المشروع' : 'PROJECT TYPE'}
-            </div>
-            <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
-              {types.map((type) => (
-                <button key={type.id} type="button" onClick={() => setProjectType(type.id)}
-                  className={`flex flex-col items-center justify-center p-4 rounded-3xl border-4 border-solid transition-all ${projectType === type.id ? 'bg-blue-600/20 border-blue-500 text-white' : 'bg-slate-900/40 border-white/5 text-slate-500 hover:border-white/20'}`}>
-                  <type.icon size={24} className="mb-2" />
-                  <span className="text-[11px] font-black">{type.label}</span>
-                </button>
-              ))}
-            </div>
-            {projectType === 'other' && (
-              <div className="animate-fade-in-up mt-4 relative">
-                <PenTool className={`absolute ${isRTL ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 text-blue-400`} size={18} />
-                <input type="text" required placeholder={isRTL ? "اكتب تخصص مشروعك هنا..." : "Enter custom type..."}
-                  value={formData.customType} onChange={(e) => setFormData({...formData, customType: e.target.value})}
-                  className={`w-full bg-[#0a121e] border-2 border-solid border-blue-500/50 rounded-2xl py-4 ${isRTL ? 'pr-12 pl-4' : 'pl-12 pr-4'} text-white font-bold outline-none`} />
-              </div>
-            )}
-          </div>
-
-          {/* الخريطة */}
-          <div className="space-y-4">
-             <div className="text-[13px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-2">
-               <div className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse"></div>
-               {isRTL ? 'تحديد الموقع الجغرافي' : 'GEOGRAPHIC LOCATION'}
-            </div>
-            <div ref={mapRef} className="h-64 rounded-[2.5rem] border-4 border-solid border-white/10 shadow-inner bg-slate-900 overflow-hidden relative">
-               <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                  {!googleMap && <Loader2 className="animate-spin text-blue-500" size={32} />}
-               </div>
+          {/* 1. البحث الذكي */}
+          <div className="space-y-2">
+            <label className="text-xs font-black text-blue-400 uppercase tracking-widest flex items-center gap-2">
+                <Search size={14} /> {isRTL ? 'ابحث عن نشاطك التجاري في جوجل' : 'FIND YOUR BUSINESS ON GOOGLE'}
+            </label>
+            <div className="relative group">
+              <input ref={inputRef} type="text" required 
+                placeholder={isRTL ? "اكتب اسم المطعم/النشاط هنا..." : "Type business name..."}
+                defaultValue={formData.projectName}
+                className="w-full bg-[#0a121e] border-4 border-white/10 rounded-2xl py-5 px-6 text-white text-lg font-bold focus:border-blue-500 outline-none transition-all group-hover:border-white/20" />
+                {isExtracting && <div className={`absolute ${isRTL ? 'left-4' : 'right-4'} top-1/2 -translate-y-1/2`}><Loader2 className="animate-spin text-blue-500"/></div>}
             </div>
           </div>
 
-          {/* اسم المشروع */}
-          <div className="space-y-4">
-            <label className="text-[13px] font-black text-blue-400 uppercase tracking-widest block">{isRTL ? 'اسم المشروع (كما يظهر في جوجل)' : 'PROJECT NAME'}</label>
-            <div className="relative">
-              <Search className={`absolute ${isRTL ? 'right-6' : 'left-6'} top-1/2 -translate-y-1/2 text-slate-500`} size={28} />
-              <input ref={inputRef} type="text" required placeholder={isRTL ? "ابدأ بكتابة الاسم واختاره من القائمة..." : "Type and select from list..."}
-                value={formData.projectName} onChange={(e) => setFormData({...formData, projectName: e.target.value})}
-                className={`w-full bg-[#0a121e] border-4 border-solid border-white/10 rounded-3xl py-6 ${isRTL ? 'pr-16 pl-8' : 'pl-16 pr-8'} text-white text-xl font-black focus:border-blue-500 outline-none transition-all`} />
-            </div>
-          </div>
-
-          {/* شبكة البيانات */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-             <div className="bg-[#0a121e] border-4 border-solid border-white/5 p-6 rounded-[2.5rem]">
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-2"><Calendar size={16} className="text-blue-500"/> {isRTL ? 'سنة التأسيس' : 'EST. YEAR'}</span>
-                <input type="number" value={formData.establishmentYear} onChange={(e) => setFormData({...formData, establishmentYear: e.target.value})} className="bg-transparent text-3xl font-black text-white w-full outline-none" />
+          {/* 2. الخريطة ونوع النشاط */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             <div className="h-48 rounded-3xl border-4 border-white/10 overflow-hidden relative grayscale hover:grayscale-0 transition-all duration-500">
+                <div ref={mapRef} className="w-full h-full bg-slate-800" />
              </div>
-             <div className={`bg-[#0a121e] border-4 border-solid p-6 rounded-[2.5rem] transition-all ${isExtracting ? 'border-blue-500 animate-pulse' : 'border-white/5'}`}>
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-2"><Star size={16} className="text-blue-500"/> {isRTL ? 'إجمالي التقييمات' : 'REVIEWS'}</span>
-                <div className="text-4xl font-black text-white flex items-center gap-2">
-                   {isExtracting ? <Loader2 className="animate-spin" size={24} /> : formData.currentReviews}
-                   {!isExtracting && formData.currentReviews > 0 && <CheckCircle2 size={20} className="text-green-500" />}
+             
+             <div className="grid grid-cols-3 gap-3 content-start">
+                {types.map((type) => (
+                    <button key={type.id} type="button" onClick={() => setProjectType(type.id)}
+                    className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all ${projectType === type.id ? 'bg-blue-600 border-blue-500 text-white' : 'bg-slate-900 border-white/5 text-slate-400 hover:bg-slate-800'}`}>
+                    <type.icon size={20} className="mb-1" />
+                    <span className="text-[10px] font-bold">{type.label}</span>
+                    </button>
+                ))}
+             </div>
+          </div>
+
+          <hr className="border-white/5" />
+
+          {/* 3. البيانات المالية والتشغيلية (السر هنا) */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+                <Calculator className="text-green-400" size={20} />
+                <h3 className="text-white font-bold text-lg">{isRTL ? 'حاسبة العوائد المفقودة' : 'Revenue Opportunity Calculator'}</h3>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* عدد التقييمات (مسحوب آلياً) */}
+                <div className="bg-[#0a121e] p-5 rounded-3xl border-2 border-white/5">
+                    <span className="text-[10px] text-slate-500 uppercase font-black block mb-2">{isRTL ? 'تقييم جوجل الحالي' : 'GOOGLE RATING'}</span>
+                    <div className="flex items-end gap-2">
+                        <span className="text-3xl font-black text-white">{formData.googleRating || '-'}</span>
+                        <Star className="text-yellow-400 fill-yellow-400 mb-1" size={18} />
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-1">
+                        {isRTL ? `من ${formData.currentReviews} عميل` : `From ${formData.currentReviews} reviews`}
+                    </div>
                 </div>
-             </div>
-             <div className="bg-[#0a121e] border-4 border-solid border-white/5 p-6 rounded-[2.5rem]">
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-2"><Users size={16} className="text-blue-500"/> {isRTL ? 'العملاء يومياً' : 'CUSTOMERS'}</span>
-                <input type="number" value={formData.dailyCustomers} onChange={(e) => setFormData({...formData, dailyCustomers: parseInt(e.target.value)})} className="bg-transparent text-3xl font-black text-white w-full outline-none" />
-             </div>
+
+                {/* العملاء يومياً */}
+                <div className="bg-[#0a121e] p-5 rounded-3xl border-2 border-white/5 relative group focus-within:border-blue-500 transition-colors">
+                    <span className="text-[10px] text-slate-500 uppercase font-black block mb-2 flex items-center gap-1"><Users size={12}/> {isRTL ? 'متوسط العملاء (يومياً)' : 'DAILY CUSTOMERS'}</span>
+                    <input type="number" 
+                        value={formData.dailyCustomers} 
+                        onChange={(e) => setFormData({...formData, dailyCustomers: parseInt(e.target.value) || 0})}
+                        className="w-full bg-transparent text-3xl font-black text-white outline-none" />
+                     <span className="absolute bottom-5 right-5 text-slate-600 text-xs">Client</span>
+                </div>
+
+                {/* متوسط الفاتورة (الحقل الجديد الأهم) */}
+                <div className="bg-[#0a121e] p-5 rounded-3xl border-2 border-green-500/20 focus-within:border-green-500 transition-colors relative">
+                    <span className="text-[10px] text-green-400 uppercase font-black block mb-2 flex items-center gap-1"><DollarSign size={12}/> {isRTL ? 'متوسط قيمة الفاتورة' : 'AVG. TICKET VALUE'}</span>
+                    <div className="flex items-center">
+                        <input type="number" 
+                            value={formData.averageCheck} 
+                            onChange={(e) => setFormData({...formData, averageCheck: parseFloat(e.target.value) || 0})}
+                            className="w-full bg-transparent text-3xl font-black text-white outline-none" />
+                        <span className="text-green-500 font-bold text-sm">KWD</span>
+                    </div>
+                </div>
+            </div>
           </div>
 
-          <button type="submit" disabled={loading || isExtracting}
-            className="w-full relative group overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-600 py-8 rounded-[3rem] shadow-2xl transition-all active:scale-[0.98] disabled:opacity-50">
-            <span className="relative flex items-center justify-center gap-4 text-white font-black text-2xl tracking-tighter uppercase">
-              {loading ? <Loader2 className="animate-spin" size={32} /> : <>{isRTL ? 'تشغيل الفحص العميق للهيمنة' : 'START DEEP AUDIT'} <Zap className="fill-yellow-400 text-yellow-400 animate-pulse" size={32} /></>}
+          <button type="submit" disabled={loading || isExtracting || formData.currentReviews === 0}
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 py-6 rounded-3xl shadow-lg shadow-blue-900/20 transition-all transform active:scale-[0.99] disabled:opacity-50 disabled:grayscale">
+            <span className="flex items-center justify-center gap-3 text-white font-black text-xl tracking-tight">
+              {loading ? <Loader2 className="animate-spin" /> : 
+              <>
+                {isRTL ? 'كشف الأرباح الضائعة وتفعيل النظام' : 'REVEAL LOST REVENUE & ACTIVATE'} 
+                <TrendingUp size={24} className="text-green-300" />
+              </>}
             </span>
           </button>
+
         </form>
       </div>
     </div>
