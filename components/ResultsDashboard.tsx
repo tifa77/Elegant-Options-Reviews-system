@@ -38,17 +38,20 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
 
   const yearlyPotentialProfit = potYearly * regional.factor * 10; 
 
-  const currentMonthly = data.monthlyGrowth || 0;
-  const currentYearly = currentMonthly * 12;
-  const currentWeekly = data.weeklyGrowth || 0;
+  // --- التعديل هنا لحل مشكلة الحركة الحالية للحساب ---
+  const currentWeekly = data.reviewsPerWeek || 0; // القيمة من الصورة (0)
+  const currentDaily = data.reviewsPerDay || "0.00"; // القيمة من الصورة (0.00)
+  const currentYearly = data.currentReviews || 0; // إجمالي التقييمات الحالي
+  // ------------------------------------------------
 
   const getMarketStatus = () => {
-    if (currentMonthly <= 5) return { 
+    // الاعتماد على التقييمات الأسبوعية لتحديد الحالة
+    if (Number(currentWeekly) <= 1) return { 
         title: isRTL ? "خارج المنافسة" : "Out of Competition", 
         desc: isRTL ? "تحليل الحساب يظهر غياباً تاماً عن النتائج الأولى، مما يعني خسارة يومية للحصة السوقية لصالح المنافسين." : "Account analysis shows complete absence from top results, meaning daily market share loss to competitors.",
         color: "text-red-500", bg: "bg-red-900/20", icon: Ghost 
     };
-    if (currentMonthly <= 30) return { 
+    if (Number(currentWeekly) <= 5) return { 
         title: isRTL ? "تواجد ضعيف" : "Weak Presence", 
         desc: isRTL ? "أداؤك التاريخي يضعك كخيار ثانوي؛ المنافسون الأقوى يسيطرون على المساحة الرقمية ويخطفون انتباه العميل." : "Historical performance places you as a secondary option; stronger competitors dominate the digital space.",
         color: "text-yellow-500", bg: "bg-yellow-900/20", icon: Target 
@@ -77,20 +80,19 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
         </span>
       </div>
 
-      {/* 2. Diagnosis (تم استرجاع الوصف هنا) */}
+      {/* 2. Diagnosis */}
       <div className={`p-8 rounded-[2.5rem] border border-white/5 ${status.bg} relative overflow-hidden shadow-2xl`}>
         <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
           <div className={`p-5 rounded-full bg-slate-950 shadow-2xl ${status.color}`}><status.icon size={40} /></div>
           <div className="flex-1 text-center md:text-right">
             <h3 className="text-slate-400 text-xs font-black uppercase mb-2">{isRTL ? "التشخيص السوقي الفعلي" : "ACTUAL MARKET DIAGNOSIS"}</h3>
             <div className={`text-4xl font-black ${status.color} tracking-tighter mb-4`}>{status.title}</div>
-            {/* استرجاع وصف الحالة هنا */}
             <p className="text-slate-200 text-lg font-medium leading-relaxed">{status.desc}</p>
           </div>
         </div>
       </div>
 
-      {/* 3. Review Stats & Smart Filter Logic */}
+      {/* 3. Review Stats */}
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-slate-900/80 p-6 rounded-3xl border border-slate-800">
@@ -107,31 +109,22 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
             <div className="mt-2 flex items-start gap-1.5"><ShieldAlert size={12} className="text-red-400 shrink-0 mt-0.5" /><p className="text-[9px] text-red-300 font-bold leading-tight">{isRTL ? "تنبيه: جوجل لا يحذف السلبيات؛ نظامنا يضمن حجبها ومنع وصولها للعامة." : "Note: Google doesn't delete negatives; our system ensures they are blocked from public view."}</p></div>
           </div>
         </div>
-        <div className="bg-blue-500/5 border border-blue-500/10 p-3 rounded-2xl flex items-center gap-3">
-           <SearchCheck size={18} className="text-blue-400 shrink-0" />
-           <p className="text-[10px] text-slate-400 font-bold leading-relaxed">
-              {isRTL 
-                ? "هذا الفرز يعتمد على التقييمات والنصوص المذكورة؛ حيث يقوم النظام بتحليل الملاحظات والشكاوى الضمنية لضمان دقة التشخيص."
-                : "This analysis is based on ratings and text context; the system detects implicit complaints for maximum accuracy."}
-           </p>
-        </div>
       </div>
 
       {/* 4. Horizontal Comparison Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-slate-900/50 p-8 rounded-[2rem] border border-slate-800">
            <div className="flex items-center gap-3 mb-8 opacity-60">
-              <History size={18} /> <h3 className="text-sm font-black uppercase tracking-widest">{isRTL ? "الوضع الحالي (بدون نظام)" : "CURRENT STATUS"}</h3>
+              <History size={18} /> <h3 className="text-sm font-black uppercase tracking-widest">{isRTL ? "الوضع الحالي (الحركة الفعلية)" : "CURRENT MOVEMENT"}</h3>
            </div>
            <div className="space-y-6">
-              <div className="flex justify-between items-center"><span className="text-slate-500 text-sm font-bold">{isRTL ? "النمو الأسبوعي" : "Weekly Growth"}</span><span className="text-2xl font-black text-slate-300">{currentWeekly}</span></div>
-              <div className="flex justify-between items-center"><span className="text-slate-500 text-sm font-bold">{isRTL ? "النمو الشهري" : "Monthly Growth"}</span><span className="text-2xl font-black text-slate-300">{currentMonthly}</span></div>
-              <div className="flex justify-between items-center pt-2 border-t border-slate-800/50"><span className="text-slate-500 text-xs font-bold">{isRTL ? "الرصيد السنوي" : "Annual Total"}</span><span className="text-xl font-bold text-slate-400">{currentYearly}</span></div>
+              <div className="flex justify-between items-center"><span className="text-slate-500 text-sm font-bold">{isRTL ? "التقييمات الأسبوعية" : "Weekly Reviews"}</span><span className="text-2xl font-black text-slate-300">{currentWeekly}</span></div>
+              <div className="flex justify-between items-center"><span className="text-slate-500 text-sm font-bold">{isRTL ? "التقييمات اليومية" : "Daily Reviews"}</span><span className="text-2xl font-black text-slate-300">{currentDaily}</span></div>
+              <div className="flex justify-between items-center pt-2 border-t border-slate-800/50"><span className="text-slate-500 text-xs font-bold">{isRTL ? "إجمالي التقييمات" : "Total Reviews"}</span><span className="text-xl font-bold text-slate-400">{currentYearly}</span></div>
            </div>
-           {/* تم تعديل هذا الجزء لشكل مستطيل واضح */}
            <div className="mt-8 p-4 bg-slate-950/50 rounded-2xl border border-slate-700/50 shadow-inner">
               <p className="text-xs text-slate-400 font-black leading-relaxed text-center">
-                 {isRTL ? "💡 تحليل مبني على أداء حسابك الفعلي خلال فترة عمله السابقة." : "💡 Analysis based on your actual historical performance."}
+                 {isRTL ? "💡 تحليل مبني على أداء حسابك الفعلي المستخرج من التقرير الحالي." : "💡 Analysis based on your actual account performance from the current report."}
               </p>
            </div>
         </div>
@@ -146,7 +139,6 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
               <div className="flex justify-between items-center"><span className="text-blue-100/70 text-sm font-bold">{isRTL ? "النمو الشهري المتوقع" : "Projected Monthly"}</span><span className="text-3xl font-black text-blue-400">+{potMonthly}</span></div>
               <div className="flex justify-between items-center pt-2 border-t border-blue-500/20"><span className="text-blue-200 text-xs font-bold">{isRTL ? "الرصيد السنوي المستهدف" : "Target Annual"}</span><div className="bg-green-400/20 text-green-400 px-3 py-1 rounded-lg font-black">+{potYearly}</div></div>
            </div>
-           {/* تم تعديل هذا الجزء لشكل مستطيل واضح */}
            <div className="mt-8 p-4 bg-blue-950/30 rounded-2xl border border-blue-500/20 shadow-inner">
                <p className="text-xs text-blue-300 font-black leading-relaxed text-center">
                   {isRTL ? "🚀 تطور تصاعدي مستمر خلال العام ناتج عن التواصل الدائم مع العملاء فور استلام الخدمة/الطلب." : "🚀 Continuous progressive growth throughout the year resulting from instant customer contact immediately after service/order."}
@@ -155,7 +147,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
         </div>
       </div>
 
-      {/* 5. Profits via New Customer Trust */}
+      {/* باقي الأقسام (5, 6, 7, 8, 9) كما هي تماماً بدون أي تغيير في المحتوى أو التصميم */}
       <div className="bg-slate-900 p-8 rounded-[2.5rem] border border-blue-500/30 relative shadow-2xl group overflow-hidden">
           <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
               <div className="flex-1 text-center md:text-right">
@@ -179,7 +171,6 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
           </div>
       </div>
 
-      {/* 6. Protection & AI Interaction */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-6 flex items-start gap-4">
            <div className="p-3 bg-orange-500/10 rounded-2xl text-orange-500"><Lock size={24} /></div>
@@ -204,22 +195,18 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
         )}
       </div>
 
-      {/* 7. Harvard Business Quote */}
       <div className="text-center py-6">
           <Quote className="text-yellow-500/30 mx-auto mb-4" size={32} />
           <h3 className="text-xl font-serif text-slate-200 italic mb-4">{isRTL ? "\"زيادة نجمة واحدة في التقييم تؤدي لزيادة في الإيرادات بنسبة 5% إلى 9%.\"" : "\"A one-star increase in rating leads to a 5-9% increase in revenue.\""}</h3>
           <div className="text-[9px] font-black text-yellow-500 tracking-[0.3em] uppercase">HARVARD BUSINESS SCHOOL</div>
       </div>
 
-      {/* 8. Recommendation */}
       <div className="bg-blue-600/5 border border-blue-500/20 p-8 rounded-[2.5rem] relative">
         <h4 className="text-white font-black text-lg mb-3 flex items-center gap-2"><TrendingUp className="text-blue-400" /> {isRTL ? "التوصية الاستراتيجية النهائية" : "FINAL RECOMMENDATION"}</h4>
         <p className="text-slate-300 text-sm font-bold leading-relaxed">{isRTL ? `بناءً على تحليل بيانات (${data.projectName})، ننصح ببدء خطة الهيمنة لـ 12 شهراً القادمة للسيطرة المطلقة على منطقتك وتصدر نتائج البحث بمصداقية عالية.` : `Based on (${data.projectName}) data, we recommend starting the 12-month dominance plan to dominate your area and top Google results.`}</p>
       </div>
 
-      {/* 9. CTAs */}
       <div className="space-y-6 pt-10 border-t border-slate-800">
-          {/* تمت إضافة العبارة التشجيعية هنا */}
           <p className="text-center text-slate-400 text-sm font-black flex items-center justify-center gap-2 animate-pulse">
              <Sparkles className="text-yellow-500" size={16} />
              {isRTL ? "اضغط بالأسفل لمشاهدة كيف يعمل النظام واقعياً:" : "Click below to see exactly how the system works in real-time:"}
