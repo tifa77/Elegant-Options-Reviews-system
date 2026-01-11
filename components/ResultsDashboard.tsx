@@ -5,7 +5,7 @@ import { TEXTS } from '../constants';
 import { 
   ArrowRight, ArrowLeft, Target, Ghost, Crown, Activity, Zap, Bike, 
   ShieldAlert, TrendingDown, Eye, Quote, CheckCircle2, Sparkles, Lock, 
-  AlertOctagon, Loader2, RotateCw, TrendingUp, History, UserCheck, BarChart3, Heart, SearchCheck, MessageSquareText
+  AlertOctagon, Loader2, RotateCw, TrendingUp, History, UserCheck, BarChart3, Heart, SearchCheck, MessageSquareText, MoveDown
 } from 'lucide-react';
 
 interface ResultsDashboardProps {
@@ -43,9 +43,21 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
   const currentWeekly = data.weeklyGrowth || 0;
 
   const getMarketStatus = () => {
-    if (currentMonthly <= 5) return { title: isRTL ? "خارج المنافسة" : "Out of Competition", color: "text-red-500", bg: "bg-red-900/20", icon: Ghost };
-    if (currentMonthly <= 30) return { title: isRTL ? "تواجد ضعيف" : "Weak Presence", color: "text-yellow-500", bg: "bg-yellow-900/20", icon: Target };
-    return { title: isRTL ? "منافس قوي" : "Strong Contender", color: "text-green-500", bg: "bg-green-900/20", icon: Crown };
+    if (currentMonthly <= 5) return { 
+        title: isRTL ? "خارج المنافسة" : "Out of Competition", 
+        desc: isRTL ? "تحليل الحساب يظهر غياباً تاماً عن النتائج الأولى، مما يعني خسارة يومية للحصة السوقية لصالح المنافسين." : "Account analysis shows complete absence from top results, meaning daily market share loss to competitors.",
+        color: "text-red-500", bg: "bg-red-900/20", icon: Ghost 
+    };
+    if (currentMonthly <= 30) return { 
+        title: isRTL ? "تواجد ضعيف" : "Weak Presence", 
+        desc: isRTL ? "أداؤك التاريخي يضعك كخيار ثانوي؛ المنافسون الأقوى يسيطرون على المساحة الرقمية ويخطفون انتباه العميل." : "Historical performance places you as a secondary option; stronger competitors dominate the digital space.",
+        color: "text-yellow-500", bg: "bg-yellow-900/20", icon: Target 
+    };
+    return { 
+        title: isRTL ? "منافس قوي" : "Strong Contender", 
+        desc: isRTL ? "أداء جيد حالياً، ولكن الحفاظ على الصدارة المستدامة يتطلب أتمتة لصد هجمات المنافسين المتصاعدة." : "Good performance now, but sustainable leadership requires automation to fend off rising competitor attacks.",
+        color: "text-green-500", bg: "bg-green-900/20", icon: Crown 
+    };
   };
 
   const status = getMarketStatus();
@@ -65,13 +77,15 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
         </span>
       </div>
 
-      {/* 2. Diagnosis */}
+      {/* 2. Diagnosis (تم استرجاع الوصف هنا) */}
       <div className={`p-8 rounded-[2.5rem] border border-white/5 ${status.bg} relative overflow-hidden shadow-2xl`}>
         <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
           <div className={`p-5 rounded-full bg-slate-950 shadow-2xl ${status.color}`}><status.icon size={40} /></div>
           <div className="flex-1 text-center md:text-right">
-            <h3 className="text-slate-400 text-xs font-black uppercase mb-1">{isRTL ? "التشخيص السوقي الفعلي" : "ACTUAL MARKET DIAGNOSIS"}</h3>
-            <div className={`text-4xl font-black ${status.color} tracking-tighter`}>{status.title}</div>
+            <h3 className="text-slate-400 text-xs font-black uppercase mb-2">{isRTL ? "التشخيص السوقي الفعلي" : "ACTUAL MARKET DIAGNOSIS"}</h3>
+            <div className={`text-4xl font-black ${status.color} tracking-tighter mb-4`}>{status.title}</div>
+            {/* استرجاع وصف الحالة هنا */}
+            <p className="text-slate-200 text-lg font-medium leading-relaxed">{status.desc}</p>
           </div>
         </div>
       </div>
@@ -114,7 +128,12 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
               <div className="flex justify-between items-center"><span className="text-slate-500 text-sm font-bold">{isRTL ? "النمو الشهري" : "Monthly Growth"}</span><span className="text-2xl font-black text-slate-300">{currentMonthly}</span></div>
               <div className="flex justify-between items-center pt-2 border-t border-slate-800/50"><span className="text-slate-500 text-xs font-bold">{isRTL ? "الرصيد السنوي" : "Annual Total"}</span><span className="text-xl font-bold text-slate-400">{currentYearly}</span></div>
            </div>
-           <div className="mt-8 text-[9px] text-slate-500 italic font-bold border-r-2 border-slate-700 pr-3">{isRTL ? "* تحليل مبني على أداء حسابك الفعلي خلال فترة عمله السابقة." : "* Analysis based on your actual historical performance."}</div>
+           {/* تم تعديل هذا الجزء لشكل مستطيل واضح */}
+           <div className="mt-8 p-4 bg-slate-950/50 rounded-2xl border border-slate-700/50 shadow-inner">
+              <p className="text-xs text-slate-400 font-black leading-relaxed text-center">
+                 {isRTL ? "💡 تحليل مبني على أداء حسابك الفعلي خلال فترة عمله السابقة." : "💡 Analysis based on your actual historical performance."}
+              </p>
+           </div>
         </div>
 
         <div className="bg-gradient-to-br from-indigo-900/20 to-slate-950 p-8 rounded-[2rem] border border-blue-500/30 shadow-[0_0_50px_rgba(59,130,246,0.1)] relative overflow-hidden">
@@ -127,11 +146,16 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
               <div className="flex justify-between items-center"><span className="text-blue-100/70 text-sm font-bold">{isRTL ? "النمو الشهري المتوقع" : "Projected Monthly"}</span><span className="text-3xl font-black text-blue-400">+{potMonthly}</span></div>
               <div className="flex justify-between items-center pt-2 border-t border-blue-500/20"><span className="text-blue-200 text-xs font-bold">{isRTL ? "الرصيد السنوي المستهدف" : "Target Annual"}</span><div className="bg-green-400/20 text-green-400 px-3 py-1 rounded-lg font-black">+{potYearly}</div></div>
            </div>
-           <div className="mt-8 text-[9px] text-blue-300 italic font-bold border-r-2 border-blue-500 pr-3 leading-relaxed">{isRTL ? "تطور تصاعدي مستمر خلال العام ناتج عن التواصل الدائم مع العملاء فور استلام الخدمة/الطلب." : "Continuous growth via constant post-service customer contact."}</div>
+           {/* تم تعديل هذا الجزء لشكل مستطيل واضح */}
+           <div className="mt-8 p-4 bg-blue-950/30 rounded-2xl border border-blue-500/20 shadow-inner">
+               <p className="text-xs text-blue-300 font-black leading-relaxed text-center">
+                  {isRTL ? "🚀 تطور تصاعدي مستمر خلال العام ناتج عن التواصل الدائم مع العملاء فور استلام الخدمة/الطلب." : "🚀 Continuous progressive growth throughout the year resulting from instant customer contact immediately after service/order."}
+               </p>
+           </div>
         </div>
       </div>
 
-      {/* 5. Profits with Trust & Recommendation Logic */}
+      {/* 5. Profits via New Customer Trust */}
       <div className="bg-slate-900 p-8 rounded-[2.5rem] border border-blue-500/30 relative shadow-2xl group overflow-hidden">
           <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
               <div className="flex-1 text-center md:text-right">
@@ -195,6 +219,12 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
 
       {/* 9. CTAs */}
       <div className="space-y-6 pt-10 border-t border-slate-800">
+          {/* تمت إضافة العبارة التشجيعية هنا */}
+          <p className="text-center text-slate-400 text-sm font-black flex items-center justify-center gap-2 animate-pulse">
+             <Sparkles className="text-yellow-500" size={16} />
+             {isRTL ? "اضغط بالأسفل لمشاهدة كيف يعمل النظام واقعياً:" : "Click below to see exactly how the system works in real-time:"}
+             <MoveDown className="text-yellow-500" size={16} />
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="relative group">
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-500 text-white text-[10px] font-black px-3 py-1 rounded-full animate-bounce z-10 shadow-lg whitespace-nowrap uppercase tracking-tighter">👁️ {isRTL ? "شاهد المحاكي" : "See Simulator"}</div>
