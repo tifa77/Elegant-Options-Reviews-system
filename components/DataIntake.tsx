@@ -49,13 +49,13 @@ const DataIntake: React.FC<{ language: Language, onSubmit: (data: AuditData) => 
           
           <div className="space-y-3">
              <label className="text-blue-500 font-bold text-sm px-2 flex items-center gap-2"><Search size={16}/> {isRTL ? 'ابحث عن نشاطك التجاري في جوجل' : 'Search your business'}</label>
-             <input ref={inputRef} type="text" placeholder={isRTL ? "اكتب اسم المطعم/النشاط هنا..." : "Type business name..."} className="w-full bg-[#0e1623] border border-[#1f2937] rounded-2xl py-6 px-6 text-white text-xl font-bold focus:border-blue-500 outline-none" />
+             <input ref={inputRef} type="text" placeholder={isRTL ? "اكتب اسم المطعم/النشاط هنا..." : "Type business name..."} className="w-full bg-[#0e1623] border border-[#1f2937] rounded-2xl py-6 px-6 text-white text-xl font-bold outline-none" />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-auto lg:h-[300px]">
              <div className="lg:col-span-5 grid grid-cols-2 gap-3">
                 {types.map((type) => (
-                    <button key={type.id} type="button" onClick={() => setProjectType(type.id)} className={`flex flex-col items-center justify-center p-4 rounded-2xl border transition-all ${projectType === type.id ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-900/30' : 'bg-[#0e1623] border-[#1f2937] text-slate-400'}`}>
+                    <button key={type.id} type="button" onClick={() => setProjectType(type.id)} className={`flex flex-col items-center justify-center p-4 rounded-2xl border transition-all ${projectType === type.id ? 'bg-blue-600 border-blue-500 text-white shadow-lg' : 'bg-[#0e1623] border-[#1f2937] text-slate-400'}`}>
                         <type.icon size={22} className="mb-2" /><span className="text-xs font-bold">{type.label}</span>
                     </button>
                 ))}
@@ -74,7 +74,7 @@ const DataIntake: React.FC<{ language: Language, onSubmit: (data: AuditData) => 
                 </div>
                 <div className="mt-3 flex justify-between text-[10px] text-slate-500 border-t border-white/5 pt-2">
                     <span>{isRTL ? 'سنة الافتتاح:' : 'Opened:'}</span>
-                    <input type="number" value={formData.establishmentYear} onChange={(e) => setFormData({...formData, establishmentYear: e.target.value})} className="bg-transparent text-white font-bold w-12 text-right" />
+                    <input type="number" value={formData.establishmentYear} onChange={(e) => setFormData({...formData, establishmentYear: e.target.value})} className="bg-transparent text-white font-bold w-12 text-right outline-none" />
                 </div>
             </div>
             
