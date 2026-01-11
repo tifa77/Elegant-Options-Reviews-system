@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, Utensils, Coffee, ShoppingBag, Stethoscope, Globe, Hotel, Calendar, Users, DollarSign, Star, Zap, Loader2, TrendingUp } from 'lucide-react';
 import { AuditData, Language } from '../types';
 
-const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit }) => {
+const DataIntake: React.FC<{ language: Language, onSubmit: (data: AuditData) => void }> = ({ language, onSubmit }) => {
   const isRTL = language === 'ar';
   const inputRef = useRef<HTMLInputElement>(null);
   const mapRef = useRef<HTMLDivElement>(null);
@@ -47,31 +47,27 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit }) => {
       <div className="bg-[#050a12] border border-white/10 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden">
         <form onSubmit={(e) => { e.preventDefault(); setLoading(true); setTimeout(() => onSubmit(formData), 1000); }} className="space-y-8 relative z-10">
           
-          {/* البحث العلوي */}
           <div className="space-y-3">
              <label className="text-blue-500 font-bold text-sm px-2 flex items-center gap-2"><Search size={16}/> {isRTL ? 'ابحث عن نشاطك التجاري في جوجل' : 'Search your business'}</label>
-             <input ref={inputRef} type="text" placeholder={isRTL ? "اكتب اسم المطعم/النشاط هنا..." : "Type business name..."} className="w-full bg-[#0e1623] border border-[#1f2937] rounded-2xl py-6 px-6 text-white text-xl font-bold focus:border-blue-500 outline-none shadow-inner" />
+             <input ref={inputRef} type="text" placeholder={isRTL ? "اكتب اسم المطعم/النشاط هنا..." : "Type business name..."} className="w-full bg-[#0e1623] border border-[#1f2937] rounded-2xl py-6 px-6 text-white text-xl font-bold focus:border-blue-500 outline-none" />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-auto lg:h-[300px]">
-             {/* الفئات */}
              <div className="lg:col-span-5 grid grid-cols-2 gap-3">
                 {types.map((type) => (
-                    <button key={type.id} type="button" onClick={() => setProjectType(type.id)} className={`flex flex-col items-center justify-center p-4 rounded-2xl border transition-all ${projectType === type.id ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[#0e1623] border-[#1f2937] text-slate-400'}`}>
+                    <button key={type.id} type="button" onClick={() => setProjectType(type.id)} className={`flex flex-col items-center justify-center p-4 rounded-2xl border transition-all ${projectType === type.id ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-900/30' : 'bg-[#0e1623] border-[#1f2937] text-slate-400'}`}>
                         <type.icon size={22} className="mb-2" /><span className="text-xs font-bold">{type.label}</span>
                     </button>
                 ))}
              </div>
-             {/* الخريطة */}
              <div className="lg:col-span-7 rounded-3xl overflow-hidden border border-[#1f2937] bg-[#0e1623]">
                 <div ref={mapRef} className="w-full h-full opacity-70" />
              </div>
           </div>
 
-          {/* الحاسبة السفلية */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 border-t border-white/5 pt-6">
-            <div className="bg-[#0b121e] border border-green-500/30 rounded-3xl p-6 relative">
-                <label className="text-[11px] font-bold text-green-500 flex items-center gap-1 mb-2"><DollarSign size={12}/> {isRTL ? 'متوسط الفاتورة' : 'AVG CHECK'}</label>
+            <div className="bg-[#0b121e] border border-green-500/30 rounded-3xl p-6 relative group">
+                <label className="text-[11px] font-bold text-green-500 flex items-center gap-1 mb-2"><DollarSign size={12}/> {isRTL ? 'متوسط قيمة الفاتورة' : 'AVG TICKET'}</label>
                 <div className="flex items-center gap-2">
                     <span className="text-green-600 font-bold">KWD</span>
                     <input type="number" value={formData.averageCheck} onChange={(e) => setFormData({...formData, averageCheck: e.target.value})} className="bg-transparent text-3xl font-black text-white w-full outline-none" />
@@ -81,7 +77,25 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit }) => {
                     <input type="number" value={formData.establishmentYear} onChange={(e) => setFormData({...formData, establishmentYear: e.target.value})} className="bg-transparent text-white font-bold w-12 text-right" />
                 </div>
             </div>
-            {/* الحقول الأخرى (العملاء، التقييم) تتبع نفس النمط */}
+            
+            <div className="bg-[#0e1623] border border-[#1f2937] rounded-3xl p-6">
+                <label className="text-[11px] font-bold text-slate-400 uppercase mb-4 block">{isRTL ? 'متوسط العملاء (يومياً)' : 'DAILY CUSTOMERS'}</label>
+                <div className="flex items-center justify-between">
+                    <input type="number" value={formData.dailyCustomers} onChange={(e) => setFormData({...formData, dailyCustomers: e.target.value})} className="bg-transparent text-3xl font-black text-white w-20 outline-none" />
+                    <span className="text-slate-600 text-xs">Client</span>
+                </div>
+            </div>
+
+            <div className="bg-[#0e1623] border border-[#1f2937] rounded-3xl p-6">
+                <label className="text-[11px] font-bold text-slate-400 uppercase mb-4 block">{isRTL ? 'تقييم جوجل الحالي' : 'GOOGLE RATING'}</label>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <span className="text-3xl font-black text-white">{formData.googleRating || '-'}</span>
+                        <Star className="text-yellow-400 fill-yellow-400" size={20} />
+                    </div>
+                    <span className="text-[10px] text-slate-500">{isRTL ? `من ${formData.currentReviews} عميل` : `from ${formData.currentReviews} reviews`}</span>
+                </div>
+            </div>
           </div>
 
           <button type="submit" className="w-full bg-[#1c1c1c] hover:bg-gradient-to-r hover:from-blue-600 hover:to-indigo-600 py-6 rounded-3xl text-white font-black text-xl border border-white/10 transition-all duration-500 shadow-xl group">
@@ -92,3 +106,5 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit }) => {
     </div>
   );
 };
+
+export default DataIntake;
