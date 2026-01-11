@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { 
   Search, Utensils, Coffee, ShoppingBag, Stethoscope, 
   Globe, Calendar, Star, Users, Zap, Loader2, Radar, 
-  MapPin, Hotel, CheckCircle2, ChevronDown
+  MapPin, Hotel, ChevronDown, Activity
 } from 'lucide-react';
 import { AuditData, Language } from '../types';
 
@@ -34,34 +34,34 @@ const DataIntake: React.FC<DataIntakeProps> = ({ onStart, language }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // تسريع عملية التحميل لمحاكاة القوة التقنية (800ms)
+    
+    // محاكاة تقنية سريعة (800ms) ثم الانتقال المباشر للتقرير الاستراتيجي
     setTimeout(() => {
       onStart({ ...formData, projectType });
-      setLoading(false);
+      // لا نحتاج لتعطيل loading هنا لأن المكون سيتغير في المكون الأب
     }, 800);
   };
 
   return (
-    <div className={`max-w-3xl mx-auto animate-fade-in ${isRTL ? 'font-tajawal text-right' : 'font-sans text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className={`max-w-3xl mx-auto animate-fade-in pb-10 ${isRTL ? 'font-tajawal text-right' : 'font-sans text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       
-      {/* 1. المشوق والوصف الاستراتيجي */}
+      {/* العنوان المشوق */}
       <div className="text-center mb-10">
          <img src="https://storage.googleapis.com/msgsndr/vX7gQQOe9PXtkGes2GOJ/media/6944362aa49c0a6975236470.png" alt="Elegant Options" className="w-20 h-20 object-contain mx-auto mb-6" />
-         <h1 className="text-3xl md:text-5xl font-black text-white tracking-tighter mb-4 leading-tight">
+         <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-4 leading-tight">
             {isRTL ? 'اكتشف حصتك السوقية الآن' : 'Discover Your Market Share Now'}
          </h1>
          <p className="text-blue-400 font-black text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
             {isRTL 
               ? 'أدخل بيانات مشروعك بدقة للحصول على تقرير احترافي يحلل وضعك التنافسي ويحدد فرص الهيمنة في منطقتك.' 
-              : 'Enter your project data accurately to get a professional report analyzing your competitive position and market dominance.'}
+              : 'Enter your project data accurately to get a professional report analyzing your competitive position.'}
          </p>
       </div>
 
-      {/* 2. Main Audit Form Container */}
       <div className="bg-[#050a12] border-2 border-solid border-white/10 rounded-[3rem] p-8 md:p-12 shadow-[0_40px_100px_rgba(0,0,0,0.8)] relative">
         <form onSubmit={handleSubmit} className="space-y-10 relative z-10">
           
-          {/* Project Type Grid */}
+          {/* نوع المشروع (خط صلب وعريض) */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-[12px] font-black text-blue-400 uppercase tracking-widest">
                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
@@ -75,7 +75,7 @@ const DataIntake: React.FC<DataIntakeProps> = ({ onStart, language }) => {
                   onClick={() => setProjectType(type.id)}
                   className={`flex flex-col items-center justify-center p-5 rounded-3xl border-2 border-solid transition-all duration-300 group ${
                     projectType === type.id 
-                    ? 'bg-blue-600/20 border-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.2)]' 
+                    ? 'bg-blue-600/20 border-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.3)]' 
                     : 'bg-slate-900/40 border-white/5 text-slate-500 hover:border-white/20'
                   }`}
                 >
@@ -86,23 +86,29 @@ const DataIntake: React.FC<DataIntakeProps> = ({ onStart, language }) => {
             </div>
           </div>
 
-          {/* Map Discovery (Grayscale Version) */}
+          {/* الخرائط (ظاهرة منذ البداية بنمط Grayscale) */}
           <div className="space-y-4">
              <div className="flex items-center gap-2 text-[12px] font-black text-blue-400 uppercase tracking-widest">
                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                {isRTL ? 'تحديد الموقع الرقمي (بانتظار الاسم)' : 'DIGITAL LOCATION (AWAITING NAME)'}
             </div>
-            <div className="h-44 bg-slate-900 rounded-[2rem] border-2 border-solid border-white/5 relative flex items-center justify-center overflow-hidden grayscale opacity-40 group-hover:grayscale-0 transition-all duration-1000">
-               {/* خلفية توحي بالخريطة */}
-               <div className="absolute inset-0 bg-[url('https://api.mapbox.com/styles/v1/mapbox/light-v10/static/47.9774,29.3759,12,0/600x400?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTAAbzlueG9qN3dqMHFyc2oifQ.kd9y_9l4c6h07U5C8j5gZA')] bg-cover bg-center opacity-30"></div>
-               <div className="relative z-10 flex flex-col items-center gap-3">
-                  <MapPin size={40} className="text-blue-500 animate-bounce" />
-                  <span className="text-xs font-black text-white uppercase tracking-tighter">{isRTL ? 'سيتم تحديد مشروعك بمجرد كتابة الاسم' : 'PROJECT WILL BE LOCATED UPON NAMING'}</span>
+            <div className="h-48 bg-slate-900 rounded-[2.5rem] border-2 border-solid border-white/5 relative flex items-center justify-center overflow-hidden grayscale group">
+               {/* خلفية الخريطة ثابتة لضمان الظهور */}
+               <div className="absolute inset-0 bg-[url('https://api.mapbox.com/styles/v1/mapbox/light-v10/static/47.9774,29.3759,12,0/600x400?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTAAbzlueG9qN3dqMHFyc2oifQ.kd9y_9l4c6h07U5C8j5gZA')] bg-cover bg-center opacity-20"></div>
+               <div className="relative z-10 flex flex-col items-center gap-2">
+                  <MapPin size={48} className="text-blue-500 animate-bounce" />
+                  <span className="text-[10px] font-black text-white uppercase tracking-tighter bg-black/40 px-4 py-1 rounded-full backdrop-blur-md border border-white/5">
+                    {isRTL ? 'سيتم تحديد مشروعك بمجرد كتابة الاسم' : 'PROJECT WILL BE LOCATED UPON NAMING'}
+                  </span>
+               </div>
+               {/* تأثير الرادار */}
+               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-64 h-64 border border-blue-500/10 rounded-full animate-ping"></div>
                </div>
             </div>
           </div>
 
-          {/* Project Name Input */}
+          {/* اسم المشروع (خط عريض) */}
           <div className="space-y-4">
             <label className="text-[12px] font-black text-blue-400 uppercase tracking-widest block">{isRTL ? 'اسم المشروع كاملاً' : 'FULL PROJECT NAME'}</label>
             <div className="relative group">
@@ -110,7 +116,7 @@ const DataIntake: React.FC<DataIntakeProps> = ({ onStart, language }) => {
               <input
                 type="text"
                 required
-                placeholder={isRTL ? "مثال: مطعم إليجانت، عيادة دنتال بلس..." : "Ex: Elegant Restaurant, Dental Plus Clinic..."}
+                placeholder={isRTL ? "مثال: مطعم إليجانت السالمية، كافيه الرواد..." : "Ex: Elegant Restaurant Salmiya..."}
                 value={formData.projectName}
                 onChange={(e) => setFormData({...formData, projectName: e.target.value})}
                 className="w-full bg-[#0a121e] border-2 border-solid border-white/10 rounded-2xl py-5 pr-14 pl-6 text-white text-lg font-black placeholder:text-slate-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
@@ -118,9 +124,8 @@ const DataIntake: React.FC<DataIntakeProps> = ({ onStart, language }) => {
             </div>
           </div>
 
-          {/* Stats Grid with Explanations */}
+          {/* شبكة البيانات مع شرح تحت كل حقل */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-             {/* Year */}
              <div className="space-y-2">
                 <div className="bg-[#0a121e] border-2 border-solid border-white/5 p-6 rounded-[2rem] transition-colors hover:border-blue-500/30">
                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-2"><Calendar size={14} className="text-blue-500"/> {isRTL ? 'سنة التأسيس' : 'EST. YEAR'}</span>
@@ -129,7 +134,6 @@ const DataIntake: React.FC<DataIntakeProps> = ({ onStart, language }) => {
                 <p className="text-[10px] text-slate-500 font-black px-2">{isRTL ? 'لحساب عمر المشروع في السوق.' : 'To calculate market lifespan.'}</p>
              </div>
              
-             {/* Reviews */}
              <div className="space-y-2">
                 <div className="bg-[#0a121e] border-2 border-solid border-white/5 p-6 rounded-[2rem] transition-colors hover:border-blue-500/30">
                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-2"><Star size={14} className="text-blue-500"/> {isRTL ? 'إجمالي التقييمات' : 'TOTAL REVIEWS'}</span>
@@ -138,7 +142,6 @@ const DataIntake: React.FC<DataIntakeProps> = ({ onStart, language }) => {
                 <p className="text-[10px] text-slate-500 font-black px-2">{isRTL ? 'لتقييم مصداقيتك الحالية في جوجل.' : 'To evaluate current Google credibility.'}</p>
              </div>
 
-             {/* Customers */}
              <div className="space-y-2">
                 <div className="bg-[#0a121e] border-2 border-solid border-white/5 p-6 rounded-[2rem] transition-colors hover:border-blue-500/30">
                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-2"><Users size={14} className="text-blue-500"/> {isRTL ? 'العملاء يومياً' : 'DAILY CUSTOMERS'}</span>
@@ -148,11 +151,11 @@ const DataIntake: React.FC<DataIntakeProps> = ({ onStart, language }) => {
              </div>
           </div>
 
-          {/* Submit Button */}
+          {/* زر التشغيل (إصلاح منطق الربط) */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full relative group overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-600 py-7 rounded-[2.5rem] shadow-[0_25px_50px_rgba(37,99,235,0.4)] hover:shadow-blue-500/60 transition-all active:scale-[0.98] disabled:opacity-50"
+            className="w-full relative group overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-600 py-7 rounded-[2.5rem] shadow-[0_25px_50px_rgba(37,99,235,0.4)] hover:shadow-blue-500/60 transition-all active:scale-[0.98] disabled:opacity-80"
           >
             <div className="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-[1s] -translate-x-full skew-x-12"></div>
             <span className="relative flex items-center justify-center gap-3 text-white font-black text-2xl tracking-tighter uppercase">
