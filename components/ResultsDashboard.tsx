@@ -18,7 +18,7 @@ const ResultsDashboard: React.FC<AuditDashboardProps> = ({ data, language, onRes
   const isRTL = language === 'ar';
   
   // --- محرك الحسابات الواقعية لمنع الأصفار ---
-  const currentYear = 2026; //
+  const currentYear = 2026; 
   const yearsActive = Math.max(1, currentYear - parseInt(data.establishmentYear || '2024'));
   const totalDays = yearsActive * 365;
   const actualDaily = (data.currentReviews / totalDays).toFixed(2);
@@ -105,7 +105,7 @@ const ResultsDashboard: React.FC<AuditDashboardProps> = ({ data, language, onRes
         </div>
       </div>
 
-      {/* 4. استبسال في شرح المميزات التنافسية */}
+      {/* 4. شرح المميزات التنافسية */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {/* ميزة AI */}
         <div className="bg-[#0a121e] border border-blue-500/20 rounded-[2.5rem] p-8 space-y-4 hover:border-blue-500/50 transition-all group">
@@ -170,6 +170,7 @@ const ResultsDashboard: React.FC<AuditDashboardProps> = ({ data, language, onRes
       </div>
 
       {/* 6. الأرباح المتوقعة والأزرار النهائية */}
+      {/* تم التعديل هنا لذكر نظرية ولاء العملاء بشكل سنوي */}
       <div className="bg-[#0a121e] border-2 border-blue-500/30 rounded-[3.5rem] p-12 relative overflow-hidden shadow-2xl">
         <div className="flex flex-col md:flex-row justify-between items-center gap-10 relative z-10 text-center md:text-right">
           <div className="space-y-4">
@@ -178,8 +179,8 @@ const ResultsDashboard: React.FC<AuditDashboardProps> = ({ data, language, onRes
             </h3>
             <p className="text-slate-400 font-bold text-xl max-w-xl">
               {isRTL 
-                ? 'نحن نضاعف العائد المادي لكل تقييم إيجابي؛ لأن العميل الراضي يكرر تجربة الشراء ويجلب عملاء آخرين يثقون برأيه.' 
-                : 'Repeat purchases and new referrals are driven by high public trust.'}
+                ? 'هذه المبالغ تمثل الأرباح السنوية التي يمكن اكتسابها عند تحقيق نظرية ولاء العملاء وتحويل كل تجربة شراء إلى علاقة مستدامة تضمن تدفقاً نقدياً متكرراً.' 
+                : 'These amounts represent the annual profits achievable when applying the Customer Loyalty Theory, turning every purchase into a recurring revenue stream.'}
             </p>
           </div>
           <div className="text-center space-y-4">
@@ -191,7 +192,7 @@ const ResultsDashboard: React.FC<AuditDashboardProps> = ({ data, language, onRes
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6">
-        {/* زر الطلب */}
+        {/* زر الطلب - يوجه للواتساب */}
         <button 
           onClick={() => window.open('https://wa.me/yournumber', '_blank')}
           className="bg-green-600 hover:bg-green-500 text-white font-black py-10 rounded-[2.5rem] flex items-center justify-center gap-4 text-3xl transition-all shadow-2xl shadow-green-900/40 group active:scale-95">
@@ -199,10 +200,14 @@ const ResultsDashboard: React.FC<AuditDashboardProps> = ({ data, language, onRes
           {isRTL ? 'اطلب النظام الآن' : 'ORDER SYSTEM NOW'}
         </button>
         
-        {/* زر التجربة البصرية */}
+        {/* زر التجربة البصرية - مع إضافة عبارة تحفيزية */}
         <div className="relative group">
-          <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-6 py-2 rounded-full flex items-center gap-2 z-20 shadow-xl border border-white/20">
-             <Star size={14} className="animate-spin" /> {isRTL ? 'شاهد المحاكي' : 'Watch Emulator'}
+          <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-6 py-3 rounded-full flex flex-col items-center gap-1 z-20 shadow-xl border border-white/20 whitespace-nowrap animate-bounce">
+             <div className="flex items-center gap-2">
+                <Star size={14} className="animate-spin" /> 
+                {isRTL ? 'اكتشف القوة الكامنة خلف الأرقام' : 'Discover the hidden power'}
+             </div>
+             <span className="text-[10px] opacity-80">{isRTL ? 'اضغط لرؤية تفاصيل المحاكاة' : 'Click to see simulation details'}</span>
           </div>
           <button 
             onClick={onShowVisualExperience}
