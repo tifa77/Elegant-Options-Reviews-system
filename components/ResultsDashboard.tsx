@@ -4,11 +4,8 @@ import { Language, AuditData } from '../types';
 import { TEXTS } from '../constants';
 import { 
   AlertTriangle, TrendingUp, TrendingDown, Zap, RotateCw, 
-  ArrowLeft, ArrowRight, MessageCircle, Globe, Coins, 
-  ShieldCheck, CheckCircle, Target, Award, UserCheck, 
-  Crown, Flame, Rocket, BarChart3, FastForward, 
-  ShieldAlert, ArrowDownCircle, Info, Play, HelpCircle,
-  Quote, Share2 
+  ArrowLeft, ArrowRight, MessageCircle, Globe, BarChart3, Rocket, 
+  ShieldCheck, CheckCircle2, DollarSign, Star, Play, HelpCircle, Quote, Share2, Award
 } from 'lucide-react';
 
 interface ResultsDashboardProps {
@@ -20,60 +17,67 @@ interface ResultsDashboardProps {
 }
 
 const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onReset, onBack, onVisualExp }) => {
-  // 1. Fallback لضمان عدم انهيار التطبيق عند فقدان اللغة
   const t = TEXTS[language] ?? TEXTS['ar'];
   const isRTL = language === 'ar';
 
-  // 2. Safe Objects مع قيم افتراضية لمنع "Cannot read properties of undefined"
+  // --- محرك الأمان الرقمي (Anti-NaN Engine) ---
+  
+  // 1. معالجة عمر المشروع بأمان
+  const currentYear = new Date().getFullYear();
+  const rawEstablishedYear = Number(data.establishedYear);
+  const ageYears = (Number.isFinite(rawEstablishedYear) && rawEstablishedYear > 1900 && rawEstablishedYear <= currentYear)
+    ? Math.max(1, currentYear - rawEstablishedYear)
+    : 1; // الافتراضي سنة واحدة لمنع NaN في القسمة
+
+  // 2. معالجة أرقام التقييمات والزوار
+  const totalReviews = Number(data.currentReviews) || 0;
+  const dailyCustomers = Number(data.dailyCustomers) || 0;
+  
+  // 3. حسابات المعدلات والنمو (مع ضمان عدم وجود NaN)
+  const avgReviewsPerYear = Number((totalReviews / ageYears).toFixed(1)) || 0;
+  
+  const systemDailyPotential = Math.round(dailyCustomers * 0.10); // قاعدة الـ 10%
+  const annualAdditionalReviews = systemDailyPotential * 365;
+  
+  // 4. حسابات الأرباح المتوقعة
+  const avgTicket = 10; // متوسط الفاتورة بالكويت
+  const rawRevenueOpportunity = (dailyCustomers * 30 * 12 * 0.30) * avgTicket;
+  const annualRevenueOpportunity = Number.isFinite(rawRevenueOpportunity) ? rawRevenueOpportunity : 0;
+
+  const rawDynamicProfitValue = annualAdditionalReviews * avgTicket * 5;
+  const dynamicProfit = Number.isFinite(rawDynamicProfitValue) 
+    ? rawDynamicProfitValue.toLocaleString() 
+    : "0";
+
+  // --- منطق التشخيص الآمن ---
+  const getBusinessStatus = () => {
+    const dashboard = t.dashboard || {};
+    if (avgReviewsPerYear < 5) return dashboard.statusLabels?.zero ?? '';
+    if (avgReviewsPerYear < 20) return dashboard.statusLabels?.weak ?? '';
+    if (avgReviewsPerYear < 100) return dashboard.statusLabels?.average ?? '';
+    return dashboard.statusLabels?.strong ?? '';
+  };
+
+  const currentStatus = getBusinessStatus();
+  const isHealthy = avgReviewsPerYear > 20;
+
+  // الاستخدام الآمن لكائنات الترجمة المضافة حديثاً
   const dashboard = t.dashboard ?? {};
   const delivery = dashboard.delivery ?? { title: '', text: '' };
   const quote = dashboard.quote ?? { text: '', attribution: '' };
   const strategic = dashboard.strategicRecommendation ?? { title: '', text: '' };
   const marketing = dashboard.marketing ?? { persuasive: '', motivational: '' };
 
-  const currentYear = new Date().getFullYear();
-  const ageYears = Math.max(1, currentYear - data.establishedYear);
-  const totalReviews = data.currentReviews || 0;
-  
-  const actualMonthlyReviews = data.monthlyGrowth || 0;
-  const actualWeeklyReviews = data.weeklyGrowth || 0;
-  
-  const systemDailyPotential = Math.round(data.dailyCustomers * 0.10);
-  const systemYearlyPotential = systemDailyPotential * 365;
-  
-  const avgTicket = 10; 
-  const annualRevenueOpportunity = (data.dailyCustomers * 30 * 12 * 0.30) * avgTicket;
-
-  const getBusinessStatus = () => {
-    if (actualMonthlyReviews === 0) return dashboard.statusLabels?.zero ?? '';
-    const rawRank = data.searchRanking || "";
-    const num = parseInt(rawRank.replace(/[^0-9]/g, ''));
-    if (isNaN(num)) return dashboard.statusLabels?.invisible ?? '';
-    if (num <= 3) return dashboard.statusLabels?.strong ?? '';
-    if (num <= 10) return dashboard.statusLabels?.average ?? '';
-    return dashboard.statusLabels?.weak ?? '';
-  };
-
-  const currentStatus = getBusinessStatus();
-  const isHealthy = actualMonthlyReviews > 5;
-
-  const waNumber = "96566305551"; 
+  const waNumber = "96566305551";
   const customWAMessage = isRTL 
-    ? `مرحباً، أنا مهتم بنظام التقييمات Elegant Options لمشروعي (${data.projectName})` 
-    : `Hello, I am interested in the Elegant Options reputation system for my project (${data.projectName})`;
+    ? `أهلاً Elegant Options، مهتم لطلب نظام لمشروعي (${data.projectName || 'جديد'})` 
+    : `Hello, interested in the system for (${data.projectName || 'New Project'})`;
   const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(customWAMessage)}`;
 
   return (
     <div className={`max-w-4xl mx-auto space-y-10 animate-fade-in pb-16 relative ${isRTL ? 'font-tajawal text-right' : 'font-sans text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       
-      {/* WhatsApp Floating CTA */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 md:hidden w-[90%] max-w-sm animate-bounce">
-          <a href={waLink} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3 bg-green-500 text-white px-6 py-4 rounded-2xl shadow-2xl font-black text-lg">
-            <MessageCircle className="w-6 h-6" />
-            {isRTL ? "تفعيل النظام الآن" : "Activate System Now"}
-          </a>
-      </div>
-
+      {/* زر الرجوع الآمن */}
       <div className="flex items-center justify-between px-2">
         <button onClick={onBack} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
           {isRTL ? <ArrowRight className="w-5 h-5" /> : <ArrowLeft className="w-5 h-5" />}
@@ -92,83 +96,98 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onR
         </div>
 
         <div className="p-6 md:p-10 space-y-10">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-white">
             <div className="bg-slate-900/80 p-6 rounded-2xl border border-slate-800 text-center">
                <span className="text-slate-500 text-[10px] uppercase font-bold tracking-widest block mb-3">{dashboard.age}</span>
-               <span className="text-3xl font-black text-white">{ageYears}</span>
+               <span className="text-3xl font-black">{ageYears}</span>
             </div>
-            {/* ... بقية الـ Metrics بنفس الأسلوب الآمن ... */}
+            <div className="bg-slate-900/80 p-6 rounded-2xl border border-slate-800 text-center">
+               <span className="text-slate-500 text-[10px] uppercase font-bold tracking-widest block mb-3">{dashboard.totalReviews}</span>
+               <span className="text-3xl font-black">{totalReviews.toLocaleString()}</span>
+            </div>
+            <div className="bg-slate-900/80 p-6 rounded-2xl border border-indigo-500/20 text-center">
+               <span className="text-indigo-400 text-[10px] uppercase font-bold tracking-widest block mb-3">{isRTL ? "المعدل السنوي" : "Annual Avg"}</span>
+               <span className="text-3xl font-black text-indigo-400">{avgReviewsPerYear}</span>
+            </div>
+            <div className="bg-slate-900/80 p-6 rounded-2xl border border-slate-800 text-center">
+               <span className="text-slate-500 text-[10px] uppercase font-bold tracking-widest block mb-3">{isRTL ? "المعدل الشهري" : "Monthly Avg"}</span>
+               <span className="text-3xl font-black">{(avgReviewsPerYear / 12).toFixed(1)}</span>
+            </div>
           </div>
 
-          {/* Safe Delivery Integration Usage */}
-          <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-6 flex items-start gap-5">
-             <div className="p-3 bg-primary-500/10 rounded-2xl shrink-0">
-                <Share2 className="w-6 h-6 text-primary-400" />
-             </div>
-             <div>
-                <h4 className="text-white font-bold mb-2">{delivery.title}</h4>
-                <p className="text-slate-400 text-sm leading-relaxed">{delivery.text}</p>
-             </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-slate-900/80 p-8 rounded-3xl border border-indigo-500/20 flex flex-col items-center justify-center text-center relative overflow-hidden group">
+               <span className="text-slate-200 font-bold text-sm mb-6 block uppercase tracking-wide">{isHealthy ? t.dashboard.protectionAnalysis : t.dashboard.lossAnalysis}</span>
+               <div className="flex items-baseline gap-2 mb-6">
+                  <span className="text-5xl font-black text-white leading-none">{annualRevenueOpportunity.toLocaleString()}</span>
+                  <span className="text-lg text-slate-400 font-bold">{t.dashboard.currency}</span>
+               </div>
+               <p className="text-[10px] text-slate-500 max-w-[240px] leading-relaxed font-bold uppercase">{isHealthy ? t.dashboard.protectionDesc : t.dashboard.lossDesc}</p>
+            </div>
+
+            <div className="bg-slate-900/80 p-8 rounded-3xl border border-green-500/10 flex flex-col relative overflow-hidden">
+               <div className="flex flex-col items-end">
+                  <span className="text-slate-300 font-bold text-sm mb-4">{t.dashboard.rankTitle}</span>
+                  <div className={`text-3xl md:text-4xl font-black leading-tight mb-6 text-center w-full ${isHealthy ? 'text-green-500' : 'text-red-500'}`}>
+                    {currentStatus}
+                  </div>
+                  <div className={`${isHealthy ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500/10 border-red-500/30 text-red-400'} px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-widest shadow-lg mx-auto md:mx-0`}>
+                     {isHealthy ? t.dashboard.king : t.dashboard.ghost}
+                  </div>
+               </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Safe Quote Usage */}
-      <div className="py-6 border-y border-slate-800/50 flex flex-col items-center text-center space-y-4">
-         <Quote className="w-8 h-8 text-indigo-500/30" />
-         <p className="text-slate-200 text-xl md:text-2xl font-black italic max-w-2xl leading-relaxed">
-            "{quote.text}"
-         </p>
-         <span className="text-indigo-400 font-bold uppercase tracking-[0.2em] text-[10px]">
-            {quote.attribution}
-         </span>
-      </div>
-
-      {/* Safe Strategic Recommendation Usage */}
+      {/* قسم التوصية الاستراتيجية الآمن */}
       <div className="bg-indigo-600/5 border border-indigo-500/20 rounded-[3rem] p-8 md:p-12 relative overflow-hidden group">
-         <div className="absolute -top-12 -right-12 p-8 text-indigo-500/5">
-            <Award className="w-48 h-48" />
-         </div>
-         <div className="relative z-10 space-y-4">
+         <div className="relative z-10 space-y-4 text-white">
             <div className="flex items-center gap-3 text-indigo-400 mb-2">
                <ShieldCheck className="w-6 h-6" />
                <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight">{strategic.title}</h3>
             </div>
             <p className="text-slate-300 text-lg md:text-xl leading-relaxed font-medium">
-               {strategic.text.replace('{name}', data.projectName)}
+               {strategic.text.replace('{name}', data.projectName || (isRTL ? 'مشروعكم' : 'Your Project'))}
             </p>
          </div>
       </div>
 
-      <div className="text-center space-y-12 pt-14">
-         <div className="space-y-6">
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto font-medium leading-relaxed italic">
-               {marketing.persuasive}
-            </p>
-            <div className="space-y-4">
-               <h2 className="text-6xl font-black text-white leading-tight tracking-tighter uppercase">{isRTL ? "لا تكن خفياً" : "Don't Be Invisible"}.</h2>
-               <p className="text-primary-400 text-2xl max-w-2xl mx-auto font-black animate-pulse">
-                  {marketing.motivational}
-               </p>
-            </div>
-         </div>
+      {/* قسم الأرباح الديناميكي المحمي من NaN */}
+      <div className="bg-slate-900 border border-slate-700 rounded-[3rem] p-10 md:p-14 relative overflow-hidden shadow-2xl">
+          <div className="flex flex-col md:flex-row items-center gap-12 relative z-10">
+              <div className="flex-1 space-y-6">
+                  <h4 className="text-3xl font-black text-white leading-tight uppercase tracking-tighter">{t.report.impactTitle}</h4>
+                  <p className="text-slate-400 text-lg italic leading-relaxed">{marketing.persuasive}</p>
+              </div>
 
-         <div className="flex flex-col gap-6 justify-center items-center">
-            <button onClick={onVisualExp} className="w-full md:w-auto px-12 py-5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xl rounded-[2.5rem] shadow-xl transform hover:-translate-y-1 transition-all flex items-center justify-center gap-4 group">
-                <Play className="w-6 h-6 fill-current group-hover:scale-110 transition-transform" />
-                {t.closing?.btnVisual ?? ''}
-            </button>
+              <div className="bg-slate-800 p-10 rounded-[2.5rem] border border-primary-500/30 text-center shadow-3xl min-w-[300px]">
+                  <Zap className="absolute -top-5 -right-5 w-12 h-12 text-yellow-400 fill-yellow-400" />
+                  <span className="text-slate-500 text-xs font-black uppercase tracking-widest block mb-4">{isRTL ? "الأرباح السنوية الإضافية" : "Additional Annual Profit"}</span>
+                  <div className="flex flex-col items-center">
+                      <span className="text-7xl font-black text-white leading-none tracking-tighter">{dynamicProfit}</span>
+                      <span className="text-sm text-primary-500 font-black uppercase tracking-[0.3em] mt-4">{t.dashboard.currency}</span>
+                  </div>
+              </div>
+          </div>
+      </div>
 
-            <div className="flex flex-col md:flex-row gap-6 w-full justify-center">
-                <a href={waLink} target="_blank" rel="noopener noreferrer" className="w-full md:w-auto px-12 py-7 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-black text-2xl rounded-[2.5rem] shadow-2xl shadow-green-500/50 transform hover:-translate-y-2 transition-all flex items-center justify-center gap-4 group">
-                   <MessageCircle className="w-8 h-8 group-hover:scale-110 transition-transform" />
-                   {t.closing?.btn1 ?? ''}
-                </a>
-                <button onClick={onReset} className="w-full md:w-auto px-12 py-7 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xl rounded-[2.5rem] border border-slate-700 transition-all flex items-center justify-center gap-4 group">
-                   <RotateCw className="w-7 h-7 group-hover:rotate-180 transition-transform duration-500" />
-                   {t.closing?.btn2 ?? ''}
-                </button>
-            </div>
+      {/* أزرار الإجراءات النهائية */}
+      <div className="flex flex-col gap-6 justify-center items-center">
+         <button onClick={onVisualExp} className="w-full md:w-auto px-12 py-5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xl rounded-[2.5rem] transition-all flex items-center justify-center gap-4 group">
+             <Play className="w-6 h-6 fill-current" />
+             {t.closing?.btnVisual ?? 'Visual Experience'}
+         </button>
+
+         <div className="flex flex-col md:flex-row gap-6 w-full justify-center">
+             <a href={waLink} target="_blank" rel="noopener noreferrer" className="w-full md:w-auto px-12 py-7 bg-green-500 hover:bg-green-600 text-white font-black text-2xl rounded-[2.5rem] shadow-2xl shadow-green-500/50 transition-all flex items-center justify-center gap-4 group">
+                <MessageCircle className="w-8 h-8" />
+                {t.closing?.btn1 ?? 'Contact Us'}
+             </a>
+             <button onClick={onReset} className="w-full md:w-auto px-12 py-7 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xl rounded-[2.5rem] border border-slate-700 transition-all flex items-center justify-center gap-4 group">
+                <RotateCw className="w-7 h-7" />
+                {t.closing?.btn2 ?? 'Reset'}
+             </button>
          </div>
       </div>
 
