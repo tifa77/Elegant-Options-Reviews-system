@@ -1,237 +1,263 @@
 // @ts-nocheck
 import React from 'react';
+import { Language, AuditData } from '../types';
+import { TEXTS } from '../constants';
 import { 
-  // استيراد كافة الأيقونات المستخدمة لضمان عدم حدوث Runtime Error
-  Ghost, Info, TrendingUp, DollarSign, Star, 
-  ShieldCheck, Bot, Bike, Quote, 
-  CheckCircle2, RotateCcw, LayoutDashboard, Target, Zap, 
-  TrendingDown, MessageCircle, BarChart3, Rocket, Play,
-  ArrowRight, ArrowLeft, AlertTriangle, ShieldAlert, BarChart
+  AlertTriangle, TrendingUp, TrendingDown, Zap, RotateCw, 
+  ArrowLeft, ArrowRight, MessageCircle, Globe, Coins, 
+  ShieldCheck, CheckCircle, Target, Award, UserCheck, 
+  Crown, Flame, Rocket, BarChart3, FastForward, 
+  ShieldAlert, ArrowDownCircle, Info, Play, HelpCircle,
+  Quote, Share2 // أضيفت للاقتباس ودمج التطبيقات
 } from 'lucide-react';
-import { AuditData, Language } from '../types';
 
 interface ResultsDashboardProps {
-  data: AuditData;
   language: Language;
+  data: AuditData;
   onReset: () => void;
   onBack: () => void;
-  onVisualExp: () => void; // ربط زر التجربة البصرية (المحاكي)
+  onVisualExp: () => void;
 }
 
-const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ data, language, onReset, onBack, onVisualExp }) => {
+const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onReset, onBack, onVisualExp }) => {
+  const t = TEXTS[language];
   const isRTL = language === 'ar';
-  
-  // --- محرك الحسابات الذكي (Elegant Options Engine) ---
-  const currentYear = 2026; 
-  const establishedYear = parseInt(data.establishedYear) || 2024;
-  const ageYears = Math.max(1, currentYear - establishedYear);
+
+  const currentYear = new Date().getFullYear();
+  const ageYears = Math.max(1, currentYear - data.establishedYear);
   const totalReviews = data.currentReviews || 0;
-  const avgReviewsPerYear = parseFloat((totalReviews / ageYears).toFixed(1));
+  
+  const actualMonthlyReviews = data.monthlyGrowth || 0;
+  const actualWeeklyReviews = data.weeklyGrowth || 0;
+  
+  const systemDailyPotential = Math.round(data.dailyCustomers * 0.10);
+  const systemYearlyPotential = systemDailyPotential * 365;
+  
+  const avgTicket = 10; 
+  const annualRevenueOpportunity = (data.dailyCustomers * 30 * 12 * 0.30) * avgTicket;
 
-  // حسابات الـ 10% (منطق رجل مبيعات محترف)
-  const dailyCustomers = parseInt(data.dailyCustomers) || 50;
-  const systemDailyPotential = Math.round(dailyCustomers * 0.10); // تحويل 10% من الزوار
-  const annualAdditionalReviews = systemDailyPotential * 365;
-
-  // الأرباح الديناميكية: تعتمد على عدد المراجعات الإضافية (عائد 15 د.ك لكل عميل وفيّ)
-  const dynamicProfit = (annualAdditionalReviews * 15).toLocaleString();
-
-  // --- منطق التشخيص السوقي المتكيف مع العناوين المشوقة ---
-  const getDiagnosis = () => {
-    if (avgReviewsPerYear < 15) {
-      return {
-        title: isRTL ? 'خارج المنافسة الرقمية' : 'Out of Competition',
-        sub: isRTL ? 'نشاطك التجاري "شبح" في محركات البحث' : 'Your business is a "Ghost" in search results',
-        desc: isRTL ? 'أنت غير مرئي للعملاء الجدد. المنافسون يبتلعون حصتك السوقية بينما يظل حسابك صامتاً.' : 'You are invisible. Competitors are swallowing your market share while you stay silent.',
-        color: 'text-red-500', bg: 'bg-[#1a0a10]', icon: <Ghost size={80} />
-      };
-    } else if (avgReviewsPerYear < 80) {
-      return {
-        title: isRTL ? 'نمو يحتاج إلى قيادة' : 'Growth Needs Leadership',
-        sub: isRTL ? 'أداؤك جيد.. لكن اليدوي لن يهزم الآلي' : 'Good performance.. but manual won\'t beat automated',
-        desc: isRTL ? 'تمتلك الأساس، ولكن بالأتمتة ستتضاعف هذه الأرقام وتسيطر على منطقتك الجغرافية بالكامل.' : 'You have the foundation, but with automation, you will multiply these numbers and dominate.',
-        color: 'text-orange-500', bg: 'bg-[#1a140a]', icon: <Target size={80} />
-      };
-    } else {
-      return {
-        title: isRTL ? 'سيادة سوقية مهددة' : 'Market Dominance at Risk',
-        sub: isRTL ? 'أنت في القمة.. والذكاء الاصطناعي سيجعلك تسود' : 'You are at the top.. AI will make you rule',
-        desc: isRTL ? 'تقييماتك ممتازة، وبالاستمرار بالأتمتة ستسود وتسيطر على المنافسة وتغلق الباب أمام أي منافس جديد.' : 'Excellent ratings; with automation, you will rule the competition and block any challengers.',
-        color: 'text-blue-500', bg: 'bg-[#0a121e]', icon: <Zap size={80} />
-      };
-    }
+  const getBusinessStatus = () => {
+    if (actualMonthlyReviews === 0) return t.dashboard.statusLabels.zero;
+    const rawRank = data.searchRanking || "";
+    const num = parseInt(rawRank.replace(/[^0-9]/g, ''));
+    if (isNaN(num)) return t.dashboard.statusLabels.invisible;
+    if (num <= 3) return t.dashboard.statusLabels.strong;
+    if (num <= 10) return t.dashboard.statusLabels.average;
+    return t.dashboard.statusLabels.weak;
   };
 
-  const diag = getDiagnosis();
+  const currentStatus = getBusinessStatus();
+  const isHealthy = actualMonthlyReviews > 5;
 
-  // رابط الواتساب الديناميكي
-  const whatsappNumber = "96566305551";
-  const waLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(isRTL ? `أهلاً Elegant Options، مهتم لطلب نظام لمشروعي (${data.projectName})` : `Hello, interested in the system for (${data.projectName})`)}`;
+  const waNumber = "96566305551"; // رقم Elegant Options الرسمي
+  const customWAMessage = isRTL 
+    ? `مرحباً، أنا مهتم بنظام التقييمات Elegant Options لمشروعي (${data.projectName})` 
+    : `Hello, I am interested in the Elegant Options reputation system for my project (${data.projectName})`;
+  const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(customWAMessage)}`;
 
   return (
-    <div className={`max-w-5xl mx-auto space-y-24 pb-40 animate-fade-in relative ${isRTL ? 'font-tajawal text-right' : 'font-sans text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className={`max-w-4xl mx-auto space-y-10 animate-fade-in pb-16 relative ${isRTL ? 'font-tajawal text-right' : 'font-sans text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       
-      {/* زر العودة العلوي - تم إصلاح ArrowRight/ArrowLeft هنا */}
-      <div className="flex items-center justify-between px-4">
+      {/* WhatsApp Floating CTA */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 md:hidden w-[90%] max-w-sm animate-bounce">
+          <a href={waLink} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-3 bg-green-500 text-white px-6 py-4 rounded-2xl shadow-2xl font-black text-lg">
+            <MessageCircle className="w-6 h-6" />
+            {isRTL ? "تفعيل النظام الآن" : "Activate System Now"}
+          </a>
+      </div>
+
+      <div className="flex items-center justify-between px-2">
         <button onClick={onBack} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
-          {isRTL ? <ArrowRight size={24} /> : <ArrowLeft size={24} />}
-          <span className="font-black text-lg">{isRTL ? "الرجوع" : "Back"}</span>
+          {isRTL ? <ArrowRight className="w-5 h-5" /> : <ArrowLeft className="w-5 h-5" />}
+          <span className="font-medium text-sm">{t.back}</span>
         </button>
-      </div>
-
-      {/* 1. التشخيص السوقي الفعلي مع العنوان المشوق */}
-      <div className={`${diag.bg} border-2 border-white/5 rounded-[4rem] p-12 md:p-16 flex flex-col md:flex-row items-center justify-between gap-12 relative shadow-2xl overflow-hidden`}>
-        <div className="space-y-6 z-10 flex-1">
-          <span className={`${diag.color} font-bold text-sm uppercase tracking-[0.4em] opacity-80`}>
-            {isRTL ? 'التشخيص السوقي الفعلي' : 'Market Diagnosis'}
-          </span>
-          <h2 className={`${diag.color} text-5xl md:text-8xl font-black italic`}>
-            {diag.title}
-          </h2>
-          <h3 className="text-white text-3xl md:text-4xl font-bold border-b-2 border-white/10 pb-4 inline-block">
-            {diag.sub}
-          </h3>
-          <p className="text-slate-400 font-bold text-2xl md:text-3xl leading-relaxed max-w-4xl">
-            {diag.desc}
-          </p>
-        </div>
-        <div className={`${diag.color} opacity-20 p-12 rounded-full shrink-0 animate-pulse`}>
-          {diag.icon}
+        <div className="flex items-center gap-2">
+           <span className="bg-slate-900 border border-slate-700 px-3 py-1 rounded-full text-[10px] font-bold text-slate-400 uppercase tracking-widest">Growth Engine Report</span>
         </div>
       </div>
 
-      {/* 2. مقارنة الأداء (قاعدة الـ 10% - منظور تسويقي) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-        {/* الوضع الحالي */}
-        <div className="bg-[#0a121e] border-2 border-red-500/10 rounded-[4rem] p-12 space-y-10 relative shadow-xl">
-          <div className="flex items-center gap-4 text-slate-400 font-black text-3xl uppercase tracking-tighter">
-             <TrendingDown className="text-red-500" size={40} /> {isRTL ? 'نزيف الفرص الحالي' : 'Current Leak'}
-          </div>
-          <div className="space-y-8 border-t border-white/5 pt-8">
-            <div className="flex justify-between items-end border-b border-white/5 pb-4">
-               <span className="text-slate-500 text-xl font-bold">{isRTL ? 'معدل التقييم السنوي الحالي' : 'Annual Rate'}</span>
-               <span className="text-6xl font-black text-white">{avgReviewsPerYear}</span>
+      {/* Main Analysis Section */}
+      <div className="bg-slate-850/50 backdrop-blur-xl rounded-[2.5rem] border border-slate-800 shadow-2xl overflow-hidden">
+        <div className="p-6 md:p-8 flex items-center justify-between border-b border-slate-800/50 bg-slate-900/30">
+           <div className="flex items-center gap-4">
+              <div className="p-2 bg-indigo-500/20 rounded-xl">
+                 <BarChart3 className="w-6 h-6 text-indigo-400" />
+              </div>
+              <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight">{t.dashboard.title}</h2>
+           </div>
+        </div>
+
+        <div className="p-6 md:p-10 space-y-10">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Metric Cards remain as per original code */}
+            <div className="bg-slate-900/80 p-6 rounded-2xl border border-slate-800 text-center relative overflow-hidden group">
+               <span className="text-slate-500 text-[10px] uppercase font-bold tracking-widest block mb-3">{t.dashboard.age}</span>
+               <div className="flex flex-col">
+                  <span className="text-3xl font-black text-white leading-none">{ageYears}</span>
+                  <span className="text-[10px] text-slate-400 font-bold mt-2">{t.dashboard.years}</span>
+               </div>
             </div>
-            <p className="text-slate-400 font-bold text-2xl italic border-r-4 border-red-500 pr-6 leading-relaxed">
-              {isRTL 
-                ? 'تحصل على التقييمات "بالمصادفة" فقط. المنافسون يستغلون صمت عملائك رقمياً لبناء إمبراطوريتهم على حسابك.' 
-                : 'You get reviews by "chance" only. Competitors exploit your customers\' silence.'}
-            </p>
-          </div>
-        </div>
-
-        {/* مع النظام */}
-        <div className="bg-gradient-to-br from-[#0d1b33] to-[#0a121e] border-2 border-blue-500/40 rounded-[4rem] p-12 space-y-10 shadow-2xl relative shadow-blue-900/30">
-          <div className="flex items-center gap-4 text-blue-400 font-black text-3xl uppercase tracking-tighter">
-            <TrendingUp size={40} /> {isRTL ? 'مع نظام ELEGANT OPTIONS' : 'WITH OUR SYSTEM'}
-          </div>
-          <div className="space-y-10 border-t border-white/10 pt-8">
-             <div className="flex justify-between items-end border-b border-blue-500/20 pb-4">
-                <span className="text-slate-300 font-bold text-xl">{isRTL ? 'المعدل السنوي الإضافي' : 'Additional Annual'}</span>
-                <span className="text-8xl font-black text-green-400">+{annualAdditionalReviews}</span>
-             </div>
-             <div className="text-blue-100 font-bold text-2xl leading-relaxed bg-blue-500/10 p-6 rounded-[2rem]">
-               {isRTL 
-                 ? `عبر تحويل 10% من زوارك الـ (${dailyCustomers}) يومياً، سنقوم آلياً بتحويل صمتهم إلى (+${annualAdditionalReviews}) تقييم إيجابي سنوياً، مما يمنحك سيادة كاملة تجذب تدفقاً مستمراً من الزبائن الجدد.` 
-                 : `By converting 10% of your (${dailyCustomers}) daily visitors, we collect (+${annualAdditionalReviews}) reviews annually.`}
-             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. المميزات التنافسية (تصميم طولي، ضخم، وفخم) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-        
-        {/* ميزة الردود الآلية - طولي ضخم */}
-        <div className="bg-[#0a121e] border-2 border-blue-500/20 rounded-[4rem] p-12 flex flex-col items-center text-center space-y-12 hover:border-blue-500/60 transition-all group shadow-2xl min-h-[650px] relative">
-          <div className="bg-blue-500/10 p-10 rounded-[3rem] text-blue-400 group-hover:scale-110 transition-transform shadow-inner">
-            <Bot size={80}/>
-          </div>
-          <h4 className="text-white font-black text-4xl leading-tight">{isRTL ? 'ردود ذكية بواسطة AI' : 'Smart AI Replies'}</h4>
-          <p className="text-slate-400 text-2xl leading-relaxed flex-1">
-            {isRTL 
-              ? 'موظف رقمي يعمل 24/7 للرد الفوري على كل تقييم في جوجل بأسلوب احترافي يضمن بقاءك في الصدارة دائماً وتحسين ترتيب الـ SEO.' 
-              : 'Digital AI employee working 24/7 to reply to reviews, boosting your SEO and ranking.'}
-          </p>
-        </div>
-
-        {/* درع السمعة - طولي ضخم */}
-        <div className="bg-[#0a121e] border-2 border-orange-500/20 rounded-[4rem] p-12 flex flex-col items-center text-center space-y-12 hover:border-orange-500/60 transition-all group shadow-2xl min-h-[650px] relative">
-          <div className="bg-orange-500/10 p-10 rounded-[3rem] text-orange-400 group-hover:scale-110 transition-transform shadow-inner">
-            <ShieldCheck size={80}/>
-          </div>
-          <h4 className="text-white font-black text-4xl leading-tight">{isRTL ? 'درع حماية السمعة' : 'Reputation Shield'}</h4>
-          <p className="text-slate-400 text-2xl leading-relaxed flex-1">
-            {isRTL 
-              ? 'حجب كامل لأي تقييم سلبي (3 نجوم أو أقل) وتحويله كرسالة واتساب خاصة للإدارة لمعالجة مشكلة العميل سراً قبل أن يراها العالم.' 
-              : 'Complete block of negative reviews, routing them privately to management via WhatsApp.'}
-          </p>
-        </div>
-
-        {/* دمج التوصيل - مطاعم فقط */}
-        {data.businessType === 'restaurant' && (
-          <div className="bg-[#0a121e] border-2 border-red-500/20 rounded-[4rem] p-12 flex flex-col items-center text-center space-y-12 hover:border-red-500/60 transition-all group shadow-2xl min-h-[650px] relative">
-             <div className="bg-red-500/10 p-10 rounded-[3rem] text-red-500 group-hover:scale-110 transition-transform shadow-inner">
-              <Bike size={80}/>
+            <div className="bg-slate-900/80 p-6 rounded-2xl border border-slate-800 text-center relative overflow-hidden group">
+               <span className="text-slate-500 text-[10px] uppercase font-bold tracking-widest block mb-3">{t.dashboard.totalReviews}</span>
+               <div className="flex flex-col">
+                  <span className="text-3xl font-black text-white leading-none">{totalReviews.toLocaleString()}</span>
+                  <span className="text-[10px] text-slate-400 font-bold mt-2">{t.dashboard.reviews}</span>
+               </div>
             </div>
-            <h4 className="text-white font-black text-4xl leading-tight">{isRTL ? 'دمج طلبات وكيتا' : 'Delivery Sync'}</h4>
-            <p className="text-slate-400 text-2xl leading-relaxed flex-1">
-              {isRTL 
-                ? 'ربط مباشر ومجاني؛ بمجرد استلام الطلب، يرسل النظام رسالة واتساب للعميل تطلب تقييمه بذكاء لتسهيل العملية وضمان أعلى معدل تحويل.' 
-                : 'Automated free sync with delivery apps; sending WhatsApp review requests upon delivery.'}
-            </p>
+            <div className={`bg-slate-900/80 p-6 rounded-2xl border ${actualWeeklyReviews === 0 ? 'border-red-500/30' : 'border-primary-500/20'} text-center relative overflow-hidden group`}>
+               <span className="text-primary-400 text-[10px] uppercase font-bold tracking-widest block mb-3">{t.dashboard.weeklyRate}</span>
+               <span className={`text-3xl font-black ${actualWeeklyReviews === 0 ? 'text-red-500' : 'text-white'} leading-none`}>{actualWeeklyReviews}</span>
+            </div>
+            <div className={`bg-slate-900/80 p-6 rounded-2xl border ${actualMonthlyReviews === 0 ? 'border-red-500/30' : 'border-primary-500/20'} text-center relative overflow-hidden group`}>
+               <span className="text-primary-400 text-[10px] uppercase font-bold tracking-widest block mb-3">{isRTL ? "معدل الشهر" : "Monthly Rate"}</span>
+               <span className={`text-3xl font-black ${actualMonthlyReviews === 0 ? 'text-red-500' : 'text-white'} leading-none`}>{actualMonthlyReviews}</span>
+            </div>
           </div>
-        )}
-      </div>
 
-      {/* 4. الأرباح السنوية الديناميكية */}
-      <div className="bg-[#0a121e] border-2 border-blue-500/30 rounded-[5rem] p-20 relative overflow-hidden shadow-2xl">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-16 relative z-10 text-center md:text-right">
-          <div className="space-y-8">
-            <h3 className="text-blue-400 font-black text-6xl flex items-center justify-center md:justify-start gap-6 tracking-tighter uppercase">
-              <DollarSign size={64} /> {isRTL ? 'أرباح نظرية الولاء السنوية' : 'Annual Loyalty ROI'}
-            </h3>
-            <p className="text-slate-400 font-bold text-3xl max-w-3xl leading-relaxed">
-              {isRTL 
-                ? 'تمثل هذه الأرقام العائد المادي السنوي المتوقع بناءً على تحويل التقييمات الإيجابية إلى ثقة مطلقة تجذب تدفقاً مستمراً من العملاء الجدد.' 
-                : 'Projected financial return based on turning reviews into trust that drives new customer growth.'}
-            </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-slate-900/80 p-8 rounded-3xl border border-indigo-500/20 flex flex-col items-center justify-center text-center relative overflow-hidden group">
+               <div className="absolute top-4 right-4 group-hover:scale-110 transition-transform cursor-help">
+                  <HelpCircle className="w-5 h-5 text-indigo-400 opacity-60" />
+               </div>
+               <span className="text-slate-200 font-bold text-sm mb-6 block uppercase tracking-wide">{isHealthy ? t.dashboard.protectionAnalysis : t.dashboard.lossAnalysis}</span>
+               <div className="flex items-baseline gap-2 mb-6">
+                  <span className="text-5xl font-black text-white leading-none">{annualRevenueOpportunity.toLocaleString()}</span>
+                  <span className="text-lg text-slate-400 font-bold">{t.dashboard.currency}</span>
+               </div>
+               <div className="w-full max-w-xs h-2 bg-slate-800 rounded-full overflow-hidden mb-4 shadow-inner">
+                  <div className={`h-full bg-gradient-to-r from-indigo-600 to-primary-400 ${isHealthy ? 'w-[90%]' : 'w-[40%]'} rounded-full`}></div>
+               </div>
+               <p className="text-[10px] text-slate-500 max-w-[240px] leading-relaxed font-bold uppercase">{isHealthy ? t.dashboard.protectionDesc : t.dashboard.lossDesc}</p>
+            </div>
+
+            <div className="bg-slate-900/80 p-8 rounded-3xl border border-green-500/10 flex flex-col relative overflow-hidden">
+               <div className="absolute top-6 left-6 text-green-500/30">
+                  <Globe className="w-8 h-8" />
+               </div>
+               <div className="flex flex-col items-end">
+                  <span className="text-slate-300 font-bold text-sm mb-4">{t.dashboard.rankTitle}</span>
+                  <div className={`text-3xl md:text-4xl font-black leading-tight mb-6 text-center w-full ${isHealthy ? 'text-green-500' : 'text-red-500'}`}>
+                    {currentStatus}
+                  </div>
+                  <div className={`${isHealthy ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500/10 border-red-500/30 text-red-400'} px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-widest shadow-lg mx-auto md:mx-0`}>
+                     {isHealthy ? t.dashboard.king : t.dashboard.ghost}
+                  </div>
+               </div>
+            </div>
           </div>
-          <div className="text-9xl font-black text-white tracking-tighter animate-pulse">
-            {dynamicProfit} <span className="text-5xl text-blue-500 font-bold uppercase tracking-widest">{isRTL ? 'د.ك' : 'KWD'}</span>
+
+          {/* ADDITION #4: Delivery Apps Integration Card */}
+          <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-6 flex items-start gap-5">
+             <div className="p-3 bg-primary-500/10 rounded-2xl shrink-0">
+                <Share2 className="w-6 h-6 text-primary-400" />
+             </div>
+             <div>
+                <h4 className="text-white font-bold mb-2">{t.dashboard.delivery.title}</h4>
+                <p className="text-slate-400 text-sm leading-relaxed">{t.dashboard.delivery.text}</p>
+             </div>
           </div>
         </div>
       </div>
 
-      {/* 5. الأزرار النهائية (تفعيل المحاكي + الطلب) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-10">
-        <button 
-          onClick={() => window.open(waLink, '_blank')}
-          className="bg-[#10b981] hover:bg-[#059669] text-white font-black py-14 rounded-[4rem] flex items-center justify-center gap-8 text-5xl transition-all shadow-2xl shadow-green-500/30 group active:scale-95">
-          <CheckCircle2 size={56} className="group-hover:scale-125 transition-transform" />
-          {isRTL ? 'اطلب النظام الآن' : 'ORDER SYSTEM NOW'}
-        </button>
-        
-        <div className="relative group">
-          <div className="absolute -top-14 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-md font-black px-10 py-4 rounded-full flex flex-col items-center gap-1 z-20 shadow-xl border border-white/30 animate-bounce cursor-pointer">
-             <Star size={24} className="animate-spin" /> {isRTL ? 'شاهد مستقبلك الرقمي' : 'Watch Simulator'}
-          </div>
-          {/* تم ربط الدالة هنا ليعمل المحاكي */}
-          <button 
-            onClick={onVisualExp} 
-            className="w-full bg-[#0d1b33] border-4 border-blue-600 text-white font-black py-14 rounded-[4rem] flex items-center justify-center gap-8 text-5xl transition-all shadow-2xl active:scale-95 hover:bg-blue-900/50">
-            <LayoutDashboard size={56} />
-            {isRTL ? 'تجربة بصرية' : 'VISUAL EXPERIENCE'}
-          </button>
-        </div>
+      <div className="text-center py-6">
+         <h2 className="text-5xl font-black text-white uppercase tracking-tighter mb-4">{t.report.impactTitle}</h2>
+         <div className="w-24 h-2 bg-primary-500 mx-auto rounded-full shadow-[0_0_20px_rgba(14,165,233,0.5)]"></div>
+         <p className="text-primary-400 text-xs font-bold mt-4 uppercase tracking-widest animate-pulse">{t.dashboard.annualProjection}</p>
       </div>
 
-      {/* زر العودة والتحليل الجديد */}
-      <div className="text-center pt-10 flex flex-col md:flex-row items-center justify-center gap-10 opacity-60 hover:opacity-100 transition-opacity">
-        <button onClick={onReset} className="inline-flex items-center gap-4 text-slate-500 hover:text-white font-bold text-3xl transition-colors">
-          <RotateCcw size={32} />
-          {isRTL ? 'فحص مشروع آخر' : 'New Project'}
-        </button>
+      <div className="bg-slate-900 border border-slate-700 rounded-[3rem] p-10 md:p-14 relative overflow-hidden group">
+          <div className="absolute top-[-100px] left-[-100px] w-80 h-80 bg-primary-500/5 rounded-full blur-[120px]"></div>
+          
+          <div className="flex flex-col md:flex-row items-center gap-12 relative z-10">
+              <div className="flex-1 space-y-8">
+                  <div className="inline-flex items-center gap-3 bg-primary-500/10 text-primary-400 px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest border border-primary-500/20">
+                     <Rocket className="w-4 h-4 animate-bounce" /> {t.report.impactTitle}
+                  </div>
+                  <h4 className="text-3xl font-black text-white leading-tight">{t.report.impactDesc}</h4>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 shadow-xl">
+                         <span className="text-[10px] text-slate-500 block font-black mb-2 uppercase tracking-widest">{t.dashboard.dailyVisitors}</span>
+                         <span className="text-4xl font-black text-white">{data.dailyCustomers}</span>
+                      </div>
+                      <div className="bg-primary-500/5 p-6 rounded-2xl border border-primary-500/20 shadow-xl">
+                         <span className="text-[10px] text-primary-500 block font-black mb-2 uppercase tracking-widest">{t.dashboard.expectedPulse}</span>
+                         <span className="text-4xl font-black text-white">{systemDailyPotential}</span>
+                      </div>
+                  </div>
+              </div>
+
+              <div className="bg-slate-800 p-10 rounded-[2.5rem] border border-primary-500/30 text-center shadow-3xl relative min-w-[300px] transform hover:scale-105 transition-transform">
+                  <Zap className="absolute -top-5 -right-5 w-12 h-12 text-yellow-400 fill-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
+                  <span className="text-slate-500 text-xs font-black uppercase tracking-widest block mb-4">{t.dashboard.predictedAnnual}</span>
+                  <div className="flex flex-col items-center">
+                      <span className="text-7xl font-black text-white leading-none tracking-tighter drop-shadow-lg">{systemYearlyPotential.toLocaleString()}</span>
+                      <span className="text-sm text-primary-500 font-black uppercase tracking-[0.3em] mt-4">{t.dashboard.newReviews}</span>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+      {/* ADDITION #2: Famous Quote Section (Credibility Booster) */}
+      <div className="py-6 border-y border-slate-800/50 flex flex-col items-center text-center space-y-4">
+         <Quote className="w-8 h-8 text-indigo-500/30" />
+         <p className="text-slate-200 text-xl md:text-2xl font-black italic max-w-2xl leading-relaxed">
+            "{t.dashboard.quote.text}"
+         </p>
+         <span className="text-indigo-400 font-bold uppercase tracking-[0.2em] text-[10px]">
+            {t.dashboard.quote.attribution}
+         </span>
+      </div>
+
+      {/* ADDITION #1: Strategic Recommendation Section */}
+      <div className="bg-indigo-600/5 border border-indigo-500/20 rounded-[3rem] p-8 md:p-12 relative overflow-hidden group">
+         <div className="absolute -top-12 -right-12 p-8 text-indigo-500/5">
+            <Award className="w-48 h-48" />
+         </div>
+         <div className="relative z-10 space-y-4">
+            <div className="flex items-center gap-3 text-indigo-400 mb-2">
+               <ShieldCheck className="w-6 h-6" />
+               <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight">{t.dashboard.strategicRecommendation.title}</h3>
+            </div>
+            <p className="text-slate-300 text-lg md:text-xl leading-relaxed font-medium">
+               {t.dashboard.strategicRecommendation.text.replace('{name}', data.projectName)}
+            </p>
+         </div>
+      </div>
+
+      {/* ADDITION #5 & #6: Motivational Pre-CTA and Marketing Content */}
+      <div className="text-center space-y-12 pt-14">
+         <div className="space-y-6">
+            {/* Persuasive Paragraph */}
+            <p className="text-slate-400 text-lg max-w-2xl mx-auto font-medium leading-relaxed italic">
+               {t.dashboard.marketing.persuasive}
+            </p>
+            <div className="space-y-4">
+               <h2 className="text-6xl font-black text-white leading-tight tracking-tighter uppercase">{isRTL ? "لا تكن خفياً" : "Don't Be Invisible"}.</h2>
+               {/* Motivational Phrase */}
+               <p className="text-primary-400 text-2xl max-w-2xl mx-auto font-black animate-pulse">
+                  {t.dashboard.marketing.motivational}
+               </p>
+            </div>
+         </div>
+
+         <div className="flex flex-col gap-6 justify-center items-center">
+            <button onClick={onVisualExp} className="w-full md:w-auto px-12 py-5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xl rounded-[2.5rem] shadow-xl transform hover:-translate-y-1 transition-all flex items-center justify-center gap-4 group">
+                <Play className="w-6 h-6 fill-current group-hover:scale-110 transition-transform" />
+                {t.closing.btnVisual}
+            </button>
+
+            <div className="flex flex-col md:flex-row gap-6 w-full justify-center">
+                <a href={waLink} target="_blank" rel="noopener noreferrer" className="w-full md:w-auto px-12 py-7 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-black text-2xl rounded-[2.5rem] shadow-2xl shadow-green-500/50 transform hover:-translate-y-2 transition-all flex items-center justify-center gap-4 group">
+                   <MessageCircle className="w-8 h-8 group-hover:scale-110 transition-transform" />
+                   {t.closing.btn1}
+                </a>
+                <button onClick={onReset} className="w-full md:w-auto px-12 py-7 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xl rounded-[2.5rem] border border-slate-700 transition-all flex items-center justify-center gap-4 group">
+                   <RotateCw className="w-7 h-7 group-hover:rotate-180 transition-transform duration-500" />
+                   {t.closing.btn2}
+                </button>
+            </div>
+         </div>
       </div>
 
     </div>
