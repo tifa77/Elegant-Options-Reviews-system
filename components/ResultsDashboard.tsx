@@ -1,9 +1,12 @@
 // @ts-nocheck
 import React from 'react';
 import { 
+  // استيراد كافة الأيقونات المستخدمة لضمان عدم حدوث Runtime Error
   Ghost, Info, TrendingUp, DollarSign, Star, 
   ShieldCheck, Bot, Bike, Quote, 
-  CheckCircle2, RotateCcw, LayoutDashboard, Target, Zap, TrendingDown, MessageCircle, BarChart3, Rocket, Play
+  CheckCircle2, RotateCcw, LayoutDashboard, Target, Zap, 
+  TrendingDown, MessageCircle, BarChart3, Rocket, Play,
+  ArrowRight, ArrowLeft, AlertTriangle, ShieldAlert, BarChart
 } from 'lucide-react';
 import { AuditData, Language } from '../types';
 
@@ -12,7 +15,7 @@ interface ResultsDashboardProps {
   language: Language;
   onReset: () => void;
   onBack: () => void;
-  onVisualExp: () => void; // دالة تفعيل التجربة البصرية (المحاكي)
+  onVisualExp: () => void; // ربط زر التجربة البصرية (المحاكي)
 }
 
 const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ data, language, onReset, onBack, onVisualExp }) => {
@@ -20,19 +23,18 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ data, language, onR
   
   // --- محرك الحسابات الذكي (Elegant Options Engine) ---
   const currentYear = 2026; 
-  const establishedYear = parseInt(data.establishmentYear) || 2024;
+  const establishedYear = parseInt(data.establishedYear) || 2024;
   const ageYears = Math.max(1, currentYear - establishedYear);
   const totalReviews = data.currentReviews || 0;
   const avgReviewsPerYear = parseFloat((totalReviews / ageYears).toFixed(1));
 
-  // حسابات الـ 10% البيعية
-  const dailyCustomers = data.dailyCustomers || 50;
-  const systemDailyPotential = Math.round(dailyCustomers * 0.10); 
+  // حسابات الـ 10% (منطق رجل مبيعات محترف)
+  const dailyCustomers = parseInt(data.dailyCustomers) || 50;
+  const systemDailyPotential = Math.round(dailyCustomers * 0.10); // تحويل 10% من الزوار
   const annualAdditionalReviews = systemDailyPotential * 365;
 
-  // حساب الأرباح الديناميكي (نصف القيمة السنوية للعملاء المتأثرين بالسمعة)
-  const avgTicket = 10; 
-  const dynamicProfit = (annualAdditionalReviews * avgTicket * 5).toLocaleString();
+  // الأرباح الديناميكية: تعتمد على عدد المراجعات الإضافية (عائد 15 د.ك لكل عميل وفيّ)
+  const dynamicProfit = (annualAdditionalReviews * 15).toLocaleString();
 
   // --- منطق التشخيص السوقي المتكيف مع العناوين المشوقة ---
   const getDiagnosis = () => {
@@ -62,19 +64,28 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ data, language, onR
 
   const diag = getDiagnosis();
 
-  const waNumber = "96566305551";
-  const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(isRTL ? `أهلاً Elegant Options، مهتم لطلب نظام لمشروعي (${data.projectName})` : `Hello, interested in the system for (${data.projectName})`)}`;
+  // رابط الواتساب الديناميكي
+  const whatsappNumber = "96566305551";
+  const waLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(isRTL ? `أهلاً Elegant Options، مهتم لطلب نظام لمشروعي (${data.projectName})` : `Hello, interested in the system for (${data.projectName})`)}`;
 
   return (
     <div className={`max-w-5xl mx-auto space-y-24 pb-40 animate-fade-in relative ${isRTL ? 'font-tajawal text-right' : 'font-sans text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       
-      {/* 1. التشخيص السوقي الفعلي مع العناوين المشوقة */}
+      {/* زر العودة العلوي - تم إصلاح ArrowRight/ArrowLeft هنا */}
+      <div className="flex items-center justify-between px-4">
+        <button onClick={onBack} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+          {isRTL ? <ArrowRight size={24} /> : <ArrowLeft size={24} />}
+          <span className="font-black text-lg">{isRTL ? "الرجوع" : "Back"}</span>
+        </button>
+      </div>
+
+      {/* 1. التشخيص السوقي الفعلي مع العنوان المشوق */}
       <div className={`${diag.bg} border-2 border-white/5 rounded-[4rem] p-12 md:p-16 flex flex-col md:flex-row items-center justify-between gap-12 relative shadow-2xl overflow-hidden`}>
         <div className="space-y-6 z-10 flex-1">
-          <span className={`${diag.color} font-bold text-xs uppercase tracking-[0.4em] opacity-80`}>
+          <span className={`${diag.color} font-bold text-sm uppercase tracking-[0.4em] opacity-80`}>
             {isRTL ? 'التشخيص السوقي الفعلي' : 'Market Diagnosis'}
           </span>
-          <h2 className={`${diag.color} text-6xl md:text-8xl font-black italic tracking-tighter`}>
+          <h2 className={`${diag.color} text-5xl md:text-8xl font-black italic`}>
             {diag.title}
           </h2>
           <h3 className="text-white text-3xl md:text-4xl font-bold border-b-2 border-white/10 pb-4 inline-block">
@@ -89,14 +100,14 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ data, language, onR
         </div>
       </div>
 
-      {/* 2. مقارنة الأداء (قاعدة الـ 10% - منظور رجل مبيعات) */}
+      {/* 2. مقارنة الأداء (قاعدة الـ 10% - منظور تسويقي) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
         {/* الوضع الحالي */}
-        <div className="bg-[#0a121e] border-2 border-red-500/10 rounded-[4rem] p-12 space-y-12 relative shadow-xl">
+        <div className="bg-[#0a121e] border-2 border-red-500/10 rounded-[4rem] p-12 space-y-10 relative shadow-xl">
           <div className="flex items-center gap-4 text-slate-400 font-black text-3xl uppercase tracking-tighter">
              <TrendingDown className="text-red-500" size={40} /> {isRTL ? 'نزيف الفرص الحالي' : 'Current Leak'}
           </div>
-          <div className="space-y-8">
+          <div className="space-y-8 border-t border-white/5 pt-8">
             <div className="flex justify-between items-end border-b border-white/5 pb-4">
                <span className="text-slate-500 text-xl font-bold">{isRTL ? 'معدل التقييم السنوي الحالي' : 'Annual Rate'}</span>
                <span className="text-6xl font-black text-white">{avgReviewsPerYear}</span>
@@ -109,20 +120,20 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ data, language, onR
           </div>
         </div>
 
-        {/* مع النظام - شرح تسويقي */}
-        <div className="bg-gradient-to-br from-[#0d1b33] to-[#0a121e] border-2 border-blue-500/40 rounded-[4rem] p-12 space-y-12 shadow-2xl relative shadow-blue-900/40">
+        {/* مع النظام */}
+        <div className="bg-gradient-to-br from-[#0d1b33] to-[#0a121e] border-2 border-blue-500/40 rounded-[4rem] p-12 space-y-10 shadow-2xl relative shadow-blue-900/30">
           <div className="flex items-center gap-4 text-blue-400 font-black text-3xl uppercase tracking-tighter">
             <TrendingUp size={40} /> {isRTL ? 'مع نظام ELEGANT OPTIONS' : 'WITH OUR SYSTEM'}
           </div>
-          <div className="space-y-10">
+          <div className="space-y-10 border-t border-white/10 pt-8">
              <div className="flex justify-between items-end border-b border-blue-500/20 pb-4">
                 <span className="text-slate-300 font-bold text-xl">{isRTL ? 'المعدل السنوي الإضافي' : 'Additional Annual'}</span>
                 <span className="text-8xl font-black text-green-400">+{annualAdditionalReviews}</span>
              </div>
              <div className="text-blue-100 font-bold text-2xl leading-relaxed bg-blue-500/10 p-6 rounded-[2rem]">
                {isRTL 
-                 ? `من أصل (${dailyCustomers}) عميل يزورك يومياً، سنقوم بتحويل 10% منهم آلياً إلى سلطة تقييم نشطة. هذا يعني تحويل الصمت إلى (+${annualAdditionalReviews}) تقييم إيجابي سنوياً، مما يمنحك سيادة كاملة تجذب تدفقاً مستمراً من الزبائن الجدد.` 
-                 : `From (${dailyCustomers}) daily visitors, we convert 10% into active reviewers. This turns silence into (+${annualAdditionalReviews}) reviews annually.`}
+                 ? `عبر تحويل 10% من زوارك الـ (${dailyCustomers}) يومياً، سنقوم آلياً بتحويل صمتهم إلى (+${annualAdditionalReviews}) تقييم إيجابي سنوياً، مما يمنحك سيادة كاملة تجذب تدفقاً مستمراً من الزبائن الجدد.` 
+                 : `By converting 10% of your (${dailyCustomers}) daily visitors, we collect (+${annualAdditionalReviews}) reviews annually.`}
              </div>
           </div>
         </div>
@@ -132,8 +143,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ data, language, onR
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
         
         {/* ميزة الردود الآلية - طولي ضخم */}
-        <div className="bg-[#0a121e] border-2 border-blue-500/20 rounded-[4rem] p-12 flex flex-col items-center text-center space-y-12 hover:border-blue-500/60 transition-all group shadow-2xl min-h-[650px] relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 text-blue-500/10 font-black text-8xl italic">01</div>
+        <div className="bg-[#0a121e] border-2 border-blue-500/20 rounded-[4rem] p-12 flex flex-col items-center text-center space-y-12 hover:border-blue-500/60 transition-all group shadow-2xl min-h-[650px] relative">
           <div className="bg-blue-500/10 p-10 rounded-[3rem] text-blue-400 group-hover:scale-110 transition-transform shadow-inner">
             <Bot size={80}/>
           </div>
@@ -146,8 +156,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ data, language, onR
         </div>
 
         {/* درع السمعة - طولي ضخم */}
-        <div className="bg-[#0a121e] border-2 border-orange-500/20 rounded-[4rem] p-12 flex flex-col items-center text-center space-y-12 hover:border-orange-500/60 transition-all group shadow-2xl min-h-[650px] relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 text-orange-500/10 font-black text-8xl italic">02</div>
+        <div className="bg-[#0a121e] border-2 border-orange-500/20 rounded-[4rem] p-12 flex flex-col items-center text-center space-y-12 hover:border-orange-500/60 transition-all group shadow-2xl min-h-[650px] relative">
           <div className="bg-orange-500/10 p-10 rounded-[3rem] text-orange-400 group-hover:scale-110 transition-transform shadow-inner">
             <ShieldCheck size={80}/>
           </div>
@@ -159,26 +168,24 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ data, language, onR
           </p>
         </div>
 
-        {/* دمج التوصيل (طلبات/كيتا) - مطاعم فقط */}
+        {/* دمج التوصيل - مطاعم فقط */}
         {data.businessType === 'restaurant' && (
-          <div className="bg-[#0a121e] border-2 border-red-500/20 rounded-[4rem] p-12 flex flex-col items-center text-center space-y-12 hover:border-red-500/60 transition-all group shadow-2xl min-h-[650px] relative overflow-hidden">
-             <div className="absolute top-0 right-0 p-8 text-red-500/10 font-black text-8xl italic">03</div>
+          <div className="bg-[#0a121e] border-2 border-red-500/20 rounded-[4rem] p-12 flex flex-col items-center text-center space-y-12 hover:border-red-500/60 transition-all group shadow-2xl min-h-[650px] relative">
              <div className="bg-red-500/10 p-10 rounded-[3rem] text-red-500 group-hover:scale-110 transition-transform shadow-inner">
               <Bike size={80}/>
             </div>
             <h4 className="text-white font-black text-4xl leading-tight">{isRTL ? 'دمج طلبات وكيتا' : 'Delivery Sync'}</h4>
             <p className="text-slate-400 text-2xl leading-relaxed flex-1">
               {isRTL 
-                ? 'ربط مباشر ومجاني بالكامل؛ بمجرد استلام الطلب، يرسل النظام رسالة واتساب للعميل تطلب تقييمه بذكاء لتسهيل العملية وضمان أعلى معدل تحويل.' 
+                ? 'ربط مباشر ومجاني؛ بمجرد استلام الطلب، يرسل النظام رسالة واتساب للعميل تطلب تقييمه بذكاء لتسهيل العملية وضمان أعلى معدل تحويل.' 
                 : 'Automated free sync with delivery apps; sending WhatsApp review requests upon delivery.'}
             </p>
           </div>
         )}
       </div>
 
-      {/* 4. الأرباح السنوية الديناميكية (الرقم يتغير بناءً على الحسابات) */}
-      <div className="bg-[#0a121e] border-2 border-blue-500/30 rounded-[5rem] p-20 relative overflow-hidden shadow-2xl group">
-        <div className="absolute top-[-100px] left-[-100px] w-96 h-96 bg-blue-600/5 rounded-full blur-[120px]"></div>
+      {/* 4. الأرباح السنوية الديناميكية */}
+      <div className="bg-[#0a121e] border-2 border-blue-500/30 rounded-[5rem] p-20 relative overflow-hidden shadow-2xl">
         <div className="flex flex-col md:flex-row justify-between items-center gap-16 relative z-10 text-center md:text-right">
           <div className="space-y-8">
             <h3 className="text-blue-400 font-black text-6xl flex items-center justify-center md:justify-start gap-6 tracking-tighter uppercase">
@@ -190,7 +197,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ data, language, onR
                 : 'Projected financial return based on turning reviews into trust that drives new customer growth.'}
             </p>
           </div>
-          <div className="text-9xl font-black text-white tracking-tighter animate-pulse drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+          <div className="text-9xl font-black text-white tracking-tighter animate-pulse">
             {dynamicProfit} <span className="text-5xl text-blue-500 font-bold uppercase tracking-widest">{isRTL ? 'د.ك' : 'KWD'}</span>
           </div>
         </div>
@@ -219,15 +226,11 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ data, language, onR
         </div>
       </div>
 
-      {/* زر العودة */}
+      {/* زر العودة والتحليل الجديد */}
       <div className="text-center pt-10 flex flex-col md:flex-row items-center justify-center gap-10 opacity-60 hover:opacity-100 transition-opacity">
         <button onClick={onReset} className="inline-flex items-center gap-4 text-slate-500 hover:text-white font-bold text-3xl transition-colors">
           <RotateCcw size={32} />
-          {isRTL ? 'فحص مشروع آخر' : 'Check another project'}
-        </button>
-        <button onClick={onBack} className="inline-flex items-center gap-4 text-slate-500 hover:text-white font-bold text-3xl transition-colors">
-          {isRTL ? <ArrowRight size={32} /> : <ArrowLeft size={32} />}
-          {isRTL ? 'العودة للخلف' : 'Go Back'}
+          {isRTL ? 'فحص مشروع آخر' : 'New Project'}
         </button>
       </div>
 
