@@ -1,39 +1,26 @@
 // @ts-nocheck
 import React from 'react';
-import { 
-  // استيراد كافة الأيقونات المستخدمة بوضوح لمنع خطأ ReferenceError
-  TrendingUp, 
-  TrendingDown, // تم التأكد من إضافة هذا السطر يدوياً هنا
-  AlertTriangle, 
-  ArrowRight, 
-  ArrowLeft, 
-  Target, 
-  Ghost, 
-  Crown, 
-  Activity, 
-  ArrowUpRight,
-  MessageCircle, 
-  RotateCw, 
-  Play, 
-  Zap, 
-  BarChart3,
-  Utensils, 
-  Bike, 
-  Percent, 
-  Users, 
-  Award, 
-  CheckCircle, 
-  Eye, 
-  ShieldCheck, 
-  DollarSign, 
-  Star, 
-  HelpCircle, 
-  Quote, 
-  Share2, 
-  Globe 
-} from 'lucide-react';
 import { Language, AuditData } from '../types';
 import { TEXTS } from '../constants';
+import {
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  Ghost,
+  Target,
+  Crown,
+  Activity,
+  Zap,
+  BarChart3,
+  Bike,
+  MessageCircle,
+  RotateCw,
+  Eye,
+  ShieldCheck,
+  DollarSign,
+  Star,
+  Quote as QuoteIcon,
+} from 'lucide-react';
 
 interface ResultsDashboardProps {
   language: Language;
@@ -43,62 +30,556 @@ interface ResultsDashboardProps {
   onVisualExp: () => void;
 }
 
-const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ language, data, onReset, onBack, onVisualExp }) => {
+const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
+  language,
+  data,
+  onReset,
+  onBack,
+  onVisualExp,
+}) => {
   const t = TEXTS[language] ?? TEXTS['ar'];
   const isRTL = language === 'ar';
-  const isRestaurant = data.projectType === 'restaurant' || data.projectType === 'مطعم';
 
-  // --- محرك الحسابات الآمن (Anti-NaN Engine) ---
+  // ---------------- Anti-NaN Engine & base numbers ----------------
   const currentYear = new Date().getFullYear();
-  const rawYear = Number(data.establishedYear);
-  const ageYears = (Number.isFinite(rawYear) && rawYear > 1900) ? Math.max(1, currentYear - rawYear) : 1;
-  const totalReviews = Number(data.currentReviews) || 0;
-  const avgReviewsPerYear = Number((totalReviews / ageYears).toFixed(1)) || 0;
+  const rawEstablishedYear = Number(data.establishedYear);
+  const ageYears =
+    Number.isFinite(rawEstablishedYear) &&
+    rawEstablishedYear > 1900 &&
+    rawEstablishedYear <= currentYear
+      ? Math.max(1, currentYear - rawEstablishedYear)
+      : 1;
 
-  // إعدادات الروابط
-  const waNumber = "96566305551";
-  const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(isRTL ? `أهلاً Elegant Options، أريد تفعيل النظام لمشروعي (${data.projectName})` : `Hello, I want to activate the system for (${data.projectName})`)}`;
+  const totalReviews = Number(data.currentReviews) || 0;
+  const dailyCustomers = Number(data.dailyCustomers) || 0;
+
+  const avgReviewsPerYear = Number((totalReviews / ageYears).toFixed(1)) || 0;
+  const avgReviewsPerMonth = Number((avgReviewsPerYear / 12).toFixed(1)) || 0;
+
+  // ---------------- Regional currency (from old design) ----------------
+  const getRegionalData = () => {
+    const address = (data.address || '').toLowerCase();
+    const isKuwait =
+      address.includes('kuwait') || address.includes('الكويت');
+
+    if (isKuwait) {
+      return {
+        symbol: isRTL ? 'د.ك' : 'KWD',
+        ticket: 20,
+      };
+    } else {
+      return {
+        symbol: isRTL ? 'دولار' : 'USD',
+        ticket: 60,
+      };
+    }
+  };
+
+  const regional = getRegionalData();
+  const currency = (t.dashboard?.currency as string) || regional.symbol;
+
+  // ---------------- Growth logic from old design ----------------
+  const isRestaurant =
+    data.projectType === 'restaurant' ||
+    data.projectType === 'مطعم' ||
+    data.projectType === 'cafe';
+
+  const currentWeekly = data.weeklyGrowth || 0;
+  const currentMonthly = data.monthlyGrowth || 0;
+  const currentYearlyReviews = currentMonthly * 12;
+
+  const multiplier = isRestaurant ? 10 : 6;
+
+  const projectedWeekly = Math.max(8, currentWeekly * multiplier);
+  const projectedMonthly = Math.max(35, currentMonthly * multiplier);
+  const projectedYearlyReviews = projectedMonthly * 12;
+
+  const percentageIncrease =
+    currentYearlyReviews > 0
+      ? Math.round(
+          ((projectedYearlyReviews - currentYearlyReviews) /
+            currentYearlyReviews) *
+            100,
+        )
+      : 100;
+
+  const customerLossMultiplier = 4;
+  const lostCustomersCount = Math.max(
+    0,
+    (projectedYearlyReviews - currentYearlyReviews) * customerLossMultiplier,
+  );
+  const lostRevenue = lostCustomersCount * regional.ticket;
+
+  // ---------------- Extra opportunity logic from new design ----------------
+  const systemDailyPotential = Math.round(dailyCustomers * 0.1);
+  const annualAdditionalReviews = systemDailyPotential * 365;
+
+  const avgTicket = 10;
+  const rawRevenueOpportunity =
+    dailyCustomers * 30 * 12 * 0.3 * avgTicket; // 30% من العملاء شهرياً
+  const annualRevenueOpportunity = Number.isFinite(rawRevenueOpportunity)
+    ? rawRevenueOpportunity
+    : 0;
+
+  const rawDynamicProfitValue = annualAdditionalReviews * avgTicket * 5;
+  const dynamicProfit = Number.isFinite(rawDynamicProfitValue)
+    ? rawDynamicProfitValue.toLocaleString()
+    : '0';
+
+  // ---------------- Market status (merged logic) ----------------
+  const getMarketStatus = () => {
+    const incentive = isRTL
+      ? '⚠️ تنبيه: المنافسون في منطقتك يكثفون نشاطهم الآن لتجاوز تصنيفك واستغلال ضعف وجودك الرقمي.'
+      : '⚠️ Alert: Competitors in your area are intensifying their activity to overtake you and exploit your weak digital presence.';
+
+    // نستخدم متوسط التقييم السنوي كأساس للتشخيص
+    if (avgReviewsPerYear < 20) {
+      return {
+        title: isRTL ? 'شبح رقمي - مخفي' : 'Digital Ghost',
+        desc: isRTL
+          ? 'أنت بعيد جداً عن المنافسين ولا تظهر للعملاء الجدد الباحثين عن خيارات جيدة. محركات البحث تتجاهل نشاطك بسبب ضعف التفاعل.'
+          : 'You are far behind competitors and almost invisible to new customers searching for good options.',
+        color: 'text-red-500',
+        bg: 'bg-red-900/20',
+        border: 'border-red-500/30',
+        icon: Ghost,
+        incentive,
+      };
+    } else if (avgReviewsPerYear < 80) {
+      return {
+        title: isRTL ? 'تواجد متوسط' : 'Average Presence',
+        desc: isRTL
+          ? 'أنت موجود ولكنك مهدد. أي تراجع بسيط سيجعلك تختفي خلف المنافسين الأقوياء، ويمكن لنظام الأتمتة تحويل هذا التواجد إلى قيادة للسوق.'
+          : 'You are present but at risk. Any decline will push you behind strong competitors; automation can turn this into market leadership.',
+        color: 'text-yellow-500',
+        bg: 'bg-yellow-900/20',
+        border: 'border-yellow-500/30',
+        icon: Target,
+        incentive,
+      };
+    }
+    return {
+      title: isRTL ? 'متواجد بقوة يحتاج أتمتة' : 'Strong Presence Needs Automation',
+      desc: isRTL
+        ? 'أداء جيد، ولكن الحفاظ على القمة أصعب من الوصول إليها. المنافسون يتربصون بك، والأتمتة الذكية هي درعك الوحيد للحفاظ على الريادة.'
+        : 'Good performance, but staying on top is harder than getting there. Competitors are waiting, and smart automation is your shield.',
+      color: 'text-green-500',
+      bg: 'bg-green-900/20',
+      border: 'border-green-500/30',
+      icon: Crown,
+      incentive,
+    };
+  };
+
+  const status = getMarketStatus();
+
+  // ---------------- Dashboard text objects from TEXTS ----------------
+  const dashboard = t.dashboard ?? {};
+  const quote = dashboard.quote ?? { text: '', attribution: '' };
+  const strategic = dashboard.strategicRecommendation ?? {
+    title: '',
+    text: '',
+  };
+  const marketing = dashboard.marketing ?? {
+    persuasive: '',
+    motivational: '',
+  };
+
+  // ---------------- WhatsApp link (unified) ----------------
+  const waNumber = '96566305551';
+  const customWAMessage = isRTL
+    ? `أهلاً Elegant Options، مهتم لطلب نظام لمشروعي (${data.projectName || 'مشروع جديد'}) وإيقاف خسارة العملاء وزيادة التقييمات.`
+    : `Hello Elegant Options, I am interested in your system for my project (${data.projectName || 'New Project'}) to stop losing customers and grow my reviews.`;
+  const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(
+    customWAMessage,
+  )}`;
+
+  const positiveReviews = Number(data.positiveReviews) || 0;
+  const negativeReviews = Number(data.negativeReviews) || 0;
 
   return (
-    <div className={`max-w-5xl mx-auto space-y-12 animate-fade-in pb-24 ${isRTL ? 'font-tajawal text-right' : 'font-sans text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
-      
-      {/* 1. قسم التشخيص (يستخدم TrendingDown في حالة الضعف) */}
-      <div className="bg-slate-900 border border-red-500/20 p-10 rounded-[3rem] relative overflow-hidden shadow-2xl">
-         <div className="flex items-center gap-6 relative z-10">
-            <div className="p-6 bg-red-500/10 rounded-3xl text-red-500 shadow-inner">
-               <TrendingDown size={48} /> {/* تم إصلاح التعريف هنا */}
+    <div
+      className={`max-w-4xl mx-auto space-y-8 animate-fade-in pb-20 ${
+        isRTL ? 'font-tajawal text-right' : 'font-sans text-left'
+      }`}
+      dir={isRTL ? 'rtl' : 'ltr'}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-2 pt-4">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+        >
+          {isRTL ? (
+            <ArrowRight className="w-5 h-5" />
+          ) : (
+            <ArrowLeft className="w-5 h-5" />
+          )}
+          <span className="font-medium text-sm">{t.back}</span>
+        </button>
+        <span className="bg-slate-900 border border-slate-700 px-3 py-1 rounded-full text-[10px] font-bold text-slate-400 uppercase flex items-center gap-2">
+          <BarChart3 className="w-3 h-3" />
+          {dashboard.title || 'Growth Report'}
+        </span>
+      </div>
+
+      {/* 1. تشخيص سوقي (Hero Status Card) */}
+      <div
+        className={`p-8 rounded-[2.5rem] border ${status.border} ${status.bg} backdrop-blur-sm relative overflow-hidden group shadow-2xl`}
+      >
+        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+          <status.icon size={150} />
+        </div>
+        <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 text-center md:text-right">
+          <div className={`p-6 rounded-full bg-slate-900 shadow-2xl ${status.color}`}>
+            <status.icon size={48} />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-slate-400 text-sm font-bold uppercase mb-2">
+              {isRTL ? 'التشخيص السوقي الحالي' : 'Current Market Diagnosis'}
+            </h3>
+            <div className={`text-4xl font-black ${status.color} mb-3`}>
+              {status.title}
             </div>
-            <div className="space-y-2">
-               <h3 className="text-slate-400 text-xs font-black uppercase tracking-widest">{isRTL ? "التشخيص السوقي" : "Market Diagnosis"}</h3>
-               <div className="text-4xl font-black text-red-500 italic uppercase tracking-tighter">
-                  {isRTL ? "خارج المنافسة الرقمية" : "Out of Competition"}
-               </div>
+            <p className="text-slate-300 text-sm mb-4 leading-relaxed font-medium opacity-90">
+              {status.desc}
+            </p>
+            <p className="text-slate-400 text-xs mb-4 leading-relaxed">
+              {isRTL
+                ? `متوسط التقييمات السنوي لديك هو (${avgReviewsPerYear}) تقييم في السنة خلال (${ageYears}) سنة من عمر المشروع. هذا الرقم يحدد مدى ظهورك الفعلي في السوق أمام العملاء المحتملين.`
+                : `Your annual average is (${avgReviewsPerYear}) reviews per year over (${ageYears}) years of activity. This number defines how visible you really are to potential customers.`}
+            </p>
+            <div className="p-4 bg-black/40 rounded-2xl border border-white/5 text-orange-400 text-sm font-bold animate-pulse">
+              {status.incentive}
             </div>
-         </div>
+          </div>
+        </div>
       </div>
 
-      {/* باقي محتوى التقرير (يتم استدعاء الأيقونات المستوردة أعلاه) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-         <div className="bg-slate-900/50 p-10 rounded-[2.5rem] border border-slate-800 flex flex-col items-center gap-4 text-center">
-            <BarChart3 className="text-indigo-400" size={32} />
-            <span className="text-slate-500 text-xs font-bold uppercase">{isRTL ? "إجمالي التقييمات" : "Total Reviews"}</span>
-            <span className="text-5xl font-black text-white">{totalReviews}</span>
-         </div>
-         {/* ... اختصاراً لباقي البطاقات ... */}
+      {/* 2. أرقام أساسية (العمر، إجمالي التقييمات، المتوسطات) */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-slate-900/80 p-6 rounded-3xl border border-slate-800 text-center">
+          <span className="text-slate-500 text-xs font-bold block mb-2">
+            {dashboard.age || (isRTL ? 'عمر المشروع (سنوات)' : 'Project Age (Years)')}
+          </span>
+          <div className="text-3xl font-black text-white">{ageYears}</div>
+        </div>
+        <div className="bg-slate-900/80 p-6 rounded-3xl border border-slate-800 text-center">
+          <span className="text-slate-500 text-xs font-bold block mb-2">
+            {dashboard.totalReviews || (isRTL ? 'إجمالي التقييمات' : 'Total Reviews')}
+          </span>
+          <div className="text-3xl font-black text-white">
+            {totalReviews.toLocaleString()}
+          </div>
+        </div>
+        <div className="bg-slate-900/80 p-6 rounded-3xl border border-indigo-500/20 text-center">
+          <span className="text-indigo-400 text-xs font-bold block mb-2">
+            {isRTL ? 'متوسط التقييم السنوي' : 'Annual Avg'}
+          </span>
+          <div className="text-3xl font-black text-indigo-400">
+            {avgReviewsPerYear}
+          </div>
+        </div>
+        <div className="bg-slate-900/80 p-6 rounded-3xl border border-slate-800 text-center">
+          <span className="text-slate-500 text-xs font-bold block mb-2">
+            {isRTL ? 'متوسط التقييم الشهري' : 'Monthly Avg'}
+          </span>
+          <div className="text-3xl font-black text-white">
+            {avgReviewsPerMonth.toFixed(1)}
+          </div>
+        </div>
       </div>
 
-      {/* زر الأكشن النهائي */}
-      <div className="flex flex-col md:flex-row gap-6 justify-center pt-10">
-         <a href={waLink} target="_blank" rel="noopener noreferrer" className="px-12 py-6 bg-green-600 hover:bg-green-500 text-white font-black text-2xl rounded-[2.5rem] shadow-2xl flex items-center justify-center gap-4 transition-all hover:-translate-y-1">
-            <MessageCircle size={32} />
-            {isRTL ? "اطلب النظام الآن" : "Order System"}
-         </a>
-         <button onClick={onVisualExp} className="px-12 py-6 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-2xl rounded-[2.5rem] shadow-2xl flex items-center justify-center gap-4 transition-all hover:-translate-y-1">
-            <Play size={32} />
-            {isRTL ? "تجربة بصرية" : "Visual Experience"}
-         </button>
+      {/* 3. تحليل جودة التقييمات */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-slate-900/80 p-6 rounded-3xl border border-slate-800">
+          <span className="text-slate-500 text-xs font-bold block mb-2">
+            {isRTL ? 'إجمالي التقييمات' : 'Total Reviews'}
+          </span>
+          <div className="text-3xl font-black text-white">
+            {totalReviews || 0}
+          </div>
+        </div>
+        <div className="bg-green-500/5 p-6 rounded-3xl border border-green-500/20">
+          <span className="text-green-500 text-xs font-bold block mb-2">
+            {isRTL ? 'إيجابية (4-5 نجوم)' : 'Positive (4–5 Stars)'}
+          </span>
+          <div className="text-3xl font-black text-green-400">
+            {positiveReviews}
+          </div>
+        </div>
+        <div className="bg-red-500/5 p-6 rounded-3xl border border-red-500/20 relative">
+          <span className="text-red-500 text-xs font-bold block mb-2">
+            {isRTL ? 'سلبية (1-3 نجوم)' : 'Negative (1–3 Stars)'}
+          </span>
+          <div className="text-3xl font-black text-red-500">
+            {negativeReviews}
+          </div>
+          <div className="mt-4 p-3 bg-red-500/10 rounded-xl text-[10px] text-red-300 leading-relaxed italic border border-red-500/10">
+            {isRTL
+              ? `⚠️ لو كنت مشتركاً بنظامنا، لكانت هذه التقييمات السلبية (${negativeReviews}) قد حُلت داخلياً عبر درع الحماية قبل أن تُنشر علناً على خرائط جوجل.`
+              : `⚠️ With our Reputation Shield, these (${negativeReviews}) negative reviews would have been handled privately before going public on Google Maps.`}
+          </div>
+        </div>
       </div>
 
+      {/* 4. مقارنة الأداء: بدون نظام vs مع Elegant Options */}
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Current Status */}
+        <div className="bg-slate-900/80 p-6 rounded-3xl border border-slate-800 relative">
+          <div className="flex items-center gap-3 mb-6 border-b border-slate-800 pb-4">
+            <Activity className="text-slate-500" size={20} />
+            <h3 className="text-slate-400 font-bold">
+              {isRTL ? 'الوضع الحالي (بدون نظام)' : 'Current Status (No System)'}
+            </h3>
+          </div>
+          <div className="space-y-6">
+            <div className="flex justify-between items-end">
+              <span className="text-slate-500 text-sm font-medium">
+                {isRTL ? 'النمو الأسبوعي' : 'Weekly Growth'}
+              </span>
+              <span className="text-2xl font-black text-slate-300">
+                {currentWeekly}
+              </span>
+            </div>
+            <div className="flex justify-between items-end">
+              <span className="text-slate-500 text-sm font-medium">
+                {isRTL ? 'النمو الشهري' : 'Monthly Growth'}
+              </span>
+              <span className="text-2xl font-black text-slate-300">
+                {currentMonthly}
+              </span>
+            </div>
+            <div className="flex justify-between items-end pt-2 border-t border-slate-800/50">
+              <span className="text-slate-500 text-xs font-medium">
+                {isRTL ? 'رصيد التقييمات السنوي' : 'Annual Reviews Asset'}
+              </span>
+              <span className="text-xl font-bold text-slate-400">
+                {currentYearlyReviews}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* With Elegant Options */}
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-3xl border border-indigo-500/30 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-400 to-blue-600" />
+          <div className="flex items-center gap-3 mb-6 border-b border-indigo-500/20 pb-4">
+            <Zap className="text-indigo-400" size={20} />
+            <h3 className="text-white font-bold">
+              {isRTL ? 'مع Elegant Options' : 'With Elegant Options'}{' '}
+              <span className="bg-indigo-500 text-white text-[10px] px-2 py-0.5 rounded-md">
+                PRO
+              </span>
+            </h3>
+          </div>
+          <div className="space-y-6">
+            <div className="flex justify-between items-end">
+              <span className="text-blue-100 text-sm font-medium">
+                {isRTL ? 'النمو الأسبوعي المتوقع' : 'Projected Weekly'}
+              </span>
+              <span className="text-3xl font-black text-indigo-400">
+                +{projectedWeekly}
+              </span>
+            </div>
+            <div className="flex justify-between items-end">
+              <span className="text-blue-100 text-sm font-medium">
+                {isRTL ? 'النمو الشهري المتوقع' : 'Projected Monthly'}
+              </span>
+              <span className="text-3xl font-black text-indigo-400">
+                +{projectedMonthly}
+              </span>
+            </div>
+            <div className="flex justify-between items-center pt-2 border-t border-indigo-500/20">
+              <span className="text-blue-200 text-xs font-medium">
+                {isRTL ? 'زيادة سنوية تقديرية' : 'Estimated Annual Lift'}
+              </span>
+              <div className="bg-green-500/10 border border-green-500/20 px-3 py-1 rounded-lg text-green-400 font-black text-sm">
+                +{percentageIncrease}%
+              </div>
+            </div>
+          </div>
+          <p className="mt-4 text-[10px] text-slate-300 leading-relaxed">
+            {isRTL
+              ? `النظام يستغل حركة العملاء اليومية (بمتوسط ${dailyCustomers} عميل يومياً) لتحويلها إلى ما يقارب ${annualAdditionalReviews} تقييم إضافي في السنة بدون جهد يدوي.`
+              : `The system leverages your daily traffic (~${dailyCustomers} customers/day) to generate around ${annualAdditionalReviews} extra reviews per year with zero manual effort.`}
+          </p>
+        </div>
+      </div>
+
+      {/* 5. Talabat & Keeta Integration (restaurants only) */}
+      {isRestaurant && (
+        <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-6 rounded-[2rem] border border-orange-500/30 relative overflow-hidden group">
+          <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
+            <div className="flex -space-x-4 rtl:space-x-reverse">
+              <div className="w-16 h-16 rounded-2xl bg-[#ff5a00] flex items-center justify-center border-4 border-slate-900 z-10 shadow-lg">
+                <Bike className="text-white w-8 h-8" />
+              </div>
+              <div className="w-16 h-16 rounded-2xl bg-[#fec400] flex items-center justify-center border-4 border-slate-900 shadow-lg">
+                <Zap className="text-black w-8 h-8 fill-black" />
+              </div>
+            </div>
+            <div className="flex-1 text-center md:text-right">
+              <h3 className="text-white font-black text-xl mb-2">
+                {isRTL
+                  ? 'مضاعفة النتائج عبر تطبيقات التوصيل'
+                  : 'Talabat & Keeta Integration'}
+              </h3>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                {isRTL
+                  ? 'نقوم بإرسال رسائل واتساب تلقائية لعملائك القادمين من (طلبات وكيتا) مباشرة بعد استلام الطلب، نطلب منهم تقييم تجربتهم فوراً. هذه العملية تتم بشكل آلي ومجاني ضمن النظام وتحوّل كل طلب توصيل إلى فرصة تقييم حقيقية.'
+                  : 'We send automated WhatsApp messages to your customers from Talabat & Keeta immediately after delivery, requesting a review. This runs automatically and at no extra cost, turning every order into a potential 5-star review.'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 6. Annual Revenue Leak */}
+      <div className="bg-gradient-to-br from-red-950 to-slate-900 p-8 rounded-[2.5rem] border border-red-500/30 relative overflow-hidden shadow-2xl">
+        <div className="absolute top-0 right-0 p-8 opacity-5">
+          <AlertTriangle size={150} />
+        </div>
+        <div className="relative z-10 text-center md:text-right">
+          <h4 className="text-red-400 font-black text-xl mb-2">
+            {isRTL
+              ? 'نزيف الإيرادات السنوي (فرصة ضائعة)'
+              : 'Annual Revenue Leak (Lost Opportunity)'}
+          </h4>
+          <p className="text-slate-400 text-sm leading-relaxed mb-6">
+            {isRTL
+              ? 'بسبب ضعف تصنيفك الحالي، أنت تفقد حصة سوقية ضخمة لصالح المنافسين الذين يظهرون قبلك في النتائج. هذه الأرقام تمثل العملاء الذين كان يمكن أن يكونوا عملاءك المخلصين.'
+              : 'Due to your current ranking, you are losing significant market share to competitors appearing before you. These numbers represent customers who could have become your loyal clients.'}
+          </p>
+          <div className="text-6xl font-black text-white tracking-tighter drop-shadow-lg">
+            {lostRevenue.toLocaleString()}{' '}
+            <span className="text-2xl text-red-500">{currency}</span>
+          </div>
+          <p className="mt-3 text-xs text-red-200">
+            {isRTL
+              ? `وفقاً لحسابات أخرى، لديك أيضاً فرصة أرباح سنوية تقديرية تبلغ تقريباً ${annualRevenueOpportunity.toLocaleString()} ${currency} إذا تم استغلال ولاء العملاء بشكل كامل.`
+              : `Based on other projections, you also hold an annual revenue opportunity of about ${annualRevenueOpportunity.toLocaleString()} ${currency} if customer loyalty is fully leveraged.`}
+          </p>
+        </div>
+      </div>
+
+      {/* 7. Additional Annual Profit (from new design) */}
+      <div className="bg-slate-900 border border-slate-700 rounded-[3rem] p-10 md:p-14 relative overflow-hidden shadow-2xl">
+        <div className="flex flex-col md:flex-row items-center gap-12 relative z-10">
+          <div className="flex-1 space-y-6">
+            <h4 className="text-3xl font-black text-white leading-tight uppercase tracking-tighter">
+              {t.report?.impactTitle ||
+                (isRTL ? 'أثر تفعيل نظام الأتمتة' : 'Impact of Activating the System')}
+            </h4>
+            <p className="text-slate-400 text-lg italic leading-relaxed">
+              {marketing.persuasive ||
+                (isRTL
+                  ? 'زيادة التقييمات ليست مجرد أرقام، بل هي شبكة من العملاء المروجين لعلامتك التجارية مجاناً على مدار الساعة.'
+                  : 'More reviews do not just mean numbers; they mean a network of promoters selling your brand for free, 24/7.')}
+            </p>
+          </div>
+
+          <div className="bg-slate-800 p-10 rounded-[2.5rem] border border-indigo-500/30 text-center shadow-3xl min-w-[280px] relative">
+            <Zap className="absolute -top-5 -right-5 w-12 h-12 text-yellow-400 fill-yellow-400" />
+            <span className="text-slate-500 text-xs font-black uppercase tracking-widest block mb-4">
+              {isRTL
+                ? 'الأرباح السنوية الإضافية المحتملة'
+                : 'Potential Additional Annual Profit'}
+            </span>
+            <div className="flex flex-col items-center">
+              <span className="text-5xl md:text-6xl font-black text-white leading-none tracking-tighter">
+                {dynamicProfit}
+              </span>
+              <span className="text-sm text-indigo-400 font-black uppercase tracking-[0.3em] mt-4">
+                {currency}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 8. Quote + Strategic Recommendation */}
+      {(quote.text || strategic.text) && (
+        <div className="space-y-6">
+          {quote.text && (
+            <div className="text-center py-8 space-y-4">
+              <QuoteIcon
+                className="text-yellow-500/30 mx-auto"
+                size={48}
+                fill="currentColor"
+              />
+              <h3 className="text-white text-2xl font-black italic max-w-3xl mx-auto leading-tight">
+                {quote.text}
+              </h3>
+              {quote.attribution && (
+                <span className="text-yellow-500 font-black tracking-[0.3em] text-xs block uppercase">
+                  {quote.attribution}
+                </span>
+              )}
+            </div>
+          )}
+
+          {strategic.text && (
+            <div className="bg-indigo-600/5 border border-indigo-500/20 rounded-[3rem] p-8 md:p-12 relative overflow-hidden group">
+              <div className="relative z-10 space-y-4 text-white">
+                <div className="flex items-center gap-3 text-indigo-400 mb-2">
+                  <ShieldCheck className="w-6 h-6" />
+                  <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight">
+                    {strategic.title ||
+                      (isRTL
+                        ? 'التوصية الاستراتيجية النهائية'
+                        : 'Final Strategic Recommendation')}
+                  </h3>
+                </div>
+                <p className="text-slate-300 text-lg md:text-xl leading-relaxed font-medium">
+                  {strategic.text.replace(
+                    '{name}',
+                    data.projectName ||
+                      (isRTL ? 'مشروعكم' : 'your project'),
+                  )}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 9. CTA Buttons */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+        {/* Visual Experience */}
+        <button
+          onClick={onVisualExp}
+          className="py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-lg shadow-xl flex items-center justify-center gap-3 transition-all transform hover:-translate-y-1"
+        >
+          <Eye size={22} />
+          {t.closing?.btnVisual ||
+            (isRTL ? 'خذ فكرة (تجربة بصرية)' : 'Visual Simulation')}
+        </button>
+
+        {/* WhatsApp Order */}
+        <a
+          href={waLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="py-5 bg-green-600 hover:bg-green-500 text-white rounded-2xl font-black text-lg shadow-xl shadow-green-900/20 flex items-center justify-center gap-3 transition-all transform hover:-translate-y-1 animate-pulse"
+        >
+          <MessageCircle size={24} />
+          {t.closing?.btn1 ||
+            (isRTL ? 'اطلب النظام الآن' : 'Order System Now')}
+        </a>
+      </div>
+
+      {/* Reset */}
+      <div className="pt-2">
+        <button
+          onClick={onReset}
+          className="w-full py-4 bg-slate-900 text-slate-500 hover:text-white rounded-2xl font-bold border border-slate-800 transition-all flex items-center justify-center gap-2"
+        >
+          <RotateCw size={18} />
+          {t.closing?.btn2 ||
+            (isRTL ? 'تحليل نشاط تجاري آخر' : 'Analyze Another')}
+        </button>
+      </div>
     </div>
   );
 };
