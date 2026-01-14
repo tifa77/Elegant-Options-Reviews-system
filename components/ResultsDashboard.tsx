@@ -2,8 +2,6 @@
 import React from 'react';
 import { Language, AuditData } from '../types';
 import { TEXTS } from '../constants';
-
-// استيراد كل الأيقونات المستخدمة (مع Rocket)
 import {
   TrendingUp,
   TrendingDown,
@@ -65,8 +63,6 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   // =======================
 
   const currentYear = new Date().getFullYear();
-
-  // قراءة سنة التأسيس من أي حقل متاح
   const rawEstablishedYear = Number(
     (data as any).establishmentYear ?? (data as any).establishedYear
   );
@@ -100,7 +96,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
 
   const multiplier = isRestaurant ? 10 : 6;
 
-  const projectedWeekly = Math.max(8, currentWeekly * multiplier || 8);
+  const projectedWeeklyRaw = currentWeekly * multiplier || 8;
   const projectedMonthly = Math.max(35, currentMonthly * multiplier || 35);
   const projectedYearlyReviews = projectedMonthly * 12;
   const baseYearlyReviews = currentMonthly * 12;
@@ -113,9 +109,25 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         )
       : 100;
 
-  const systemDailyPotential = Math.round(dailyCustomers * 0.1);
+  // --- أرقام مبنية على حركة العملاء اليومية ---
+  const systemDailyPotential = Math.round(dailyCustomers * 0.1); // 10% من حركة اليوم يمكن تحويلها لطلبات تقييم
   const annualAdditionalReviews = systemDailyPotential * 365;
 
+  // معدل أسبوعي أساسي من التقييمات الحالية
+  const baselineWeekly =
+    Number((avgReviewsPerYear / 52).toFixed(1)) /* قد يكون 0 في البدايات */ ||
+    0;
+
+  // زيادة أسبوعية مغرية متولدة من النظام (لكن ليست خيالية)
+  const extraWeeklyFromSystem = Math.max(
+    3, // حد أدنى مغرٍ
+    Math.round(systemDailyPotential * 0.6) // 60% من فرص اليوم تتحول لتقييمات أسبوعية
+  );
+
+  // هذا هو الرقم الذي يظهر في بطاقة "المعدل الإضافي المتوقع"
+  const projectedWeeklyExtra = extraWeeklyFromSystem;
+
+  // --- نزيف العملاء والإيرادات (بدون نظام) ---
   const customerLossMultiplier = 4;
   const lostCustomersCount = Math.max(
     0,
@@ -123,9 +135,22 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   );
   const lostRevenue = lostCustomersCount * regional.ticket;
 
-  const dynamicProfitValue = annualAdditionalReviews * regional.ticket * 5;
+  // --- نموذج أرباح إضافية واقعي لكن محفّز ---
+  const loyaltyConversionRate = 0.35; // 35% من التقييمات الإضافية تتحول لعملاء أوفياء
+  const visitsPerLoyalClientPerYear = 3; // كل عميل وفيّ يكرر الشراء 3 مرات بالسنة
+
+  const additionalLoyalClients = Math.round(
+    annualAdditionalReviews * loyaltyConversionRate
+  );
+
+  const dynamicProfitValue =
+    annualAdditionalReviews *
+    loyaltyConversionRate *
+    visitsPerLoyalClientPerYear *
+    regional.ticket;
+
   const dynamicProfit = Number.isFinite(dynamicProfitValue)
-    ? dynamicProfitValue.toLocaleString()
+    ? Math.round(dynamicProfitValue).toLocaleString()
     : '0';
 
   // =======================
@@ -185,7 +210,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   )}`;
 
   // =======================
-  // 3. واجهة التقرير
+  // 3. واجهة التقرير (Landing Style)
   // =======================
 
   return (
@@ -305,7 +330,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                 {isRTL ? 'النمو الأسبوعي (فعلي)' : 'Weekly Growth (Actual)'}
               </span>
               <span className="text-3xl font-black text-slate-300">
-                {(avgReviewsPerYear / 52).toFixed(1)}
+                {baselineWeekly}
               </span>
             </div>
             <p className="text-red-400 text-sm font-bold italic leading-relaxed border-t border-slate-800/50 pt-4">
@@ -330,13 +355,18 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           <div className="space-y-6">
             <div className="flex justify-between items-end">
               <span className="text-indigo-200 text-sm font-bold uppercase">
-                {isRTL ? 'المعدل الإضافي المتوقع' : 'Projected Weekly Growth'}
+                {isRTL ? 'المعدل الإضافي المتوقع' : 'Projected Extra Weekly'}
               </span>
               <span className="text-4xl font-black text-indigo-400">
-                +{projectedWeekly.toFixed(0)}
+                +{projectedWeeklyExtra}
               </span>
             </div>
-            <div className="pt-6 border-t border-indigo-500/20 flex justify-between items-center">
+            <p className="text-indigo-300 text-xs font-bold leading-relaxed pt-2">
+              {isRTL
+                ? 'كل أسبوع تنضم مجموعة جديدة من العملاء لتقييم نشاطك، وتتحول التقييمات إلى زيارات متكررة ومبيعات حقيقية.'
+                : 'Every week, new customers join your rating funnel, turning reviews into repeat visits and real sales.'}
+            </p>
+            <div className="pt-4 border-t border-indigo-500/20 flex justify-between items-center">
               <span className="text-indigo-300 text-xs font-black uppercase">
                 {isRTL ? 'زيادة سنوية تقديرية' : 'Annual Increase'}
               </span>
@@ -350,7 +380,6 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
 
       {/* System Features */}
       <div className="grid lg:grid-cols-3 gap-8">
-        {/* AI Replies */}
         <div className="bg-slate-900 border border-slate-800 p-12 rounded-[3.5rem] space-y-8 hover:border-indigo-500/30 transition-all flex flex-col shadow-2xl">
           <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-400 shrink-0">
             <Bot size={40} />
@@ -364,7 +393,6 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           </p>
         </div>
 
-        {/* Reputation Shield */}
         <div className="bg-slate-900 border border-slate-800 p-12 rounded-[3.5rem] space-y-8 hover:border-orange-500/30 transition-all flex flex-col shadow-2xl">
           <div className="w-16 h-16 bg-orange-500/10 rounded-2xl flex items-center justify-center text-orange-400 shrink-0">
             <ShieldCheck size={40} />
@@ -378,7 +406,6 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           </p>
         </div>
 
-        {/* Delivery Integration */}
         <div
           className={`bg-slate-900 border border-slate-800 p-12 rounded-[3.5rem] space-y-8 hover:border-green-500/30 transition-all flex flex-col shadow-2xl ${
             !isRestaurant && 'opacity-50 grayscale'
@@ -410,8 +437,11 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
               {isRTL ? 'أرباح إضافية بانتظار تفعيلها' : 'Hidden Profits Waiting'}
             </h4>
             <p className="text-slate-400 text-xl font-medium leading-relaxed italic border-l-4 border-indigo-500/30 pl-8">
-              {t.dashboard?.marketing?.persuasive ||
-                'Elegant Options protects your loyalty and prevents silent churn.'}
+              {(t.dashboard?.marketing?.persuasive ||
+                'Elegant Options protects your loyalty and prevents silent churn.') +
+                (isRTL
+                  ? ' كل تقييم إيجابي يمكن أن يتحول إلى عميل وفيّ يزورك أكثر من مرة في السنة بدلاً من أن يمر مرور الكرام.'
+                  : ' Every positive review can turn into a loyal customer who comes back multiple times a year instead of a one-off visit.')}
             </p>
           </div>
 
@@ -422,12 +452,17 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                 ? 'أرباح سنوية إضافية محتملة'
                 : 'Potential Additional Annual Profit'}
             </span>
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center gap-4">
               <span className="text-8xl font-black text-white leading-none tracking-tighter drop-shadow-xl">
                 {dynamicProfit}
               </span>
-              <span className="text-2xl text-indigo-400 font-black uppercase tracking-[0.4em] mt-6">
+              <span className="text-2xl text-indigo-400 font-black uppercase tracking-[0.4em]">
                 {currency}
+              </span>
+              <span className="text-xs text-slate-400 font-semibold mt-2">
+                {isRTL
+                  ? `تقريباً ${additionalLoyalClients.toLocaleString()} عميل وفيّ إضافي في السنة، ينفقون معك أكثر من مرة بلا أي حملات مدفوعة إضافية.`
+                  : `Roughly ${additionalLoyalClients.toLocaleString()} extra loyal customers per year, spending with you multiple times without extra ad spend.`}
               </span>
             </div>
           </div>
