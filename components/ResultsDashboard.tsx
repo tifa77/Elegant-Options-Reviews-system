@@ -53,6 +53,30 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   const totalReviews = Number(data.currentReviews) || 0;
   const dailyCustomers = Number(data.dailyCustomers) || 0;
 
+  // آخر أسبوع: نحاول قراءة أكثر من اسم حقل محتمل، ثم نرجع لـ weeklyGrowth لو موجود
+  const lastWeekRaw =
+    Number((data as any).lastWeekReviews) ||
+    Number((data as any).reviewsLast7Days) ||
+    Number((data as any).reviewsLastWeek) ||
+    Number(data.weeklyGrowth) ||
+    0;
+
+  const lastWeekReviews =
+    Number.isFinite(lastWeekRaw) && lastWeekRaw > 0 ? lastWeekRaw : 0;
+
+  // مشتقّات من آخر أسبوع → شهري وسنوي
+  const derivedMonthlyFromWeek =
+    lastWeekReviews > 0 ? Number((lastWeekReviews * 4.3).toFixed(1)) : 0;
+
+  const fallbackWeekly = Number(data.weeklyGrowth) || 0;
+  const fallbackMonthly = Number(data.monthlyGrowth) || 0;
+
+  const currentWeekly = lastWeekReviews || fallbackWeekly;
+  const currentMonthly =
+    derivedMonthlyFromWeek || fallbackMonthly || (currentWeekly ? currentWeekly * 4.3 : 0);
+  const currentYearlyReviews = Math.round(currentMonthly * 12);
+
+  // متوسط التقييم السنوي على عمر النشاط
   const avgReviewsPerYear = Number((totalReviews / ageYears).toFixed(1)) || 0;
   const avgReviewsPerMonth = Number((avgReviewsPerYear / 12).toFixed(1)) || 0;
 
@@ -78,20 +102,16 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   const regional = getRegionalData();
   const currency = (t.dashboard?.currency as string) || regional.symbol;
 
-  // ---------------- Growth logic from old design ----------------
+  // ---------------- Growth / restaurant flags ----------------
   const isRestaurant =
     data.projectType === 'restaurant' ||
     data.projectType === 'مطعم' ||
     data.projectType === 'cafe';
 
-  const currentWeekly = data.weeklyGrowth || 0;
-  const currentMonthly = data.monthlyGrowth || 0;
-  const currentYearlyReviews = currentMonthly * 12;
-
   const multiplier = isRestaurant ? 10 : 6;
 
-  const projectedWeekly = Math.max(8, currentWeekly * multiplier);
-  const projectedMonthly = Math.max(35, currentMonthly * multiplier);
+  const projectedWeekly = Math.max(8, currentWeekly * multiplier || 8);
+  const projectedMonthly = Math.max(35, currentMonthly * multiplier || 35);
   const projectedYearlyReviews = projectedMonthly * 12;
 
   const percentageIncrease =
@@ -116,7 +136,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
 
   const avgTicket = 10;
   const rawRevenueOpportunity =
-    dailyCustomers * 30 * 12 * 0.3 * avgTicket; // 30% من العملاء شهرياً
+    dailyCustomers * 30 * 12 * 0.3 * avgTicket;
   const annualRevenueOpportunity = Number.isFinite(rawRevenueOpportunity)
     ? rawRevenueOpportunity
     : 0;
@@ -126,31 +146,39 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
     ? rawDynamicProfitValue.toLocaleString()
     : '0';
 
-  // ---------------- Market status (merged logic) ----------------
+  // ---------------- Market status (SEO-based) ----------------
+  // Benchmark سنوي تقريبي للظهور الجيد في السيو
+  const seoBenchmark = isRestaurant ? 60 : 40;
+
   const getMarketStatus = () => {
     const incentive = isRTL
-      ? '⚠️ تنبيه: المنافسون في منطقتك يكثفون نشاطهم الآن لتجاوز تصنيفك واستغلال ضعف وجودك الرقمي.'
-      : '⚠️ Alert: Competitors in your area are intensifying their activity to overtake you and exploit your weak digital presence.';
+      ? '⚠️ تنبيه SEO: المنافسون في منطقتك يضاعفون عدد التقييمات الحديثة، ما يجعلهم يتصدرون صفحة البحث الأولى بينما حسابك يتراجع في النتائج.'
+      : '⚠️ SEO Alert: Competitors near you are generating fresh reviews and outranking you on the first search page while your account falls behind.';
 
-    // نستخدم متوسط التقييم السنوي كأساس للتشخيص
-    if (avgReviewsPerYear < 20) {
+    const hasFreshActivity = lastWeekReviews > 0;
+    const veryLowAnnual = avgReviewsPerYear < seoBenchmark * 0.25;
+    const belowBenchmark = avgReviewsPerYear < seoBenchmark;
+
+    if (veryLowAnnual && !hasFreshActivity) {
       return {
-        title: isRTL ? 'شبح رقمي - مخفي' : 'Digital Ghost',
+        title: isRTL
+          ? 'شبح رقمي في نتائج البحث'
+          : 'SEO Digital Ghost',
         desc: isRTL
-          ? 'أنت بعيد جداً عن المنافسين ولا تظهر للعملاء الجدد الباحثين عن خيارات جيدة. محركات البحث تتجاهل نشاطك بسبب ضعف التفاعل.'
-          : 'You are far behind competitors and almost invisible to new customers searching for good options.',
+          ? 'حسابك لا يملك معدل تقييم سنوي كافٍ ولا نشاطاً في آخر أسبوع، لذلك لا تكاد تظهر في نتائج البحث المحلية أو خرائط جوجل. العملاء الجدد لا يرونك، والمنافسون يملؤون الشاشة أمامك.'
+          : 'Your annual review volume is very low and there is no activity in the last week, so you are almost invisible on local search and Google Maps. New customers barely see you while competitors dominate the screen.',
         color: 'text-red-500',
         bg: 'bg-red-900/20',
         border: 'border-red-500/30',
         icon: Ghost,
         incentive,
       };
-    } else if (avgReviewsPerYear < 80) {
+    } else if (belowBenchmark || lastWeekReviews <= 3) {
       return {
-        title: isRTL ? 'تواجد متوسط' : 'Average Presence',
+        title: isRTL ? 'تواجد متقطع في السيو' : 'Inconsistent SEO Presence',
         desc: isRTL
-          ? 'أنت موجود ولكنك مهدد. أي تراجع بسيط سيجعلك تختفي خلف المنافسين الأقوياء، ويمكن لنظام الأتمتة تحويل هذا التواجد إلى قيادة للسوق.'
-          : 'You are present but at risk. Any decline will push you behind strong competitors; automation can turn this into market leadership.',
+          ? 'لديك تقييمات وتظهر أحياناً في نتائج البحث، لكن معدل التقييم السنوي أقل من الحد الموصى به لنشاط متصدر، وعدد التقييمات في آخر أسبوع محدود. أي تراجع بسيط يسمح للمنافسين بالظهور قبلك دائماً.'
+          : 'You do have reviews and sometimes appear in search results, but your annual average is below the recommended level for a leading business and last-week activity is low. Any small decline lets competitors consistently outrank you.',
         color: 'text-yellow-500',
         bg: 'bg-yellow-900/20',
         border: 'border-yellow-500/30',
@@ -159,10 +187,12 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
       };
     }
     return {
-      title: isRTL ? 'متواجد بقوة يحتاج أتمتة' : 'Strong Presence Needs Automation',
+      title: isRTL
+        ? 'حضور قوي يحتاج أتمتة سيو'
+        : 'Strong Presence – Needs SEO Automation',
       desc: isRTL
-        ? 'أداء جيد، ولكن الحفاظ على القمة أصعب من الوصول إليها. المنافسون يتربصون بك، والأتمتة الذكية هي درعك الوحيد للحفاظ على الريادة.'
-        : 'Good performance, but staying on top is harder than getting there. Competitors are waiting, and smart automation is your shield.',
+        ? 'معدل تقييماتك السنوي ونشاطك الأسبوعي جيدان، ما يمنحك ظهوراً قوياً في نتائج البحث. لكن للحفاظ على الصدارة وتوسيعها، تحتاج لأتمتة ذكية تضمن استمرار التقييمات والردود بدون توقف.'
+        : 'Your annual review volume and weekly activity are strong, giving you solid visibility in search results. But to keep and expand your top positions, you need smart automation that keeps reviews and replies flowing nonstop.',
       color: 'text-green-500',
       bg: 'bg-green-900/20',
       border: 'border-green-500/30',
@@ -188,8 +218,8 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   // ---------------- WhatsApp link (unified) ----------------
   const waNumber = '96566305551';
   const customWAMessage = isRTL
-    ? `أهلاً Elegant Options، مهتم لطلب نظام لمشروعي (${data.projectName || 'مشروع جديد'}) وإيقاف خسارة العملاء وزيادة التقييمات.`
-    : `Hello Elegant Options, I am interested in your system for my project (${data.projectName || 'New Project'}) to stop losing customers and grow my reviews.`;
+    ? `أهلاً Elegant Options، مهتم لطلب نظام لمشروعي (${data.projectName || 'مشروع جديد'}) لزيادة التقييمات وتحسين الظهور في نتائج البحث.`
+    : `Hello Elegant Options, I am interested in your system for my project (${data.projectName || 'New Project'}) to grow reviews and improve SEO visibility.`;
   const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(
     customWAMessage,
   )}`;
@@ -219,7 +249,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         </button>
         <span className="bg-slate-900 border border-slate-700 px-3 py-1 rounded-full text-[10px] font-bold text-slate-400 uppercase flex items-center gap-2">
           <BarChart3 className="w-3 h-3" />
-          {dashboard.title || 'Growth Report'}
+          {dashboard.title || 'Growth & SEO Report'}
         </span>
       </div>
 
@@ -236,18 +266,27 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           </div>
           <div className="flex-1">
             <h3 className="text-slate-400 text-sm font-bold uppercase mb-2">
-              {isRTL ? 'التشخيص السوقي الحالي' : 'Current Market Diagnosis'}
+              {isRTL ? 'التشخيص السوقي وفعالية السيو' : 'Market & SEO Diagnosis'}
             </h3>
             <div className={`text-4xl font-black ${status.color} mb-3`}>
               {status.title}
             </div>
-            <p className="text-slate-300 text-sm mb-4 leading-relaxed font-medium opacity-90">
+            <p className="text-slate-300 text-sm mb-3 leading-relaxed font-medium opacity-90">
               {status.desc}
+            </p>
+            <p className="text-slate-400 text-xs mb-2 leading-relaxed">
+              {isRTL
+                ? `عمر النشاط: ${ageYears} سنة، إجمالي التقييمات: ${totalReviews}، ومتوسط التقييم السنوي: ${avgReviewsPerYear} تقييم/سنة، مقارنة بالحد الأدنى الموصى به لنشاط ظاهر في نتائج البحث وهو حوالي ${seoBenchmark} تقييم سنوياً.`
+                : `Business age: ${ageYears} year(s), total reviews: ${totalReviews}, with an annual average of ${avgReviewsPerYear} reviews/year versus a recommended minimum of about ${seoBenchmark} reviews/year for visible local SEO.`}
             </p>
             <p className="text-slate-400 text-xs mb-4 leading-relaxed">
               {isRTL
-                ? `متوسط التقييمات السنوي لديك هو (${avgReviewsPerYear}) تقييم في السنة خلال (${ageYears}) سنة من عمر المشروع. هذا الرقم يحدد مدى ظهورك الفعلي في السوق أمام العملاء المحتملين.`
-                : `Your annual average is (${avgReviewsPerYear}) reviews per year over (${ageYears}) years of activity. This number defines how visible you really are to potential customers.`}
+                ? `خلال آخر أسبوع فقط حصلت على (${lastWeekReviews}) تقييم، وهذا المعدل يعادل تقريباً ${(derivedMonthlyFromWeek || 0).toFixed(
+                    1,
+                  )} تقييماً شهرياً. كلما زاد هذا المعدل واستمر بشكل ثابت، ارتفع ظهورك في الصفحة الأولى على جوجل ماب وجوجل سيرش.`
+                : `In the last week alone, you received (${lastWeekReviews}) review(s), which is roughly ${(derivedMonthlyFromWeek || 0).toFixed(
+                    1,
+                  )} reviews per month. The higher and more consistent this number is, the stronger your chances of staying on the first page in Google Maps and Search.`}
             </p>
             <div className="p-4 bg-black/40 rounded-2xl border border-white/5 text-orange-400 text-sm font-bold animate-pulse">
               {status.incentive}
@@ -317,13 +356,13 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           </div>
           <div className="mt-4 p-3 bg-red-500/10 rounded-xl text-[10px] text-red-300 leading-relaxed italic border border-red-500/10">
             {isRTL
-              ? `⚠️ لو كنت مشتركاً بنظامنا، لكانت هذه التقييمات السلبية (${negativeReviews}) قد حُلت داخلياً عبر درع الحماية قبل أن تُنشر علناً على خرائط جوجل.`
-              : `⚠️ With our Reputation Shield, these (${negativeReviews}) negative reviews would have been handled privately before going public on Google Maps.`}
+              ? `⚠️ لو كنت مشتركاً بنظامنا، لكانت هذه التقييمات السلبية (${negativeReviews}) قد حُلت داخلياً عبر درع الحماية قبل أن تُنشر علناً على خرائط جوجل وتؤثر على السيو.`
+              : `⚠️ With our Reputation Shield, these (${negativeReviews}) negative reviews would have been handled privately before going public on Google Maps and hurting your SEO.`}
           </div>
         </div>
       </div>
 
-      {/* 4. مقارنة الأداء: بدون نظام vs مع Elegant Options */}
+      {/* 4. مقارنة الأداء: بدون نظام vs مع Elegant Options (باستخدام آخر أسبوع) */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* Current Status */}
         <div className="bg-slate-900/80 p-6 rounded-3xl border border-slate-800 relative">
@@ -336,18 +375,18 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           <div className="space-y-6">
             <div className="flex justify-between items-end">
               <span className="text-slate-500 text-sm font-medium">
-                {isRTL ? 'النمو الأسبوعي' : 'Weekly Growth'}
+                {isRTL ? 'التقييمات في آخر أسبوع' : 'Reviews in Last Week'}
               </span>
               <span className="text-2xl font-black text-slate-300">
-                {currentWeekly}
+                {lastWeekReviews}
               </span>
             </div>
             <div className="flex justify-between items-end">
               <span className="text-slate-500 text-sm font-medium">
-                {isRTL ? 'النمو الشهري' : 'Monthly Growth'}
+                {isRTL ? 'المعدل الشهري الحالي' : 'Current Monthly Avg'}
               </span>
               <span className="text-2xl font-black text-slate-300">
-                {currentMonthly}
+                {currentMonthly.toFixed(1)}
               </span>
             </div>
             <div className="flex justify-between items-end pt-2 border-t border-slate-800/50">
@@ -376,7 +415,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           <div className="space-y-6">
             <div className="flex justify-between items-end">
               <span className="text-blue-100 text-sm font-medium">
-                {isRTL ? 'النمو الأسبوعي المتوقع' : 'Projected Weekly'}
+                {isRTL ? 'النمو الأسبوعي المتوقع' : 'Projected Weekly Growth'}
               </span>
               <span className="text-3xl font-black text-indigo-400">
                 +{projectedWeekly}
@@ -384,25 +423,25 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             </div>
             <div className="flex justify-between items-end">
               <span className="text-blue-100 text-sm font-medium">
-                {isRTL ? 'النمو الشهري المتوقع' : 'Projected Monthly'}
+                {isRTL ? 'النمو الشهري المتوقع' : 'Projected Monthly Growth'}
               </span>
               <span className="text-3xl font-black text-indigo-400">
-                +{projectedMonthly}
+                +{projectedMonthly.toFixed(1)}
               </span>
             </div>
             <div className="flex justify-between items-center pt-2 border-t border-indigo-500/20">
               <span className="text-blue-200 text-xs font-medium">
-                {isRTL ? 'زيادة سنوية تقديرية' : 'Estimated Annual Lift'}
+                {isRTL ? 'زيادة سنوية تقديرية' : 'Estimated Annual Increase'}
               </span>
               <div className="bg-green-500/10 border border-green-500/20 px-3 py-1 rounded-lg text-green-400 font-black text-sm">
-                +{percentageIncrease}%
+                +{percentageIncrease}%+
               </div>
             </div>
           </div>
           <p className="mt-4 text-[10px] text-slate-300 leading-relaxed">
             {isRTL
-              ? `النظام يستغل حركة العملاء اليومية (بمتوسط ${dailyCustomers} عميل يومياً) لتحويلها إلى ما يقارب ${annualAdditionalReviews} تقييم إضافي في السنة بدون جهد يدوي.`
-              : `The system leverages your daily traffic (~${dailyCustomers} customers/day) to generate around ${annualAdditionalReviews} extra reviews per year with zero manual effort.`}
+              ? `النظام يستغل حركة العملاء اليومية (بمتوسط ${dailyCustomers} عميل يومياً) وتحويلها إلى ما يقارب ${annualAdditionalReviews} تقييم إضافي في السنة بدون جهد يدوي، ما يعزز السيو ويرفع ترتيبك في نتائج البحث.`
+              : `The system leverages your daily traffic (~${dailyCustomers} customers/day) to generate around ${annualAdditionalReviews} extra reviews per year automatically, boosting your SEO and rankings in search results.`}
           </p>
         </div>
       </div>
@@ -427,8 +466,8 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
               </h3>
               <p className="text-slate-400 text-sm leading-relaxed">
                 {isRTL
-                  ? 'نقوم بإرسال رسائل واتساب تلقائية لعملائك القادمين من (طلبات وكيتا) مباشرة بعد استلام الطلب، نطلب منهم تقييم تجربتهم فوراً. هذه العملية تتم بشكل آلي ومجاني ضمن النظام وتحوّل كل طلب توصيل إلى فرصة تقييم حقيقية.'
-                  : 'We send automated WhatsApp messages to your customers from Talabat & Keeta immediately after delivery, requesting a review. This runs automatically and at no extra cost, turning every order into a potential 5-star review.'}
+                  ? 'نقوم بإرسال رسائل واتساب تلقائية لعملائك القادمين من (طلبات وكيتا) مباشرة بعد استلام الطلب، نطلب منهم تقييم تجربتهم فوراً. هذه العملية تتم بشكل آلي ومجاني ضمن النظام وتحوّل كل طلب توصيل إلى فرصة تقييم حقيقية تعزز السيو المحلي.'
+                  : 'We send automated WhatsApp messages to your customers from Talabat & Keeta immediately after delivery, requesting a review. This runs automatically and at no extra cost, turning every order into a real review opportunity that strengthens local SEO.'}
               </p>
             </div>
           </div>
@@ -448,8 +487,8 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           </h4>
           <p className="text-slate-400 text-sm leading-relaxed mb-6">
             {isRTL
-              ? 'بسبب ضعف تصنيفك الحالي، أنت تفقد حصة سوقية ضخمة لصالح المنافسين الذين يظهرون قبلك في النتائج. هذه الأرقام تمثل العملاء الذين كان يمكن أن يكونوا عملاءك المخلصين.'
-              : 'Due to your current ranking, you are losing significant market share to competitors appearing before you. These numbers represent customers who could have become your loyal clients.'}
+              ? 'بسبب ضعف تصنيفك الحالي في نتائج البحث، أنت تفقد حصة سوقية ضخمة لصالح المنافسين الذين يظهرون قبلك. هذه الأرقام تمثل العملاء الذين كان يمكن أن يتحولوا إلى زبائن دائمين لو تم تفعيل نظام المراجعات والأتمتة.'
+              : 'Because of your current ranking, you are losing significant market share to competitors who appear before you. These numbers represent customers who could have become loyal if your review and automation system were active.'}
           </p>
           <div className="text-6xl font-black text-white tracking-tighter drop-shadow-lg">
             {lostRevenue.toLocaleString()}{' '}
@@ -457,8 +496,8 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           </div>
           <p className="mt-3 text-xs text-red-200">
             {isRTL
-              ? `وفقاً لحسابات أخرى، لديك أيضاً فرصة أرباح سنوية تقديرية تبلغ تقريباً ${annualRevenueOpportunity.toLocaleString()} ${currency} إذا تم استغلال ولاء العملاء بشكل كامل.`
-              : `Based on other projections, you also hold an annual revenue opportunity of about ${annualRevenueOpportunity.toLocaleString()} ${currency} if customer loyalty is fully leveraged.`}
+              ? `وفقاً للحسابات، لديك أيضاً فرصة أرباح سنوية تقديرية تبلغ تقريباً ${annualRevenueOpportunity.toLocaleString()} ${currency} في حال استغلال ولاء العملاء وتعظيم التقييمات الإيجابية.`
+              : `You also hold an estimated annual profit opportunity of about ${annualRevenueOpportunity.toLocaleString()} ${currency} if you fully leverage customer loyalty and maximize positive reviews.`}
           </p>
         </div>
       </div>
@@ -474,8 +513,8 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             <p className="text-slate-400 text-lg italic leading-relaxed">
               {marketing.persuasive ||
                 (isRTL
-                  ? 'زيادة التقييمات ليست مجرد أرقام، بل هي شبكة من العملاء المروجين لعلامتك التجارية مجاناً على مدار الساعة.'
-                  : 'More reviews do not just mean numbers; they mean a network of promoters selling your brand for free, 24/7.')}
+                  ? 'زيادة التقييمات ليست مجرد أرقام، بل هي وقود للسيو، وثقة في عين العميل، ومصدر دخل متكرر بدون إعلانات إضافية.'
+                  : 'More reviews are not just numbers; they are SEO fuel, social proof in the customer’s eye, and recurring revenue without extra ads.')}
             </p>
           </div>
 
