@@ -4,6 +4,7 @@ import { Language, AuditData } from '../types';
 import { TEXTS } from '../constants';
 import {
   TrendingUp,
+  TrendingDown,
   AlertTriangle,
   ArrowRight,
   ArrowLeft,
@@ -17,12 +18,10 @@ import {
   Zap,
   BarChart3,
   Bike,
-  Award,
   CheckCircle,
   ShieldCheck,
   Quote as QuoteIcon,
   Globe,
-  TrendingDown,
   Bot,
   Rocket,
 } from 'lucide-react';
@@ -44,69 +43,52 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
 }) => {
   const t = TEXTS[language] ?? TEXTS['ar'];
   const isRTL = language === 'ar';
+
   const isRestaurant =
     data.projectType === 'restaurant' ||
     data.projectType === 'مطعم' ||
     data.projectType === 'cafe';
 
-  // =========================================================
-  // 1) عمر النشاط: يعتمد على "عدد السنين في الفورم" أو "سنة تأسيس"
-  // =========================================================
+  // ==========================
+  // 1) SAFE CORE NUMBERS
+  // ==========================
   const currentYear = new Date().getFullYear();
-  const rawEstablished = Number(data.establishedYear);
 
-  // إذا المستخدم أدخل "عدد سنوات" (مثل 16) نستخدمها مباشرة
-  // وإذا أدخل "سنة" (مثل 2012) نحسب منها
-  const computedAgeYears = (() => {
-    if (!Number.isFinite(rawEstablished)) return 1;
+  // ✅ عمر النشاط يعتمد على "سنة التأسيس" كما في الفورم (YYYY)
+  const establishedYear = Number(
+    (data as any).establishedYear ?? (data as any).establishmentYear
+  );
 
-    // treat as Year
-    if (rawEstablished > 1900 && rawEstablished <= currentYear) {
-      return Math.max(1, currentYear - rawEstablished);
-    }
+  const ageYears =
+    Number.isFinite(establishedYear) &&
+    establishedYear >= 1900 &&
+    establishedYear <= currentYear
+      ? Math.max(1, currentYear - establishedYear)
+      : 1;
 
-    // treat as Age (years)
-    if (rawEstablished > 0 && rawEstablished <= 120) {
-      return Math.max(1, Math.floor(rawEstablished));
-    }
-
-    return 1;
-  })();
-
-  const ageYears = computedAgeYears;
-
-  // =========================================================
-  // 2) Baseline metrics (بدون NaN)
-  // =========================================================
   const totalReviews = Number(data.currentReviews) || 0;
   const dailyCustomers = Number(data.dailyCustomers) || 0;
 
   const avgReviewsPerYear = Number((totalReviews / ageYears).toFixed(1)) || 0;
 
+  // Baseline (Current Reality)
   const baselineWeekly =
-    Number(data.weeklyGrowth) ||
-    Number((avgReviewsPerYear / 52).toFixed(1)) ||
-    0;
+    Number(data.weeklyGrowth) || Number((avgReviewsPerYear / 52).toFixed(1)) || 0;
 
   const baselineDaily = Number((baselineWeekly / 7).toFixed(1)) || 0;
 
   const baselineMonthly =
-    Number(data.monthlyGrowth) ||
-    Number((baselineWeekly * 4.3).toFixed(1)) ||
-    0;
+    Number(data.monthlyGrowth) || (baselineWeekly > 0 ? Number((baselineWeekly * 4.3).toFixed(1)) : 0) || 0;
 
-  // =========================================================
-  // 3) نظام Elegant Options PRO (قاعدة 10%)
-  // =========================================================
-  const systemDailyPotential = Math.max(0, Math.round(dailyCustomers * 0.1)); // 10%
-  const systemWeekly = Math.max(0, systemDailyPotential * 7);
-  const systemMonthly = Math.max(0, systemDailyPotential * 30);
-  const systemYearly = Math.max(0, systemDailyPotential * 365);
+  // ==========================
+  // 2) SYSTEM POTENTIAL (10% RULE)
+  // ==========================
+  const systemDailyPotential = Math.round(dailyCustomers * 0.10); // ✅ 10% golden rule
+  const systemWeekly = systemDailyPotential * 7;
+  const systemMonthly = systemDailyPotential * 30;
+  const systemYearly = systemDailyPotential * 365;
 
-  // فرق التقييمات الحقيقي (للنزيف/الفرص)
-  const baselineYearly = Math.max(0, baselineDaily * 365);
-  const additionalYearly = Math.max(0, systemYearly - baselineYearly);
-
+  // Lost Reviews Gap (Safe)
   const lostDailyReviewsRaw = Math.max(0, systemDailyPotential - baselineDaily);
   const lostWeeklyReviewsRaw = Math.max(0, systemWeekly - baselineWeekly);
 
@@ -115,9 +97,9 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   const lostWeeklyReviews =
     lostWeeklyReviewsRaw === 0 ? 0 : Number(lostWeeklyReviewsRaw.toFixed(1));
 
-  // =========================================================
-  // 4) عملة/تذكرة حسب المنطقة
-  // =========================================================
+  // ==========================
+  // 3) REGIONAL CURRENCY + TICKET
+  // ==========================
   const getRegionalData = () => {
     const address = (data.address || '').toLowerCase();
     const isKuwait = address.includes('kuwait') || address.includes('الكويت');
@@ -125,38 +107,54 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
       ? { symbol: isRTL ? 'د.ك' : 'KWD', ticket: 20 }
       : { symbol: isRTL ? 'دولار' : 'USD', ticket: 60 };
   };
+
   const regional = getRegionalData();
   const currency = regional.symbol;
 
-  // =========================================================
-  // 5) نزيف الإيرادات السنوي (تم تخفيفه لمنطق واقعي مثل السابق)
-  // =========================================================
-  // نفترض أن كل تقييم إضافي يمثل "فرصة عميل" أو يحرك ثقة تؤدي لزيارات
-  // customerLossMultiplier يترجم فجوة التقييمات إلى خسارة عملاء محتملة
-  const customerLossMultiplier = 2.5; // أخف من السابق لتجنب المبالغة
-  const lostCustomersCount = Math.max(
-    0,
-    Math.round(additionalYearly * customerLossMultiplier)
-  );
+  // ==========================
+  // 4) REVENUE LEAK (REVERT TO PREVIOUS LOGIC - less exaggerated)
+  // ==========================
+  // idea: gap in review volume represents lost visibility & lost customers
+  const baseYearlyReviews = baselineMonthly * 12;
+  const projectedYearlyReviews = systemMonthly * 12;
+
+  const reviewGapYearly = Math.max(0, projectedYearlyReviews - baseYearlyReviews);
+
+  const customerLossMultiplier = 4; // as previously used
+  const lostCustomersCount = Math.max(0, reviewGapYearly * customerLossMultiplier);
 
   const lostRevenueValue = lostCustomersCount * regional.ticket;
-  const lostRevenue = Number.isFinite(lostRevenueValue) ? lostRevenueValue : 0;
+  const lostRevenue = Number.isFinite(lostRevenueValue) ? Math.round(lostRevenueValue) : 0;
 
-  // نسبة زيادة (موجودة عندك سابقاً—نحافظ على الفكرة بدون تضخيم)
+  // Growth % (keep reasonable and safe)
   const percentageIncrease =
-    baselineYearly > 0
-      ? Math.round(((systemYearly - baselineYearly) / baselineYearly) * 100)
+    baseYearlyReviews > 0
+      ? Math.round(((projectedYearlyReviews - baseYearlyReviews) / baseYearlyReviews) * 100)
       : 100;
 
-  // أرباح إضافية (تبقى محركة/مقنعة لكن غير مبالغ)
-  const dynamicProfitValue = additionalYearly * regional.ticket * 1.2;
+  // A more grounded profit story (still motivating)
+  const loyaltyConversionRate = 0.35;
+  const visitsPerLoyalClientPerYear = 3;
+
+  const annualAdditionalReviews = systemYearly; // with system
+  const additionalLoyalClients = Math.max(
+    0,
+    Math.round(annualAdditionalReviews * loyaltyConversionRate)
+  );
+
+  const dynamicProfitValue =
+    annualAdditionalReviews *
+    loyaltyConversionRate *
+    visitsPerLoyalClientPerYear *
+    regional.ticket;
+
   const dynamicProfit = Number.isFinite(dynamicProfitValue)
     ? Math.round(dynamicProfitValue).toLocaleString()
     : '0';
 
-  // =========================================================
-  // 6) Market Status (كما هو)
-  // =========================================================
+  // ==========================
+  // 5) MARKET STATUS (UNCHANGED CORE IDEA)
+  // ==========================
   const getMarketStatus = () => {
     if (avgReviewsPerYear < 15) {
       return {
@@ -175,8 +173,8 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         id: 'average',
         title: isRTL ? 'تواجد متوسط - مهدد' : 'Average Presence',
         desc: isRTL
-          ? 'أنت موجود ولكنك مهدد. المنافسون يبتلعون حصتك السوقية تدريجياً عبر الأتمتة.'
-          : 'You are present but at risk. Competitors are eating your market share via automation.',
+          ? 'أنت موجود… لكن المنافسون يرفعون حضورهم بالأتمتة ويبتلعون حصتك تدريجيًا.'
+          : 'You are present… but competitors use automation to slowly take your market share.',
         color: 'text-yellow-500',
         bg: 'bg-yellow-900/20',
         border: 'border-yellow-500/30',
@@ -185,10 +183,10 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
     }
     return {
       id: 'strong',
-      title: isRTL ? 'رائد يحتاج أتمتة' : 'Market Leader',
+      title: isRTL ? 'رائد يحتاج أتمتة' : 'Market Leader Needs Automation',
       desc: isRTL
-        ? 'أداء ممتاز، ولكن الحفاظ على القمة يحتاج ذكاءً اصطناعياً لمنع أي ثغرة يستغلها المنافسون.'
-        : 'Great performance, but staying on top requires AI to prevent competitor breakthroughs.',
+        ? 'أداء ممتاز… لكن الحفاظ على القمة أصعب من الوصول إليها. أي ثغرة سيستغلها المنافسون.'
+        : 'Great performance… but staying on top is harder than reaching it. Competitors exploit any gap.',
       color: 'text-green-500',
       bg: 'bg-green-900/20',
       border: 'border-green-500/30',
@@ -198,16 +196,57 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
 
   const status = getMarketStatus();
 
+  // ==========================
+  // 6) WHATSAPP LINK
+  // ==========================
   const waNumber = '96566305551';
   const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(
     isRTL
-      ? `أريد تفعيل نظام النمو وإيقاف خسارة العملاء لمشروعي (${data.projectName})`
-      : `I want to activate growth for (${data.projectName})`
+      ? `أريد تفعيل نظام Elegant Options وإيقاف خسارة العملاء لمشروعي (${data.projectName})`
+      : `I want to activate Elegant Options for my business (${data.projectName})`
   )}`;
 
-  // =========================================================
-  // UI
-  // =========================================================
+  // ==========================
+  // 7) MANUAL MESSAGE CONSISTENT WITH STATUS
+  // ==========================
+  const manualIcon =
+    status.id === 'strong' ? (
+      <TrendingUp className="text-green-500" size={32} />
+    ) : status.id === 'average' ? (
+      <Target className="text-yellow-500" size={32} />
+    ) : (
+      <TrendingDown className="text-red-500" size={32} />
+    );
+
+  const manualHeadline =
+    status.id === 'strong'
+      ? isRTL
+        ? 'أداؤك قوي… لكن القمة تحتاج أتمتة'
+        : 'You’re strong… but the top needs automation'
+      : status.id === 'average'
+      ? isRTL
+        ? 'أنت مهدد… المنافسون يسبقونك بالأتمتة'
+        : 'You’re at risk… competitors outrun you with automation'
+      : isRTL
+      ? 'أنت غير مرئي… وتخسر فرصًا يوميًا'
+      : 'You’re invisible… losing opportunities daily';
+
+  const manualBody =
+    status.id === 'strong'
+      ? isRTL
+        ? 'التقييمات الحالية جيدة، لكن الاعتماد على الأسلوب اليدوي يجعل الحفاظ على القمة مرهقًا ومعرضًا للتراجع… لأن المنافسين يزيدون النشاط تلقائيًا كل يوم.'
+        : 'Your reviews are good, but manual effort makes staying on top exhausting and vulnerable—competitors grow automatically every day.'
+      : status.id === 'average'
+      ? isRTL
+        ? 'أنت موجود، لكن ضعف الاستمرارية يمنح المنافسين مساحة لسرقة حصتك. بدون أتمتة، نموك سيبقى أبطأ من السوق.'
+        : 'You exist, but inconsistency gives competitors room to take your share. Without automation, your growth stays slower than the market.'
+      : isRTL
+      ? 'محركات البحث تتجاهلك بسبب نقص الإشارات الثابتة للثقة. كل يوم يمر بدون تدفق تقييمات… يعني عملاء يذهبون لغيرك.'
+      : 'Search engines ignore you without consistent trust signals. Every day without review flow means customers choosing competitors.';
+
+  // ==========================
+  // RENDER
+  // ==========================
   return (
     <div
       className={`max-w-5xl mx-auto space-y-16 animate-fade-in pb-32 ${
@@ -222,7 +261,9 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
         >
           {isRTL ? <ArrowRight size={20} /> : <ArrowLeft size={20} />}
-          <span className="font-bold text-sm uppercase tracking-wider">{t.back}</span>
+          <span className="font-bold text-sm uppercase tracking-wider">
+            {t.back}
+          </span>
         </button>
 
         <span className="bg-indigo-500/10 border border-indigo-500/20 px-4 py-1 rounded-full text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em]">
@@ -230,36 +271,49 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         </span>
       </div>
 
-      {/* HERO */}
+      {/* HERO: MARKET DIAGNOSIS */}
       <div
         className={`p-10 md:p-14 rounded-[3rem] border ${status.border} ${status.bg} backdrop-blur-md relative overflow-hidden group shadow-2xl`}
       >
         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
           <status.icon size={280} />
         </div>
+
         <div className="relative z-10 flex flex-col md:flex-row items-center gap-12">
           <div
             className={`p-8 rounded-3xl bg-slate-950 shadow-2xl ${status.color} border border-white/5`}
           >
             <status.icon size={64} />
           </div>
+
           <div className="flex-1 space-y-4">
             <h3 className="text-slate-400 text-sm font-black uppercase tracking-[0.3em]">
               {isRTL ? 'التشخيص السوقي الفعلي' : 'Real Market Diagnosis'}
             </h3>
+
             <div
               className={`text-5xl md:text-7xl font-black ${status.color} tracking-tighter italic uppercase`}
             >
               {status.title}
             </div>
+
             <p className="text-slate-200 text-lg md:text-2xl font-bold leading-relaxed opacity-90">
               {status.desc}
             </p>
+
+            <div className="inline-flex items-center gap-3 bg-black/40 border border-white/10 px-5 py-3 rounded-2xl text-slate-200 font-black text-sm md:text-base">
+              <AlertTriangle className="text-orange-400" size={18} />
+              <span>
+                {isRTL
+                  ? 'تنبيه: المنافسون يستغلون أي فجوة في نشاطك الرقمي لتجاوزك.'
+                  : 'Alert: competitors exploit any digital gap to overtake you.'}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* METRICS */}
+      {/* CORE METRICS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           {
@@ -307,145 +361,153 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         ))}
       </div>
 
-      {/* COMPARISON */}
+      {/* PERFORMANCE COMPARISON */}
       <div className="space-y-10">
-        {/* MANUAL */}
+        {/* MANUAL STATUS */}
         <div
           className={`bg-slate-900/80 p-10 md:p-14 rounded-[3.5rem] border-2 ${status.border} relative group overflow-hidden shadow-2xl`}
         >
           <div className="flex flex-col md:flex-row justify-between gap-10 relative z-10">
             <div className="flex-1 space-y-6">
               <div className="flex items-center gap-4 border-b border-white/5 pb-6">
-                {status.id === 'strong' ? (
-                  <TrendingUp className="text-green-500" size={32} />
-                ) : status.id === 'average' ? (
-                  <Target className="text-yellow-500" size={32} />
-                ) : (
-                  <TrendingDown className="text-red-500" size={32} />
-                )}
-
+                {manualIcon}
                 <h3 className="text-slate-200 font-black text-2xl md:text-3xl uppercase tracking-tighter">
                   {isRTL ? 'الوضع اليدوي الحالي' : 'Current Manual Status'}
                 </h3>
               </div>
 
-              <p className="text-slate-400 text-xl font-medium leading-relaxed italic max-w-3xl">
-                {status.id === 'strong'
-                  ? isRTL
-                    ? 'أداؤك ممتاز، لكن استمرار الأسلوب اليدوي يجعل الحفاظ على القمة أصعب مع الوقت.'
-                    : 'You are performing well, but staying manual makes it harder to maintain leadership over time.'
-                  : status.desc}
+              <p className="text-slate-200 text-2xl md:text-3xl font-black leading-tight">
+                {manualHeadline}
+              </p>
+
+              <p className="text-slate-400 text-lg md:text-xl font-medium leading-relaxed italic max-w-3xl">
+                {manualBody}
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4">
-                <div className="bg-black/20 p-4 rounded-2xl border border-white/5">
+                <div className="bg-black/20 p-5 rounded-2xl border border-white/5">
                   <span className="text-slate-500 text-xs block mb-1 uppercase font-black tracking-widest">
                     {isRTL ? 'المعدل اليومي' : 'Daily Rate'}
                   </span>
-                  <span className="text-2xl font-black text-white">{baselineDaily}</span>
+                  <span className="text-3xl font-black text-white">
+                    {baselineDaily}
+                  </span>
                 </div>
 
-                <div className="bg-black/20 p-4 rounded-2xl border border-white/5">
+                <div className="bg-black/20 p-5 rounded-2xl border border-white/5">
                   <span className="text-slate-500 text-xs block mb-1 uppercase font-black tracking-widest">
                     {isRTL ? 'المعدل الأسبوعي' : 'Weekly Rate'}
                   </span>
-                  <span className="text-2xl font-black text-white">{baselineWeekly}</span>
+                  <span className="text-3xl font-black text-white">
+                    {baselineWeekly}
+                  </span>
                 </div>
 
-                <div className="bg-black/20 p-4 rounded-2xl border border-white/5">
+                <div className="bg-black/20 p-5 rounded-2xl border border-white/5">
                   <span className="text-slate-500 text-xs block mb-1 uppercase font-black tracking-widest">
                     {isRTL ? 'المعدل الشهري' : 'Monthly Rate'}
                   </span>
-                  <span className="text-2xl font-black text-white">{baselineMonthly}</span>
+                  <span className="text-3xl font-black text-white">
+                    {baselineMonthly}
+                  </span>
                 </div>
               </div>
             </div>
 
             {/* Lost Reviews */}
-            <div className="w-full md:w-80 bg-red-500/5 rounded-3xl p-8 border border-red-500/20 flex flex-col justify-center text-center space-y-4">
+            <div className="w-full md:w-96 bg-red-500/5 rounded-3xl p-8 border border-red-500/20 flex flex-col justify-center text-center space-y-4">
               <AlertTriangle className="text-red-500 mx-auto" size={40} />
               <h4 className="text-red-500 font-black text-sm uppercase tracking-widest">
-                {isRTL ? 'تقييمات تفقدها' : 'Reviews You Are Losing'}
+                {isRTL ? 'تقييمات تفقدها بسبب الأسلوب الحالي' : 'Reviews Lost Due To Current Approach'}
               </h4>
-              <div className="space-y-1">
-                <div className="text-5xl font-black text-white">-{lostDailyReviews}</div>
+
+              <div className="space-y-2">
+                <div className="text-6xl font-black text-white leading-none">
+                  -{lostDailyReviews}
+                </div>
                 <p className="text-red-400/80 text-xs font-bold uppercase tracking-widest">
-                  {isRTL ? 'يومياً' : 'per day'}
+                  {isRTL ? 'تقييم يوميًا' : 'per day'}
                 </p>
-                <p className="text-slate-500 text-xs font-bold">
-                  {isRTL ? `≈ -${lostWeeklyReviews} أسبوعياً` : `≈ -${lostWeeklyReviews} / week`}
+
+                <div className="text-2xl font-black text-slate-200 mt-4">
+                  -{lostWeeklyReviews}
+                </div>
+                <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">
+                  {isRTL ? 'تقييم أسبوعيًا' : 'per week'}
                 </p>
               </div>
-              <div className="pt-4 border-t border-red-500/10 text-slate-500 text-[10px] font-bold leading-relaxed uppercase">
-                {isRTL ? 'هذه الفجوة ترفع منافسيك أكثر منك' : 'This gap boosts competitors more than you'}
+
+              <div className="pt-4 border-t border-red-500/10 text-slate-500 text-[11px] font-bold leading-relaxed">
+                {isRTL
+                  ? 'هذه الفجوة لا تختفي… بل تتحول تلقائيًا إلى مكسب مباشر للمنافسين.'
+                  : 'This gap doesn’t vanish—it becomes direct competitor gain.'}
               </div>
             </div>
           </div>
         </div>
 
-        {/* PRO */}
+        {/* WITH SYSTEM (PRO) */}
         <div className="bg-gradient-to-br from-indigo-950/60 to-slate-900 p-10 md:p-16 rounded-[4rem] border-4 border-indigo-500/30 relative overflow-hidden shadow-indigo-500/20 shadow-2xl group">
           <div className="absolute top-0 right-0 p-8 text-indigo-500/10 group-hover:scale-110 transition-transform duration-700">
-            <Rocket size={200} />
+            <Rocket size={210} />
           </div>
 
           <div className="relative z-10 space-y-10">
             <div className="flex flex-col md:flex-row items-center justify-between gap-8 border-b border-indigo-500/20 pb-10">
-              <div className="space-y-4 text-center md:text-left">
+              <div className="space-y-5 text-center md:text-left">
                 <div className="flex items-center gap-4 justify-center md:justify-start">
-                  <Zap className="text-indigo-400 fill-indigo-400" size={40} />
-                  <h3 className="text-white font-black text-4xl md:text-5xl uppercase tracking-tighter italic">
+                  <Zap className="text-indigo-400 fill-indigo-400" size={42} />
+                  <h3 className="text-white font-black text-4xl md:text-5xl italic">
                     {isRTL ? 'مع نظام Elegant Options PRO' : 'With Elegant Options PRO'}
                   </h3>
                 </div>
 
-                {/* ✅ قاعدة 10% الذهبية */}
+                {/* ✅ Requested golden rule sentence */}
                 <p className="text-indigo-100 text-xl md:text-2xl font-black leading-relaxed max-w-3xl">
                   {isRTL
                     ? 'نطبق قاعدة الـ 10% الذهبية: تحويل كل 10 عملاء من أصل 100 يزورون مشروعك إلى مقيمين نشطين بشكل آلي بالكامل.'
-                    : 'We apply the Golden 10% Rule: automatically converting 10 out of every 100 visitors into active reviewers.'}
+                    : 'We apply the Golden 10% Rule: converting 10 out of every 100 daily visitors into active reviewers—fully automated.'}
                 </p>
 
-                {/* ✅ إضافة: عند إرسال طلب التقييم يومياً */}
-                <p className="text-slate-300 text-base md:text-lg font-semibold leading-relaxed max-w-3xl">
+                <p className="text-slate-300 text-lg md:text-xl font-semibold leading-relaxed max-w-3xl">
                   {isRTL
-                    ? 'يتم إرسال طلب التقييم يومياً لكل العملاء بشكل آلي (واتساب/رسالة)، لضمان تدفق ثابت يعزز ترتيبك وثقة العملاء.'
-                    : 'Daily review requests are sent automatically (WhatsApp/SMS) to ensure a steady flow that boosts ranking and trust.'}
+                    ? 'الفكرة ليست فقط “زيادة تقييمات”… بل تثبيت مكانك في نتائج البحث، رفع الثقة، وتحويل الزوار إلى ولاء وربح متكرر.'
+                    : 'It’s not just “more reviews”… it’s locking your search position, boosting trust, and turning visitors into repeat profit.'}
                 </p>
               </div>
 
               <div className="bg-green-500 text-black px-8 py-3 rounded-full font-black text-xl shadow-xl shadow-green-500/20">
-                +{percentageIncrease}% {isRTL ? 'نمو' : 'Growth'}
+                +{percentageIncrease}%
               </div>
             </div>
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
               {[
                 {
-                  label: isRTL ? 'المعدل اليومي' : 'Daily Potential',
+                  label: isRTL ? 'اليومي بعد الأتمتة' : 'Daily After Automation',
                   value: `+${systemDailyPotential}`,
                   sub: isRTL ? 'تقييم / يوم' : 'reviews / day',
                 },
                 {
-                  label: isRTL ? 'المعدل الأسبوعي' : 'Weekly Potential',
+                  label: isRTL ? 'الأسبوعي بعد الأتمتة' : 'Weekly After Automation',
                   value: `+${systemWeekly}`,
                   sub: isRTL ? 'تقييم / أسبوع' : 'reviews / week',
                 },
                 {
-                  label: isRTL ? 'المعدل الشهري' : 'Monthly Potential',
+                  label: isRTL ? 'الشهري بعد الأتمتة' : 'Monthly After Automation',
                   value: `+${systemMonthly}`,
                   sub: isRTL ? 'تقييم / شهر' : 'reviews / month',
                 },
                 {
-                  label: isRTL ? 'الرصيد السنوي الإضافي' : 'Annual Asset',
+                  label: isRTL ? 'رصيد سنوي إضافي' : 'Annual Review Asset',
                   value: `+${systemYearly.toLocaleString()}`,
-                  sub: isRTL ? 'تقييم جديد سنوياً' : 'new reviews yearly',
+                  sub: isRTL ? 'تقييم جديد سنويًا' : 'new reviews yearly',
                   color: 'text-green-400',
                 },
               ].map((p, i) => (
                 <div
                   key={i}
-                  className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border border-white/10 text-center"
+                  className="bg-white/5 backdrop-blur-md p-7 rounded-3xl border border-white/10 text-center"
                 >
                   <span className="text-indigo-300 text-[10px] uppercase font-black tracking-widest block mb-3">
                     {p.label}
@@ -459,30 +521,113 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                 </div>
               ))}
             </div>
+
+            <div className="bg-black/30 border border-white/10 rounded-3xl p-8">
+              <p className="text-white text-xl md:text-2xl font-black leading-relaxed">
+                {isRTL
+                  ? 'كل يوم تتوقف فيه الأتمتة… أنت تترك فرص تقييم “جاهزة” تضيع بلا رجعة.'
+                  : 'Every day without automation… you leave “ready-to-win” reviews on the table.'}
+              </p>
+              <p className="text-slate-400 text-base md:text-lg font-semibold mt-3 leading-relaxed">
+                {isRTL
+                  ? 'النتيجة: منافسون يظهرون قبلك، ثقة أقل، وزيارات أقل — بينما الحل هو تدفق تقييمات ثابت “يشاهده جوجل” ويكافئه بالظهور.'
+                  : 'Result: competitors rank above you, trust drops, visits drop — the fix is a consistent review flow Google rewards with visibility.'}
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* SYSTEM FEATURES (تصميم محسّن + لغة ملتزمة) */}
+      {/* RESTORED LANDING NARRATIVE SECTION */}
+      <div className="py-20 border-y border-slate-800/50 relative">
+        <div className="max-w-5xl mx-auto text-center space-y-12 px-4">
+          <h2 className="text-4xl md:text-6xl font-black text-white italic tracking-tight">
+            {isRTL ? 'كيف تغيّر الأتمتة مستوى مشروعك؟' : 'How Automation Upgrades Your Business'}
+          </h2>
+
+          <div className="grid md:grid-cols-2 gap-12">
+            <div className="space-y-6 text-right md:text-right">
+              <p className="text-slate-200 text-xl md:text-2xl leading-relaxed font-bold">
+                {isRTL
+                  ? 'عند تفعيل الأتمتة… مشروعك لا “يزيد تقييمات” فقط — بل يثبت مكانه في نتائج البحث كخيار أول.'
+                  : 'With automation… you don’t just “get more reviews”—you lock your position as a top choice in search results.'}
+              </p>
+
+              <p className="text-slate-400 text-lg leading-relaxed font-semibold">
+                {isRTL
+                  ? 'التقييمات الإيجابية تتحول إلى إشارة ثقة مستمرة. جوجل يرى ذلك كدليل جودة فيرفع ظهورك تلقائيًا… وفي نفس الوقت العملاء يتخذون قرارهم أسرع لأن الثقة أمامهم.'
+                  : 'Positive reviews become a continuous trust signal. Google reads it as quality and boosts visibility—customers decide faster because trust is obvious.'}
+              </p>
+
+              <p className="text-slate-400 text-lg leading-relaxed font-semibold">
+                {isRTL
+                  ? 'ثم يحدث التحول الحقيقي: الزائر يصبح عميلًا، والعميل يصبح “ولاء”… والولاء يصبح ربحًا متكررًا بدون إعلانات إضافية.'
+                  : 'Then the real shift: visitors become customers, customers become loyalty—and loyalty becomes repeat profit without extra ads.'}
+              </p>
+            </div>
+
+            <div className="bg-indigo-500/5 p-10 rounded-[3rem] border border-indigo-500/10 space-y-8 text-right">
+              {[
+                {
+                  ar: 'ظهور مضاعف في الصفحة الأولى لجوجل وخرائط Google',
+                  en: "Stronger first-page visibility on Google & Maps",
+                },
+                {
+                  ar: 'حماية من التسرب الصامت… قبل ما يتحول لضرر علني',
+                  en: 'Protection from silent churn before it becomes public damage',
+                },
+                {
+                  ar: 'تحويل العملاء العابرين إلى ولاء وربح متكرر',
+                  en: 'Turn casual visitors into loyalty and repeat profit',
+                },
+              ].map((item, idx) => (
+                <div key={idx} className="flex items-center gap-4">
+                  <div className="bg-indigo-500 rounded-full p-1 shrink-0">
+                    <CheckCircle className="text-white" size={20} />
+                  </div>
+                  <span className="text-white font-bold text-lg">
+                    {isRTL ? item.ar : item.en}
+                  </span>
+                </div>
+              ))}
+
+              <div className="pt-6 border-t border-indigo-500/10">
+                <p className="text-slate-300 font-black text-base leading-relaxed">
+                  {isRTL
+                    ? 'هذه ليست “حملة مؤقتة”… هذا نظام مستمر يضمن أن كل يوم لديك تدفق ثقة جديد.'
+                    : 'This isn’t a temporary campaign—it’s a continuous system that creates daily trust flow.'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* SYSTEM FEATURES (UPDATED DESIGN + LANGUAGE SAFE) */}
       <div className="grid lg:grid-cols-3 gap-8">
-        {/* AI Replies */}
+        {/* AI Smart Replies */}
         <div className="bg-slate-900/70 border border-slate-800 p-10 rounded-[3.5rem] space-y-7 hover:border-indigo-500/30 transition-all shadow-2xl flex flex-col min-h-[520px] relative overflow-hidden">
           <div className="absolute -top-16 -right-16 w-56 h-56 bg-indigo-500/10 blur-[80px] rounded-full" />
           <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-400 shadow-inner">
             <Bot size={36} />
           </div>
-          <h4 className="text-2xl md:text-3xl font-black text-white tracking-tight">
+
+          <h4 className="text-2xl md:text-3xl font-black text-white italic tracking-tight">
             {isRTL ? 'ردود ذكية بالذكاء الاصطناعي' : 'AI Smart Replies'}
           </h4>
-          <p className="text-slate-400 text-lg leading-relaxed flex-1">
+
+          <p className="text-slate-300 text-lg leading-relaxed font-semibold flex-1">
             {isRTL
-              ? 'رد تلقائي واحترافي على جميع التقييمات خلال 24 ساعة، مما يزيد الثقة ويحسّن الظهور في نتائج البحث.'
-              : 'Automatic professional replies to all reviews within 24 hours, increasing trust and improving search visibility.'}
+              ? 'رد تلقائي احترافي على جميع التقييمات 24/7… يزيد الثقة، يرفع جودة الصفحة، ويمنح جوجل إشارات نشاط مستمرة تدعم ترتيبك.'
+              : 'Professional auto-replies 24/7… increase trust, improve profile quality, and feed Google continuous activity signals that support ranking.'}
           </p>
-          <div className="bg-black/25 border border-white/5 rounded-2xl p-4 text-sm text-slate-300 font-semibold leading-relaxed">
-            {isRTL
-              ? 'كل رد سريع يقلل التقييمات السلبية ويزيد شعور العميل بالاهتمام.'
-              : 'Fast replies reduce negative impact and increase customer confidence.'}
+
+          <div className="bg-black/30 border border-white/10 rounded-2xl p-5">
+            <p className="text-slate-200 font-black text-sm">
+              {isRTL
+                ? 'النتيجة: عميل يشعر بالاهتمام → تقييم أفضل → ظهور أعلى.'
+                : 'Result: customer feels cared for → better reviews → higher visibility.'}
+            </p>
           </div>
         </div>
 
@@ -492,66 +637,77 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           <div className="w-16 h-16 bg-orange-500/10 rounded-2xl flex items-center justify-center text-orange-400 shadow-inner">
             <ShieldCheck size={36} />
           </div>
-          <h4 className="text-2xl md:text-3xl font-black text-white tracking-tight">
+
+          <h4 className="text-2xl md:text-3xl font-black text-white italic tracking-tight">
             {isRTL ? 'درع حماية السمعة' : 'Reputation Shield'}
           </h4>
-          <p className="text-slate-400 text-lg leading-relaxed flex-1">
+
+          <p className="text-slate-300 text-lg leading-relaxed font-semibold flex-1">
             {isRTL
-              ? 'فلترة ذكية تمنع ظهور التقييمات المنخفضة علناً، وتحولها داخلياً للإدارة لمعالجة المشكلة بخصوصية.'
-              : 'Smart filtering prevents low ratings from going public and routes them internally for private resolution.'}
+              ? 'نظام يلتقط أي تقييم سلبي مبكرًا ويحوّله لمعالجة داخلية خاصة قبل أن يؤثر على قرار العملاء الجدد… ويحافظ على متوسط تقييمك قويًا.'
+              : 'A system that catches negative feedback early, routes it privately for resolution before it impacts new customers—keeping your rating strong.'}
           </p>
-          <div className="bg-black/25 border border-white/5 rounded-2xl p-4 text-sm text-slate-300 font-semibold leading-relaxed">
-            {isRTL
-              ? 'هذا يحمي قرار العميل الجديد ويمنع تأثير “نقطة سلبية” على المبيعات.'
-              : 'This protects buying decisions and prevents sales damage from a single bad review.'}
+
+          <div className="bg-black/30 border border-white/10 rounded-2xl p-5">
+            <p className="text-slate-200 font-black text-sm">
+              {isRTL
+                ? 'النتيجة: ثقة أعلى + ضرر أقل + قرار شراء أسرع.'
+                : 'Result: higher trust + less damage + faster purchase decisions.'}
+            </p>
           </div>
         </div>
 
         {/* Delivery Integration */}
         <div
           className={`bg-slate-900/70 border border-slate-800 p-10 rounded-[3.5rem] space-y-7 hover:border-green-500/30 transition-all shadow-2xl flex flex-col min-h-[520px] relative overflow-hidden ${
-            !isRestaurant && 'opacity-50 grayscale'
+            !isRestaurant ? 'opacity-50 grayscale' : ''
           }`}
         >
           <div className="absolute -top-16 -right-16 w-56 h-56 bg-green-500/10 blur-[80px] rounded-full" />
           <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-400 shadow-inner">
             <Bike size={36} />
           </div>
-          <h4 className="text-2xl md:text-3xl font-black text-white tracking-tight">
+
+          <h4 className="text-2xl md:text-3xl font-black text-white italic tracking-tight">
             {isRTL ? 'دمج تطبيقات التوصيل' : 'Delivery Integration'}
           </h4>
-          <p className="text-slate-400 text-lg leading-relaxed flex-1">
+
+          <p className="text-slate-300 text-lg leading-relaxed font-semibold flex-1">
             {isRTL
-              ? 'ربط مباشر مع شركات التوصيل لإرسال طلب تقييم تلقائي بعد كل طلب، وتحويل الطلبات الصامتة إلى تقييمات إيجابية.'
-              : 'Direct integration with delivery apps to auto-send review requests after each order, turning silent orders into positive reviews.'}
+              ? 'بعد كل طلب… نرسل رسالة طلب تقييم تلقائية عبر واتساب في التوقيت المثالي. هكذا تتحول “الطلبات الصامتة” إلى تقييمات إيجابية تدفع ظهورك للأعلى.'
+              : 'After each order… an automatic WhatsApp review request is sent at the perfect moment. Silent orders turn into positive reviews that boost visibility.'}
           </p>
-          <div className="bg-black/25 border border-white/5 rounded-2xl p-4 text-sm text-slate-300 font-semibold leading-relaxed">
-            {isRTL
-              ? 'قاعدة 10% الذهبية تتحقق بشكل أسرع لأن كل طلب يصبح فرصة تقييم.'
-              : 'The 10% rule accelerates because every order becomes a review opportunity.'}
+
+          <div className="bg-black/30 border border-white/10 rounded-2xl p-5">
+            <p className="text-slate-200 font-black text-sm">
+              {isRTL
+                ? 'تطبيق مباشر لقاعدة 10%: تحويل جزء ثابت من عملائك اليوميين إلى تقييمات نشطة.'
+                : 'Direct application of the 10% rule: converting a consistent share of daily customers into active reviews.'}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* ANNUAL REVENUE LEAK (مخفف) */}
+      {/* ANNUAL REVENUE LEAK (Adjusted) */}
       <div className="bg-gradient-to-br from-red-950 to-slate-950 p-12 md:p-16 rounded-[4rem] border border-red-500/30 relative overflow-hidden shadow-2xl">
         <div className="absolute top-0 right-0 p-8 opacity-5">
           <AlertTriangle size={250} />
         </div>
+
         <div className="relative z-10 text-center md:text-right space-y-8">
           <div className="inline-flex items-center gap-2 bg-red-500/10 text-red-500 px-5 py-2 rounded-full text-xs font-black uppercase tracking-[0.2em] border border-red-500/20 animate-pulse">
-            <AlertTriangle size={14} />{' '}
-            {isRTL ? 'نزيف الإيرادات السنوي (تقديري)' : 'Annual Revenue Leak (Estimated)'}
+            <AlertTriangle size={14} />
+            {isRTL ? 'نزيف الإيرادات السنوي (فرصة ضائعة)' : 'Annual Revenue Leak'}
           </div>
 
-          <p className="text-slate-300 text-xl md:text-2xl font-bold leading-relaxed max-w-4xl italic">
+          <p className="text-slate-300 text-xl md:text-3xl font-bold leading-relaxed max-w-5xl italic">
             {isRTL
-              ? 'الفجوة بين تقييماتك الحالية وقدرتك الحقيقية (قاعدة 10%) تعني فرصاً تضيع لصالح منافسين أكثر ظهوراً.'
-              : 'The gap between your current reviews and your real potential (10% rule) means opportunities leak to more visible competitors.'}
+              ? 'الفجوة في التقييمات تعني فجوة في الظهور والثقة… وهذا ينعكس على عدد العملاء الذين يختارون منافسين يظهرون قبلك.'
+              : 'A review gap means a visibility & trust gap… which turns into customers choosing competitors who rank above you.'}
           </p>
 
           <div className="flex flex-col md:flex-row items-baseline gap-4 justify-center md:justify-start">
-            <div className="text-7xl md:text-[9rem] font-black text-white tracking-tighter drop-shadow-2xl">
+            <div className="text-8xl md:text-[10rem] font-black text-white tracking-tighter drop-shadow-2xl">
               {lostRevenue.toLocaleString()}
             </div>
             <div className="text-3xl md:text-6xl font-black text-red-500 uppercase">
@@ -561,19 +717,20 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
 
           <div className="pt-6 border-t border-red-500/10 inline-block">
             <p className="text-slate-500 font-black text-sm uppercase tracking-[0.3em]">
-              {isRTL ? 'خسارة تقديرية مبنية على فجوة التقييمات' : 'Estimate based on review-gap only'}
+              {isRTL ? 'إجمالي الخسارة السنوية التقديرية' : 'Estimated Annual Loss'}
             </p>
           </div>
         </div>
       </div>
 
-      {/* GROWTH OPPORTUNITY */}
+      {/* GROWTH OPPORTUNITY / PROFIT */}
       <div className="bg-slate-900 border-2 border-indigo-500/20 rounded-[4rem] p-12 md:p-16 relative overflow-hidden shadow-3xl group">
         <div className="absolute top-[-100px] left-[-100px] w-80 h-80 bg-indigo-500/10 rounded-full blur-[120px]" />
+
         <div className="flex flex-col md:flex-row items-center gap-12 relative z-10">
           <div className="flex-1 space-y-8 text-white">
             <div className="inline-flex items-center gap-3 bg-indigo-500/10 text-indigo-400 px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest border border-indigo-500/20">
-              <Rocket className="w-4 h-4 animate-bounce" />{' '}
+              <Rocket className="w-4 h-4 animate-bounce" />
               {isRTL ? 'أثر تفعيل النظام' : 'System Impact'}
             </div>
 
@@ -583,16 +740,22 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
 
             <p className="text-slate-400 text-xl md:text-2xl font-medium leading-relaxed italic border-l-4 border-indigo-500/30 pl-8">
               {isRTL
-                ? 'كل تقييم إيجابي ثابت يرفع الثقة ويزيد احتمالية عودة العميل، ويقوي ظهورك دون حملات مدفوعة.'
-                : 'Every consistent positive review builds trust, increases repeat visits, and strengthens visibility without extra ad spend.'}
+                ? 'عندما يصبح تقييمك يتدفق بشكل ثابت… يرتفع الظهور، ترتفع الثقة، ويزيد عدد العملاء الذين يختارونك بدل المنافس.'
+                : 'When reviews flow consistently… visibility rises, trust rises, and more customers choose you over competitors.'}
+              {isRTL
+                ? ' ومع تكرار الزيارات يتحول النمو إلى ربح متكرر.'
+                : ' With repeat visits, growth becomes repeat profit.'}
             </p>
           </div>
 
           <div className="bg-slate-800/50 p-14 rounded-[3.5rem] border border-indigo-500/30 text-center shadow-3xl min-w-[340px] transform hover:scale-105 transition-transform backdrop-blur-xl relative">
             <Zap className="absolute -top-8 -right-8 w-16 h-16 text-yellow-400 fill-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,0.5)]" />
             <span className="text-slate-500 text-xs font-black uppercase tracking-[0.2em] block mb-6">
-              {isRTL ? 'أرباح سنوية إضافية محتملة' : 'Potential Additional Annual Profit'}
+              {isRTL
+                ? 'أرباح سنوية إضافية محتملة'
+                : 'Potential Additional Annual Profit'}
             </span>
+
             <div className="flex flex-col items-center">
               <span className="text-8xl font-black text-white leading-none tracking-tighter drop-shadow-xl">
                 {dynamicProfit}
@@ -600,69 +763,86 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
               <span className="text-2xl text-indigo-400 font-black uppercase tracking-[0.4em] mt-6">
                 {currency}
               </span>
+
+              <span className="text-xs text-slate-400 font-semibold mt-6 leading-relaxed max-w-sm">
+                {isRTL
+                  ? `تقريبًا ${additionalLoyalClients.toLocaleString()} عميل وفيّ إضافي بالسنة — يعودون أكثر من مرة بدون إعلانات إضافية.`
+                  : `Roughly ${additionalLoyalClients.toLocaleString()} extra loyal customers per year—returning multiple times without extra ad spend.`}
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* QUOTE + RECOMMENDATION */}
+      {/* QUOTE + STRATEGIC RECOMMENDATION (Fully bilingual, no TEXTS new keys) */}
       <div className="space-y-16 py-10">
         <div className="flex flex-col items-center text-center space-y-8 max-w-4xl mx-auto px-4">
           <QuoteIcon className="text-indigo-500/20" size={80} fill="currentColor" />
-          <p className="text-slate-200 text-3xl md:text-4xl font-black italic leading-tight tracking-tight">
-            "
+          <p className="text-slate-200 text-2xl md:text-4xl font-black italic leading-tight tracking-tight">
             {isRTL
-              ? 'زيادة نجمة واحدة في التقييم قد ترفع الإيرادات بنسبة 5% إلى 9%'
-              : 'A one-star increase in rating can lift revenue by 5% to 9%'}
-            "
+              ? '"زيادة نجمة واحدة في التقييم تؤدي إلى زيادة في الإيرادات بنسبة 5% إلى 9%."'
+              : '"A one-star increase in rating can lead to a 5%–9% increase in revenue."'}
           </p>
           <div className="w-20 h-1 bg-yellow-500/30 rounded-full" />
           <span className="text-yellow-500 font-black tracking-[0.4em] text-sm uppercase">
-            {isRTL ? 'كلية هارفارد للأعمال' : 'Harvard Business School'}
+            Harvard Business School
           </span>
         </div>
 
-        <div className="bg-indigo-600/5 border border-indigo-500/20 rounded-[4rem] p-12 md:p-20 relative overflow-hidden group shadow-2xl">
+        <div className="bg-indigo-600/5 border border-indigo-500/20 rounded-[4rem] p-12 md:p-16 relative overflow-hidden group shadow-2xl">
           <div className="absolute -top-12 -right-12 p-8 text-indigo-500/5 rotate-12 transition-transform group-hover:scale-110">
-            <Award size={300} />
+            <ShieldCheck size={300} />
           </div>
 
-          <div className="relative z-10 space-y-8">
+          <div className="relative z-10 space-y-6">
             <div className="flex items-center gap-5 text-indigo-400">
               <ShieldCheck size={48} />
-              <h3 className="text-3xl md:text-4xl font-black uppercase tracking-tight italic">
-                {isRTL ? 'توصية استراتيجية' : 'Strategic Recommendation'}
+              <h3 className="text-3xl md:text-4xl font-black italic">
+                {isRTL ? 'التوصية الاستراتيجية النهائية' : 'Strategic Recommendation'}
               </h3>
             </div>
 
-            <p className="text-slate-300 text-2xl md:text-3xl leading-relaxed font-bold max-w-5xl text-white">
+            <p className="text-slate-200 text-xl md:text-3xl leading-relaxed font-bold max-w-5xl">
               {isRTL
-                ? `نوصي بتفعيل الأتمتة لمشروع (${data.projectName || 'مشروعك'}) لضمان تدفق تقييمات يومي ثابت يحمي ترتيبك ويمنع المنافسين من تجاوزك.`
-                : `Activate automation for (${data.projectName || 'your business'}) to secure steady daily reviews that protect ranking and block competitors.`}
+                ? `بناءً على تحليل بيانات (${data.projectName || 'مشروعك'})، التوصية واضحة: تفعيل نظام الأتمتة لحماية السمعة ورفع الظهور بشكل مستمر. الهدف ليس “زيادة تقييمات” فقط… بل تثبيت مركزك في البحث ومنع التسرب الصامت وتحويل العملاء إلى ولاء وربح متكرر.`
+                : `Based on the analysis of (${data.projectName || 'your business'}), the recommendation is clear: activate automation to protect reputation and continuously boost visibility. The goal isn’t just “more reviews”—it’s locking your search position, preventing silent churn, and turning customers into repeat profit.`}
             </p>
+
+            <div className="bg-black/30 border border-white/10 rounded-3xl p-6">
+              <p className="text-slate-300 text-base md:text-lg font-semibold leading-relaxed">
+                {isRTL
+                  ? 'إذا أردت… أظهر لك الآن تجربة بصرية توضح كيف تعمل الرحلة بالكامل (طلب/زيارة → رسالة تقييم → تقييم إيجابي → ظهور أعلى → عملاء أكثر).'
+                  : 'If you want, you can watch a visual simulation showing the full journey (visit/order → review request → positive review → higher visibility → more customers).'}
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* FINAL CTA (لغة ملتزمة) */}
-      <div className="text-center space-y-12 pt-16 border-t border-slate-800">
-        <div className="max-w-3xl mx-auto space-y-3">
-          <p className="text-slate-200 text-xl md:text-2xl font-black leading-relaxed">
+      {/* FINAL CTA with guidance line */}
+      <div className="text-center space-y-12 pt-10 border-t border-slate-800">
+        <div className="space-y-6">
+          <h2 className="text-5xl md:text-7xl font-black text-white leading-tight tracking-tighter italic">
+            {isRTL ? 'لا تكن خفيًا…' : "Don’t be invisible…"}
+          </h2>
+
+          <p className="text-indigo-400 text-xl md:text-2xl font-black leading-relaxed max-w-3xl mx-auto">
             {isRTL
-              ? '⬇️ قبل طلب النظام… شاهد التجربة البصرية لتفهم كيف نحول العملاء إلى تقييمات يومياً.'
-              : '⬇️ Before ordering… watch the visual experience to see how we convert customers into daily reviews.'}
+              ? '⬇️ قبل الطلب… شاهد التجربة البصرية لتفهم كيف نحول 10% من عملائك اليوميين إلى تقييمات ثابتة “تدفع ظهورك للأعلى” بشكل مستمر.'
+              : '⬇️ Before ordering… watch the visual experience to see how we convert 10% of daily customers into consistent reviews that push your visibility up.'}
           </p>
-          <p className="text-slate-500 text-sm md:text-base font-semibold">
+
+          <p className="text-slate-500 text-sm md:text-base font-semibold max-w-3xl mx-auto">
             {isRTL
-              ? 'التجربة البصرية توضح رحلة العميل من “زيارة/طلب” إلى “تقييم” ثم “ولاء وأرباح”.'
-              : 'The visual experience shows the journey from “visit/order” to “review” then “loyalty and profit”.'}
+              ? 'كل تقييم غير مُدار قد يعني عميلًا فقدته للأبد — بينما النظام يجعل الثقة تتجدد كل يوم.'
+              : 'Every unmanaged review can be a customer lost forever—automation makes trust renew daily.'}
           </p>
         </div>
 
         <div className="flex flex-col gap-8 justify-center items-center">
           <button
             onClick={onVisualExp}
-            className="w-full md:w-auto px-16 py-8 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-3xl rounded-[3rem] shadow-2xl transform hover:-translate-y-2 transition-all flex items-center justify-center gap-5 group"
+            className="w-full md:w-auto px-16 py-8 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-2xl md:text-3xl rounded-[3rem] shadow-2xl transform hover:-translate-y-2 transition-all flex items-center justify-center gap-5 group"
           >
             <Play className="w-8 h-8 fill-current group-hover:scale-110 transition-transform" />
             {isRTL ? 'ابدأ التجربة البصرية' : 'Start Visual Experience'}
@@ -681,7 +861,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
 
             <button
               onClick={onReset}
-              className="w-full md:w-auto px-12 py-10 bg-slate-800 hover:bg-slate-700 text-slate-400 font-black text-2xl rounded-[3rem] border border-slate-700 transition-all flex items-center justify-center gap-5 group"
+              className="w-full md:w-auto px-12 py-10 bg-slate-800 hover:bg-slate-700 text-slate-300 font-black text-2xl rounded-[3rem] border border-slate-700 transition-all flex items-center justify-center gap-5 group"
             >
               <RotateCw className="w-8 h-8 group-hover:rotate-180 transition-transform duration-700" />
               {isRTL ? 'تحليل نشاط آخر' : 'Analyze Another'}
