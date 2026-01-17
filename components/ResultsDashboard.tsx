@@ -195,6 +195,8 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   };
 
   const status = getMarketStatus();
+  const StatusIcon = status.icon;
+
 
   // ==========================
   // 6) WHATSAPP LINK
@@ -276,14 +278,15 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         className={`p-10 md:p-14 rounded-[3rem] border ${status.border} ${status.bg} backdrop-blur-md relative overflow-hidden group shadow-2xl`}
       >
         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-          <status.icon size={280} />
+          <StatusIcon size={280} />
         </div>
 
         <div className="relative z-10 flex flex-col md:flex-row items-center gap-12">
           <div
             className={`p-8 rounded-3xl bg-slate-950 shadow-2xl ${status.color} border border-white/5`}
           >
-            <status.icon size={64} />
+            <StatusIcon size={64} />
+
           </div>
 
           <div className="flex-1 space-y-4">
