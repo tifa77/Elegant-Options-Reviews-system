@@ -78,7 +78,9 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   const baselineDaily = Number((baselineWeekly / 7).toFixed(1)) || 0;
 
   const baselineMonthly =
-    Number(data.monthlyGrowth) || (baselineWeekly > 0 ? Number((baselineWeekly * 4.3).toFixed(1)) : 0) || 0;
+    Number(data.monthlyGrowth) ||
+    (baselineWeekly > 0 ? Number((baselineWeekly * 4.3).toFixed(1)) : 0) ||
+    0;
 
   // ==========================
   // 2) SYSTEM POTENTIAL (10% RULE)
@@ -103,9 +105,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   const getRegionalData = () => {
     const address = (data.address || '').toLowerCase();
     const isKuwait = address.includes('kuwait') || address.includes('الكويت');
-    return isKuwait
-      ? { symbol: isRTL ? 'د.ك' : 'KWD', ticket: 20 }
-      : { symbol: isRTL ? 'دولار' : 'USD', ticket: 60 };
+    return isKuwait ? { symbol: isRTL ? 'د.ك' : 'KWD', ticket: 20 } : { symbol: isRTL ? 'دولار' : 'USD', ticket: 60 };
   };
 
   const regional = getRegionalData();
@@ -114,7 +114,6 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   // ==========================
   // 4) REVENUE LEAK (REVERT TO PREVIOUS LOGIC - less exaggerated)
   // ==========================
-  // idea: gap in review volume represents lost visibility & lost customers
   const baseYearlyReviews = baselineMonthly * 12;
   const projectedYearlyReviews = systemMonthly * 12;
 
@@ -137,10 +136,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   const visitsPerLoyalClientPerYear = 3;
 
   const annualAdditionalReviews = systemYearly; // with system
-  const additionalLoyalClients = Math.max(
-    0,
-    Math.round(annualAdditionalReviews * loyaltyConversionRate)
-  );
+  const additionalLoyalClients = Math.max(0, Math.round(annualAdditionalReviews * loyaltyConversionRate));
 
   const dynamicProfitValue =
     annualAdditionalReviews *
@@ -195,8 +191,6 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   };
 
   const status = getMarketStatus();
-  const StatusIcon = status.icon;
-
 
   // ==========================
   // 6) WHATSAPP LINK
@@ -278,15 +272,14 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         className={`p-10 md:p-14 rounded-[3rem] border ${status.border} ${status.bg} backdrop-blur-md relative overflow-hidden group shadow-2xl`}
       >
         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-          <StatusIcon size={280} />
+          <status.icon size={280} />
         </div>
 
         <div className="relative z-10 flex flex-col md:flex-row items-center gap-12">
           <div
             className={`p-8 rounded-3xl bg-slate-950 shadow-2xl ${status.color} border border-white/5`}
           >
-            <StatusIcon size={64} />
-
+            <status.icon size={64} />
           </div>
 
           <div className="flex-1 space-y-4">
@@ -465,7 +458,6 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                   </h3>
                 </div>
 
-                {/* ✅ Requested golden rule sentence */}
                 <p className="text-indigo-100 text-xl md:text-2xl font-black leading-relaxed max-w-3xl">
                   {isRTL
                     ? 'نطبق قاعدة الـ 10% الذهبية: تحويل كل 10 عملاء على الاقل من أصل 100 يزورون مشروعك إلى مقيمين نشطين بشكل آلي بالكامل.'
@@ -573,7 +565,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
               {[
                 {
                   ar: 'ظهور مضاعف في الصفحة الأولى لجوجل وخرائط Google',
-                  en: "Stronger first-page visibility on Google & Maps",
+                  en: 'Stronger first-page visibility on Google & Maps',
                 },
                 {
                   ar: 'حماية من التسرب الصامت… قبل ما يتحول لضرر علني',
@@ -605,251 +597,143 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           </div>
         </div>
       </div>
-{/* SYSTEM FEATURES (ENHANCED UI + EFFECTS) */}
-<div className="grid lg:grid-cols-3 gap-8">
-  {/* Card Base Styles (keep inline for simplicity) */}
-  {/* AI Smart Replies */}
-  <div className="group relative rounded-[3.5rem] overflow-hidden">
-    {/* Animated gradient border */}
-    <div className="absolute inset-0 rounded-[3.5rem] p-[1px] bg-gradient-to-br from-indigo-500/40 via-slate-700/30 to-transparent opacity-70 group-hover:opacity-100 transition-opacity" />
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(99,102,241,.18),transparent_55%),radial-gradient(circle_at_100%_30%,rgba(99,102,241,.12),transparent_40%)]" />
 
-    {/* Shine */}
-    <div className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[220%] transition-all duration-1000" />
+      {/* SYSTEM FEATURES (ENHANCED UI + EFFECTS) */}
+      <div className="grid lg:grid-cols-3 gap-8">
+        {/* AI Smart Replies */}
+        <div className="group relative rounded-[3.5rem] overflow-hidden">
+          <div className="absolute inset-0 rounded-[3.5rem] p-[1px] bg-gradient-to-br from-indigo-500/40 via-slate-700/30 to-transparent opacity-70 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(99,102,241,.18),transparent_55%),radial-gradient(circle_at_100%_30%,rgba(99,102,241,.12),transparent_40%)]" />
+          <div className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[220%] transition-all duration-1000" />
 
-    <div className="relative bg-slate-900/70 border border-slate-800/70 p-10 rounded-[3.5rem] space-y-7 shadow-2xl flex flex-col min-h-[520px] backdrop-blur-xl
-                    transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_30px_120px_-25px_rgba(99,102,241,.35)]
-                    group-hover:border-indigo-500/30">
-      {/* Glow blob */}
-      <div className="absolute -top-16 -right-16 w-56 h-56 bg-indigo-500/10 blur-[90px] rounded-full" />
+          <div className="relative bg-slate-900/70 border border-slate-800/70 p-10 rounded-[3.5rem] space-y-7 shadow-2xl flex flex-col min-h-[520px] backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_30px_120px_-25px_rgba(99,102,241,.35)] group-hover:border-indigo-500/30">
+            <div className="absolute -top-16 -right-16 w-56 h-56 bg-indigo-500/10 blur-[90px] rounded-full" />
 
-      {/* Icon */}
-      <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-400 shadow-inner
-                      ring-1 ring-white/10 group-hover:ring-indigo-400/30 transition-all">
-        <div className="relative">
-          <div className="absolute inset-0 rounded-2xl blur-lg bg-indigo-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <Bot size={36} className="relative group-hover:scale-110 transition-transform duration-300" />
-        </div>
-      </div>
-
-      <h4 className="text-2xl md:text-3xl font-black text-white italic tracking-tight">
-        {isRTL ? 'ردود ذكية بالذكاء الاصطناعي' : 'AI Smart Replies'}
-      </h4>
-
-      <p className="text-slate-300 text-lg leading-relaxed font-semibold flex-1">
-        {isRTL
-          ? 'رد تلقائي احترافي على جميع التقييمات 24 ساعه لا يتوقف… يزيد الثقة، يرفع جودة الصفحة، ويمنح جوجل إشارات نشاط مستمرة تدعم ترتيبك.'
-          : 'Professional auto-replies 24 hours non-stop… increase trust, improve profile quality, and feed Google continuous activity signals that support ranking.'}
-      </p>
-
-      <div className="bg-black/30 border border-white/10 rounded-2xl p-5 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-        <p className="relative text-slate-200 font-black text-sm">
-          {isRTL
-            ? 'النتيجة: عميل يشعر بالاهتمام → تقييم أفضل → ظهور أعلى.'
-            : 'Result: customer feels cared for → better reviews → higher visibility.'}
-        </p>
-      </div>
-    </div>
-  </div>
-
-  {/* Reputation Shield */}
-  <div className="group relative rounded-[3.5rem] overflow-hidden">
-    <div className="absolute inset-0 rounded-[3.5rem] p-[1px] bg-gradient-to-br from-orange-500/40 via-slate-700/30 to-transparent opacity-70 group-hover:opacity-100 transition-opacity" />
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(249,115,22,.18),transparent_55%),radial-gradient(circle_at_100%_30%,rgba(249,115,22,.12),transparent_40%)]" />
-    <div className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[220%] transition-all duration-1000" />
-
-    <div className="relative bg-slate-900/70 border border-slate-800/70 p-10 rounded-[3.5rem] space-y-7 shadow-2xl flex flex-col min-h-[520px] backdrop-blur-xl
-                    transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_30px_120px_-25px_rgba(249,115,22,.30)]
-                    group-hover:border-orange-500/30">
-      <div className="absolute -top-16 -right-16 w-56 h-56 bg-orange-500/10 blur-[90px] rounded-full" />
-
-      <div className="w-16 h-16 bg-orange-500/10 rounded-2xl flex items-center justify-center text-orange-400 shadow-inner
-                      ring-1 ring-white/10 group-hover:ring-orange-400/30 transition-all">
-        <div className="relative">
-          <div className="absolute inset-0 rounded-2xl blur-lg bg-orange-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <ShieldCheck size={36} className="relative group-hover:scale-110 transition-transform duration-300" />
-        </div>
-      </div>
-
-      <h4 className="text-2xl md:text-3xl font-black text-white italic tracking-tight">
-        {isRTL ? 'درع حماية السمعة' : 'Reputation Shield'}
-      </h4>
-
-      <p className="text-slate-300 text-lg leading-relaxed font-semibold flex-1">
-        {isRTL
-          ? 'نظام يلتقط أي تقييم سلبي مبكرًا ويحوّله لمعالجة داخلية خاصة قبل أن يؤثر على قرار العملاء الجدد… ويحافظ على متوسط تقييمك قويًا.'
-          : 'A system that catches negative feedback early, routes it privately for resolution before it impacts new customers—keeping your rating strong.'}
-      </p>
-
-      <div className="bg-black/30 border border-white/10 rounded-2xl p-5 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-        <p className="relative text-slate-200 font-black text-sm">
-          {isRTL
-            ? 'النتيجة: ثقة أعلى + ضرر أقل + قرار شراء أسرع.'
-            : 'Result: higher trust + less damage + faster purchase decisions.'}
-        </p>
-      </div>
-    </div>
-  </div>
-
-  {/* Delivery Integration */}
-  <div
-    className={`group relative rounded-[3.5rem] overflow-hidden ${
-      !isRestaurant ? 'opacity-60 grayscale' : ''
-    }`}
-  >
-    <div className="absolute inset-0 rounded-[3.5rem] p-[1px] bg-gradient-to-br from-green-500/40 via-slate-700/30 to-transparent opacity-70 group-hover:opacity-100 transition-opacity" />
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(34,197,94,.18),transparent_55%),radial-gradient(circle_at_100%_30%,rgba(34,197,94,.12),transparent_40%)]" />
-    <div className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[220%] transition-all duration-1000" />
-
-    <div
-      className={`relative bg-slate-900/70 border border-slate-800/70 p-10 rounded-[3.5rem] space-y-7 shadow-2xl flex flex-col min-h-[520px] backdrop-blur-xl
-                  transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_30px_120px_-25px_rgba(34,197,94,.28)]
-                  group-hover:border-green-500/30 ${!isRestaurant ? 'pointer-events-none' : ''}`}
-    >
-      <div className="absolute -top-16 -right-16 w-56 h-56 bg-green-500/10 blur-[90px] rounded-full" />
-
-      <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-400 shadow-inner
-                      ring-1 ring-white/10 group-hover:ring-green-400/30 transition-all">
-        <div className="relative">
-          <div className="absolute inset-0 rounded-2xl blur-lg bg-green-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <Bike size={36} className="relative group-hover:scale-110 transition-transform duration-300" />
-        </div>
-      </div>
-
-      <div className="flex items-start justify-between gap-4">
-        <h4 className="text-2xl md:text-3xl font-black text-white italic tracking-tight">
-          {isRTL ? 'دمج تطبيقات التوصيل' : 'Delivery Integration'}
-        </h4>
-
-        {/* Small badge when disabled */}
-        {!isRestaurant && (
-          <span className="shrink-0 px-3 py-1 rounded-full text-xs font-black bg-white/5 border border-white/10 text-slate-200">
-            {isRTL ? 'حصري للمطاعم' : 'Restaurants only'}
-          </span>
-        )}
-      </div>
-
-      <p className="text-slate-300 text-lg leading-relaxed font-semibold flex-1">
-        {isRTL
-          ? 'بعد كل طلب… نرسل رسالة طلب تقييم تلقائية عبر واتساب في التوقيت المثالي. هكذا تتحول “الطلبات الصامتة” إلى تقييمات إيجابية تدفع ظهورك للأعلى.'
-          : 'After each order… an automatic WhatsApp review request is sent at the perfect moment. Silent orders turn into positive reviews that boost visibility.'}
-      </p>
-
-      <div className="bg-black/30 border border-white/10 rounded-2xl p-5 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-        <p className="relative text-slate-200 font-black text-sm">
-          {isRTL
-            ? 'تطبيق مباشر لقاعدة 10%: تحويل جزء ثابت من عملائك اليوميين إلى تقييمات نشطة.'
-            : 'Direct application of the 10% rule: converting a consistent share of daily customers into active reviews.'}
-        </p>
-      </div>
-
-      {/* Disabled overlay hint */}
-      {!isRestaurant && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="px-6 py-4 rounded-3xl bg-black/40 border border-white/10 backdrop-blur-md text-center">
-            <p className="text-white font-black">
-              {isRTL ? 'هذه الميزة تُفعّل للمطاعم فقط' : 'This feature is enabled for restaurants only'}
-            </p>
-            <p className="text-slate-200/80 text-sm font-semibold mt-1">
-              {isRTL ? 'اختر نوع النشاط مطعم لتفعيلها' : 'Select “Restaurant” to unlock it'}
-            </p>
-          </div>
-        </div>
-      )}
-    </div>
-  </div>
-</div>
-
-      {/* ANNUAL REVENUE LEAK (Adjusted) */}
-      <div className="bg-gradient-to-br from-red-950 to-slate-950 p-12 md:p-16 rounded-[4rem] border border-red-500/30 relative overflow-hidden shadow-2xl">
-        <div className="absolute top-0 right-0 p-8 opacity-5">
-          <AlertTriangle size={250} />
-        </div>
-
-        <div className="relative z-10 text-center md:text-right space-y-8">
-          <div className="inline-flex items-center gap-2 bg-red-500/10 text-red-500 px-5 py-2 rounded-full text-xs font-black uppercase tracking-[0.2em] border border-red-500/20 animate-pulse">
-            <AlertTriangle size={14} />
-            {isRTL ? 'نزيف الإيرادات السنوي (فرصة ضائعة)' : 'Annual Revenue Leak'}
-          </div>
-
-          <p className="text-slate-300 text-xl md:text-3xl font-bold leading-relaxed max-w-5xl italic">
-            {isRTL
-              ? 'الفجوة في التقييمات تعني فجوة في الظهور والثقة… وهذا ينعكس على عدد العملاء الذين يختارون منافسين يظهرون قبلك.'
-              : 'A review gap means a visibility & trust gap… which turns into customers choosing competitors who rank above you.'}
-          </p>
-
-          <div className="flex flex-col md:flex-row items-baseline gap-4 justify-center md:justify-start">
-            <div className="text-8xl md:text-[10rem] font-black text-white tracking-tighter drop-shadow-2xl">
-              {lostRevenue.toLocaleString()}
-            </div>
-            <div className="text-3xl md:text-6xl font-black text-red-500 uppercase">
-              {currency}
-            </div>
-          </div>
-
-          <div className="pt-6 border-t border-red-500/10 inline-block">
-            <p className="text-slate-500 font-black text-sm uppercase tracking-[0.3em]">
-              {isRTL ? 'إجمالي الخسارة السنوية التقديرية' : 'Estimated Annual Loss'}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* GROWTH OPPORTUNITY / PROFIT */}
-      <div className="bg-slate-900 border-2 border-indigo-500/20 rounded-[4rem] p-12 md:p-16 relative overflow-hidden shadow-3xl group">
-        <div className="absolute top-[-100px] left-[-100px] w-80 h-80 bg-indigo-500/10 rounded-full blur-[120px]" />
-
-        <div className="flex flex-col md:flex-row items-center gap-12 relative z-10">
-          <div className="flex-1 space-y-8 text-white">
-            <div className="inline-flex items-center gap-3 bg-indigo-500/10 text-indigo-400 px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest border border-indigo-500/20">
-              <Rocket className="w-4 h-4 animate-bounce" />
-              {isRTL ? 'أثر تفعيل النظام' : 'System Impact'}
+            <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-400 shadow-inner ring-1 ring-white/10 group-hover:ring-indigo-400/30 transition-all">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-2xl blur-lg bg-indigo-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Bot size={36} className="relative group-hover:scale-110 transition-transform duration-300" />
+              </div>
             </div>
 
-            <h4 className="text-4xl md:text-5xl font-black italic">
-              {isRTL ? 'أرباح إضافية بانتظار تفعيلها' : 'Hidden Profits Unlocked'}
+            <h4 className="text-2xl md:text-3xl font-black text-white italic tracking-tight">
+              {isRTL ? 'ردود ذكية بالذكاء الاصطناعي' : 'AI Smart Replies'}
             </h4>
 
-            <p className="text-slate-400 text-xl md:text-2xl font-medium leading-relaxed italic border-l-4 border-indigo-500/30 pl-8">
+            <p className="text-slate-300 text-lg leading-relaxed font-semibold flex-1">
               {isRTL
-                ? 'عندما يصبح تقييمك يتدفق بشكل ثابت… يرتفع الظهور، ترتفع الثقة، ويزيد عدد العملاء الذين يختارونك بدل المنافس.'
-                : 'When reviews flow consistently… visibility rises, trust rises, and more customers choose you over competitors.'}
-              {isRTL
-                ? ' ومع تكرار الزيارات يتحول النمو إلى ربح متكرر.'
-                : ' With repeat visits, growth becomes repeat profit.'}
+                ? 'رد تلقائي احترافي على جميع التقييمات 24 ساعه لا يتوقف… يزيد الثقة، يرفع جودة الصفحة، ويمنح جوجل إشارات نشاط مستمرة تدعم ترتيبك.'
+                : 'Professional auto-replies 24 hours non-stop… increase trust, improve profile quality, and feed Google continuous activity signals that support ranking.'}
             </p>
-          </div>
 
-          <div className="bg-slate-800/50 p-14 rounded-[3.5rem] border border-indigo-500/30 text-center shadow-3xl min-w-[340px] transform hover:scale-105 transition-transform backdrop-blur-xl relative">
-            <Zap className="absolute -top-8 -right-8 w-16 h-16 text-yellow-400 fill-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,0.5)]" />
-            <span className="text-slate-500 text-xs font-black uppercase tracking-[0.2em] block mb-6">
-              {isRTL
-                ? 'أرباح سنوية إضافية محتملة'
-                : 'Potential Additional Annual Profit'}
-            </span>
-
-            <div className="flex flex-col items-center">
-              <span className="text-8xl font-black text-white leading-none tracking-tighter drop-shadow-xl">
-                {dynamicProfit}
-              </span>
-              <span className="text-2xl text-indigo-400 font-black uppercase tracking-[0.4em] mt-6">
-                {currency}
-              </span>
-
-              <span className="text-xs text-slate-400 font-semibold mt-6 leading-relaxed max-w-sm">
+            <div className="bg-black/30 border border-white/10 rounded-2xl p-5 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <p className="relative text-slate-200 font-black text-sm">
                 {isRTL
-                  ? `تقريبًا ${additionalLoyalClients.toLocaleString()} عميل وفيّ إضافي بالسنة — يعودون أكثر من مرة بدون إعلانات إضافية.`
-                  : `Roughly ${additionalLoyalClients.toLocaleString()} extra loyal customers per year—returning multiple times without extra ad spend.`}
-              </span>
+                  ? 'النتيجة: عميل يشعر بالاهتمام → تقييم أفضل → ظهور أعلى.'
+                  : 'Result: customer feels cared for → better reviews → higher visibility.'}
+              </p>
             </div>
+          </div>
+        </div>
+
+        {/* Reputation Shield */}
+        <div className="group relative rounded-[3.5rem] overflow-hidden">
+          <div className="absolute inset-0 rounded-[3.5rem] p-[1px] bg-gradient-to-br from-orange-500/40 via-slate-700/30 to-transparent opacity-70 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(249,115,22,.18),transparent_55%),radial-gradient(circle_at_100%_30%,rgba(249,115,22,.12),transparent_40%)]" />
+          <div className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[220%] transition-all duration-1000" />
+
+          <div className="relative bg-slate-900/70 border border-slate-800/70 p-10 rounded-[3.5rem] space-y-7 shadow-2xl flex flex-col min-h-[520px] backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_30px_120px_-25px_rgba(249,115,22,.30)] group-hover:border-orange-500/30">
+            <div className="absolute -top-16 -right-16 w-56 h-56 bg-orange-500/10 blur-[90px] rounded-full" />
+
+            <div className="w-16 h-16 bg-orange-500/10 rounded-2xl flex items-center justify-center text-orange-400 shadow-inner ring-1 ring-white/10 group-hover:ring-orange-400/30 transition-all">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-2xl blur-lg bg-orange-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ShieldCheck size={36} className="relative group-hover:scale-110 transition-transform duration-300" />
+              </div>
+            </div>
+
+            <h4 className="text-2xl md:text-3xl font-black text-white italic tracking-tight">
+              {isRTL ? 'درع حماية السمعة' : 'Reputation Shield'}
+            </h4>
+
+            <p className="text-slate-300 text-lg leading-relaxed font-semibold flex-1">
+              {isRTL
+                ? 'نظام يلتقط أي تقييم سلبي مبكرًا ويحوّله لمعالجة داخلية خاصة قبل أن يؤثر على قرار العملاء الجدد… ويحافظ على متوسط تقييمك قويًا.'
+                : 'A system that catches negative feedback early, routes it privately for resolution before it impacts new customers—keeping your rating strong.'}
+            </p>
+
+            <div className="bg-black/30 border border-white/10 rounded-2xl p-5 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <p className="relative text-slate-200 font-black text-sm">
+                {isRTL
+                  ? 'النتيجة: ثقة أعلى + ضرر أقل + قرار شراء أسرع.'
+                  : 'Result: higher trust + less damage + faster purchase decisions.'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Delivery Integration */}
+        <div className={`group relative rounded-[3.5rem] overflow-hidden ${!isRestaurant ? 'opacity-60 grayscale' : ''}`}>
+          <div className="absolute inset-0 rounded-[3.5rem] p-[1px] bg-gradient-to-br from-green-500/40 via-slate-700/30 to-transparent opacity-70 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(34,197,94,.18),transparent_55%),radial-gradient(circle_at_100%_30%,rgba(34,197,94,.12),transparent_40%)]" />
+          <div className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[220%] transition-all duration-1000" />
+
+          <div className={`relative bg-slate-900/70 border border-slate-800/70 p-10 rounded-[3.5rem] space-y-7 shadow-2xl flex flex-col min-h-[520px] backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_30px_120px_-25px_rgba(34,197,94,.28)] group-hover:border-green-500/30 ${!isRestaurant ? 'pointer-events-none' : ''}`}>
+            <div className="absolute -top-16 -right-16 w-56 h-56 bg-green-500/10 blur-[90px] rounded-full" />
+
+            <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-400 shadow-inner ring-1 ring-white/10 group-hover:ring-green-400/30 transition-all">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-2xl blur-lg bg-green-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Bike size={36} className="relative group-hover:scale-110 transition-transform duration-300" />
+              </div>
+            </div>
+
+            <div className="flex items-start justify-between gap-4">
+              <h4 className="text-2xl md:text-3xl font-black text-white italic tracking-tight">
+                {isRTL ? 'دمج تطبيقات التوصيل' : 'Delivery Integration'}
+              </h4>
+
+              {!isRestaurant && (
+                <span className="shrink-0 px-3 py-1 rounded-full text-xs font-black bg-white/5 border border-white/10 text-slate-200">
+                  {isRTL ? 'حصري للمطاعم' : 'Restaurants only'}
+                </span>
+              )}
+            </div>
+
+            <p className="text-slate-300 text-lg leading-relaxed font-semibold flex-1">
+              {isRTL
+                ? 'بعد كل طلب… نرسل رسالة طلب تقييم تلقائية عبر واتساب في التوقيت المثالي. هكذا تتحول “الطلبات الصامتة” إلى تقييمات إيجابية تدفع ظهورك للأعلى.'
+                : 'After each order… an automatic WhatsApp review request is sent at the perfect moment. Silent orders turn into positive reviews that boost visibility.'}
+            </p>
+
+            <div className="bg-black/30 border border-white/10 rounded-2xl p-5 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <p className="relative text-slate-200 font-black text-sm">
+                {isRTL
+                  ? 'تطبيق مباشر لقاعدة 10%: تحويل جزء ثابت من عملائك اليوميين إلى تقييمات نشطة.'
+                  : 'Direct application of the 10% rule: converting a consistent share of daily customers into active reviews.'}
+              </p>
+            </div>
+
+            {!isRestaurant && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="px-6 py-4 rounded-3xl bg-black/40 border border-white/10 backdrop-blur-md text-center">
+                  <p className="text-white font-black">
+                    {isRTL ? 'هذه الميزة تُفعّل للمطاعم فقط' : 'This feature is enabled for restaurants only'}
+                  </p>
+                  <p className="text-slate-200/80 text-sm font-semibold mt-1">
+                    {isRTL ? 'اختر نوع النشاط مطعم لتفعيلها' : 'Select “Restaurant” to unlock it'}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* QUOTE + STRATEGIC RECOMMENDATION (Fully bilingual, no TEXTS new keys) */}
+      {/* QUOTE + STRATEGIC RECOMMENDATION */}
       <div className="space-y-16 py-10">
         <div className="flex flex-col items-center text-center space-y-8 max-w-4xl mx-auto px-4">
           <QuoteIcon className="text-indigo-500/20" size={80} fill="currentColor" />
@@ -886,9 +770,9 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             <div className="bg-black/30 border border-white/10 rounded-3xl p-6">
               <p className="text-slate-300 text-base md:text-lg font-semibold leading-relaxed">
                 {isRTL
-                  ? 'ما نقدّمه ليس أداة… بل نظام يضاعف كفاءتك ويختصر وقتك ويقودك لنمو حقيقي.
+                  ? `ما نقدّمه ليس أداة… بل نظام يضاعف كفاءتك ويختصر وقتك ويقودك لنمو حقيقي.
 
-القيمة الحقيقية تكمن في الكفاءة، توفير الوقت، وبناء نمو طويل الأمد.).'
+القيمة الحقيقية تكمن في الكفاءة، توفير الوقت، وبناء نمو طويل الأمد.).`
                   : 'If you want, you can watch a visual simulation showing the full journey (visit/order → review request → positive review → higher visibility → more customers).'}
               </p>
             </div>
