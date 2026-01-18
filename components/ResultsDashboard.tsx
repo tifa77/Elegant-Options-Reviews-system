@@ -24,6 +24,7 @@ import {
   Globe,
   Bot,
   Rocket,
+  Star,
 } from 'lucide-react';
 
 interface ResultsDashboardProps {
@@ -32,6 +33,108 @@ interface ResultsDashboardProps {
   onReset: () => void;
   onBack: () => void;
   onVisualExp: () => void;
+}
+
+/**
+ * ✅ Best-effort extractor for Google rating (0..5) WITHOUT defaulting to 4.5
+ * Priority:
+ * 1) Direct fields: rating / averageRating / googleRating / stars / ratingValue ...
+ * 2) Rating breakdown object/array (1..5 stars)
+ * 3) Estimate from positive/negative/total reviews (no fixed 4.5)
+ * 4) If nothing -> null (unknown)
+ */
+function extractRatingSmart(data: any): {
+  rating: number | null;
+  source: 'direct' | 'breakdown' | 'estimated' | 'unknown';
+  confidence: 'high' | 'medium' | 'low';
+} {
+  const clamp = (v: number) => Math.max(0, Math.min(5, v));
+
+  const toNum = (v: any) => {
+    const n = typeof v === 'string' ? Number(v.replace(',', '.')) : Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  // 1) direct keys (common across APIs/forms)
+  const directKeys = [
+    'rating',
+    'averageRating',
+    'googleRating',
+    'stars',
+    'ratingValue',
+    'avgRating',
+    'placeRating',
+    'overallRating',
+  ];
+
+  for (const k of directKeys) {
+    const n = toNum(data?.[k]);
+    if (n !== null && n >= 0 && n <= 5) {
+      return { rating: clamp(n), source: 'direct', confidence: 'high' };
+    }
+  }
+
+  // 2) rating breakdown (object {1:count,2:count,...} or array)
+  const breakdownCandidates = [
+    data?.ratingBreakdown,
+    data?.starsBreakdown,
+    data?.reviewBreakdown,
+    data?.ratingHistogram,
+  ].filter(Boolean);
+
+  for (const b of breakdownCandidates) {
+    // object style
+    if (typeof b === 'object' && !Array.isArray(b)) {
+      let sum = 0;
+      let total = 0;
+      for (const s of [1, 2, 3, 4, 5]) {
+        const c = toNum(b?.[s]) ?? toNum(b?.[String(s)]);
+        if (c !== null && c >= 0) {
+          sum += s * c;
+          total += c;
+        }
+      }
+      if (total > 0) {
+        return { rating: clamp(sum / total), source: 'breakdown', confidence: 'high' };
+      }
+    }
+
+    // array style
+    if (Array.isArray(b)) {
+      let sum = 0;
+      let total = 0;
+      for (const item of b) {
+        const s = toNum(item?.stars ?? item?.star ?? item?.rating);
+        const c = toNum(item?.count ?? item?.value ?? item?.n);
+        if (s !== null && c !== null && s >= 0 && s <= 5 && c >= 0) {
+          sum += s * c;
+          total += c;
+        }
+      }
+      if (total > 0) {
+        return { rating: clamp(sum / total), source: 'breakdown', confidence: 'high' };
+      }
+    }
+  }
+
+  // 3) Estimate using positive / negative / total counts (no "magic 4.5")
+  const totalReviews = Number(data?.currentReviews) || 0;
+  const positive = Number(data?.positiveReviews) || 0;
+  const negative = Number(data?.negativeReviews) || 0;
+  const remainder = Math.max(0, totalReviews - positive - negative);
+
+  if (totalReviews > 0 && (positive > 0 || negative > 0)) {
+    const posAvg = 4.6;
+    const negAvg = 2.3;
+    const neuAvg = 3.5;
+
+    const est =
+      (positive * posAvg + negative * negAvg + remainder * neuAvg) / totalReviews;
+
+    return { rating: clamp(est), source: 'estimated', confidence: 'medium' };
+  }
+
+  return { rating: null, source: 'unknown', confidence: 'low' };
 }
 
 const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
@@ -48,6 +151,23 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
     data.projectType === 'restaurant' ||
     data.projectType === 'مطعم' ||
     data.projectType === 'cafe';
+
+  // ==========================
+  // 0) SMART RATING (NO DEFAULT)
+  // ==========================
+  const ratingInfo = React.useMemo(() => extractRatingSmart(data), [data]);
+  const rating = ratingInfo.rating; // number | null
+  const ratingPercent = rating !== null ? Math.round((rating / 5) * 100) : null;
+
+  // تقدير "نسبة عدم التشجيع" بناءً على انخفاض النجوم:
+  // كل نزول 0.5 نجمة = +5% (سقف منطقي)
+  const negativeImpactPercent = React.useMemo(() => {
+    if (rating === null) return null;
+    const delta = Math.max(0, 5 - rating);
+    const steps = delta / 0.5;
+    const impact = Math.round(steps * 5);
+    return Math.min(60, impact);
+  }, [rating]);
 
   // ==========================
   // 1) SAFE CORE NUMBERS
@@ -72,7 +192,9 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
 
   // Baseline (Current Reality)
   const baselineWeekly =
-    Number(data.weeklyGrowth) || Number((avgReviewsPerYear / 52).toFixed(1)) || 0;
+    Number(data.weeklyGrowth) ||
+    Number((avgReviewsPerYear / 52).toFixed(1)) ||
+    0;
 
   const baselineDaily = Number((baselineWeekly / 7).toFixed(1)) || 0;
 
@@ -112,7 +234,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   const currency = regional.symbol;
 
   // ==========================
-  // 4) REVENUE LEAK (less exaggerated)
+  // 4) REVENUE LEAK
   // ==========================
   const baseYearlyReviews = baselineMonthly * 12;
   const projectedYearlyReviews = systemMonthly * 12;
@@ -123,18 +245,22 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   const lostCustomersCount = Math.max(0, reviewGapYearly * customerLossMultiplier);
 
   const lostRevenueValue = lostCustomersCount * regional.ticket;
-  const lostRevenue = Number.isFinite(lostRevenueValue) ? Math.round(lostRevenueValue) : 0;
+  const lostRevenue = Number.isFinite(lostRevenueValue)
+    ? Math.round(lostRevenueValue)
+    : 0;
 
   const percentageIncrease =
     baseYearlyReviews > 0
-      ? Math.round(((projectedYearlyReviews - baseYearlyReviews) / baseYearlyReviews) * 100)
+      ? Math.round(
+          ((projectedYearlyReviews - baseYearlyReviews) / baseYearlyReviews) * 100
+        )
       : 100;
 
+  // grounded profit story
   const loyaltyConversionRate = 0.35;
   const visitsPerLoyalClientPerYear = 3;
 
   const annualAdditionalReviews = systemYearly;
-  const additionalLoyalClients = Math.max(0, Math.round(annualAdditionalReviews * loyaltyConversionRate));
 
   const dynamicProfitValue =
     annualAdditionalReviews *
@@ -147,7 +273,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
     : '0';
 
   // ==========================
-  // 5) MARKET STATUS (UNCHANGED CORE IDEA)
+  // 5) MARKET STATUS
   // ==========================
   const getMarketStatus = () => {
     if (avgReviewsPerYear < 15) {
@@ -167,8 +293,8 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         id: 'average',
         title: isRTL ? 'تواجد متوسط - مهدد' : 'Average Presence',
         desc: isRTL
-          ? 'أنت موجود… لكن المنافسين يرفعون ولاء عملائهم بالتواصل المستمر ويثبتون أنفسهم كخيار أول في جوجل تدريجيًا.'
-          : 'You exist… but competitors build loyalty through consistent communication and gradually position themselves as a top Google choice.',
+          ? 'أنت موجود… لكن المنافسون يرفعون حضورهم بالأتمتة ويبتلعون حصتك تدريجيًا.'
+          : 'You are present… but competitors use automation to slowly take your market share.',
         color: 'text-yellow-500',
         bg: 'bg-yellow-900/20',
         border: 'border-yellow-500/30',
@@ -201,7 +327,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   )}`;
 
   // ==========================
-  // 7) MANUAL MESSAGE (UPDATED CONTENT ONLY)
+  // 7) MANUAL MESSAGE
   // ==========================
   const manualIcon =
     status.id === 'strong' ? (
@@ -215,12 +341,12 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   const manualHeadline =
     status.id === 'strong'
       ? isRTL
-        ? 'أداؤك قوي… لكن القمة تحتاج استمرارية ذكية'
-        : 'You’re strong… but the top needs consistent momentum'
+        ? 'أداؤك قوي… لكن القمة تحتاج أتمتة'
+        : 'You’re strong… but the top needs automation'
       : status.id === 'average'
       ? isRTL
-        ? 'أنت مهدد… المنافسون يسبقونك بتواصلهم وبناء ولائهم'
-        : 'You’re at risk… competitors win with consistent communication & loyalty'
+        ? 'أنت مهدد… المنافسون يسبقونك بالأتمتة'
+        : 'You’re at risk… competitors outrun you with automation'
       : isRTL
       ? 'أنت غير مرئي… وتخسر فرصًا يوميًا'
       : 'You’re invisible… losing opportunities daily';
@@ -228,64 +354,15 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   const manualBody =
     status.id === 'strong'
       ? isRTL
-        ? 'التقييمات الحالية جيدة، لكن الاعتماد على الأسلوب الحالي يجعل الاستمرارية أصعب ومعرضة للتراجع… لأن المنافسين يحافظون على تواصلهم مع عملائهم ويبنون ولاءً يثبتهم في مقدمة خيارات جوجل.'
-        : 'Your reviews are good, but relying on the current approach makes consistency harder and vulnerable—competitors maintain ongoing communication, build loyalty, and stay top in Google choices.'
+        ? 'التقييمات الحالية جيدة، لكن الاعتماد على الأسلوب الحالي يجعل الحفاظ على القمة مرهقًا ومعرضًا للتراجع… لأن المنافسين يزيدون النشاط تلقائيًا كل يوم.'
+        : 'Your reviews are good, but manual effort makes staying on top exhausting and vulnerable—competitors grow automatically every day.'
       : status.id === 'average'
       ? isRTL
-        ? 'أنت موجود، لكن ضعف الاستمرارية يمنح المنافسين مساحة ليتقدموا بتواصلهم المستمر وبناء الولاء… فيظهرون قبلك في خيارات جوجل تدريجيًا.'
-        : 'You’re present, but inconsistency gives competitors room to advance through consistent communication and loyalty building—so they show up before you in Google choices.'
+        ? 'أنت موجود، لكن ضعف الاستمرارية يمنح المنافسين مساحة لسرقة حصتك. بدون أتمتة، نموك سيبقى أبطأ من السوق.'
+        : 'You exist, but inconsistency gives competitors room to take your share. Without automation, your growth stays slower than the market.'
       : isRTL
       ? 'محركات البحث تتجاهلك بسبب نقص الإشارات الثابتة للثقة. كل يوم يمر بدون تدفق تقييمات… يعني عملاء يذهبون لغيرك.'
       : 'Search engines ignore you without consistent trust signals. Every day without review flow means customers choosing competitors.';
-
-  // ==========================
-  // 8) NEW SECTION: NEGATIVE RATING IMPACT (AFTER CURRENT STATUS)
-  // ==========================
-  const rawRating = Number(
-    (data as any).rating ?? (data as any).averageRating ?? (data as any).stars
-  );
-
-  const rating =
-    Number.isFinite(rawRating) && rawRating > 0 && rawRating <= 5 ? rawRating : 4.5;
-
-  const dropFromFive = Math.max(0, 5 - rating);
-
-  // كل نزول 0.5 نجمة = +5%
-  const negativeImpactPercent = Math.min(
-    60,
-    Math.max(0, Math.ceil(dropFromFive / 0.5) * 5)
-  );
-
-  const negativeStatus =
-    negativeImpactPercent >= 30
-      ? {
-          title: isRTL ? 'خطر عالي على اكتساب العملاء' : 'High Risk to Customer Acquisition',
-          color: 'text-red-400',
-          bg: 'bg-red-500/5',
-          border: 'border-red-500/20',
-          hint: isRTL
-            ? 'هذا معدل كبير… يقلل قرار الشراء بسرعة ويحتاج معالجة فورية.'
-            : 'This is a significant rate—reduces purchase decisions fast and needs immediate fixing.',
-        }
-      : negativeImpactPercent >= 15
-      ? {
-          title: isRTL ? 'معدل مقلق ويحتاج تحسين' : 'Concerning Rate—Needs Improvement',
-          color: 'text-yellow-300',
-          bg: 'bg-yellow-500/5',
-          border: 'border-yellow-500/20',
-          hint: isRTL
-            ? 'هذا الرقم يؤثر على الثقة… ويمكن تحسينه بإدارة التقييمات وردود ذكية ومعالجة الداخل قبل العلن.'
-            : 'This impacts trust—can be improved with review management, smart replies, and private resolution before public damage.',
-        }
-      : {
-          title: isRTL ? 'معدل طبيعي لكن قابل للتحسين' : 'Normal Rate, Still Improveable',
-          color: 'text-green-300',
-          bg: 'bg-green-500/5',
-          border: 'border-green-500/20',
-          hint: isRTL
-            ? 'وضع جيد… ومع الإدارة الذكية ستزيد الثقة ويثبت ظهورك.'
-            : 'Good status—smart management boosts trust and stabilizes visibility.',
-        };
 
   // ==========================
   // RENDER
@@ -352,6 +429,57 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                   : 'Alert: competitors exploit any digital gap to overtake you.'}
               </span>
             </div>
+
+            {/* ✅ Rating badge (no default) */}
+            <div className="pt-3">
+              {rating !== null ? (
+                <div className="inline-flex items-center gap-3 bg-white/5 border border-white/10 px-5 py-3 rounded-2xl">
+                  <Star className="text-yellow-400" size={18} />
+                  <span className="text-white font-black">
+                    {isRTL ? 'تقييمك الحالي:' : 'Current Rating:'} {rating.toFixed(1)} / 5
+                  </span>
+                  <span className="text-slate-400 font-black text-sm">
+                    ({ratingPercent}%)
+                  </span>
+                  <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest">
+                    {ratingInfo.source === 'direct'
+                      ? isRTL
+                        ? 'مصدر: حقل مباشر'
+                        : 'Source: direct'
+                      : ratingInfo.source === 'breakdown'
+                      ? isRTL
+                        ? 'مصدر: توزيع النجوم'
+                        : 'Source: breakdown'
+                      : isRTL
+                      ? 'مصدر: تقدير من الإيجابي/السلبي'
+                      : 'Source: estimated'}
+                  </span>
+                </div>
+              ) : (
+                <div className="inline-flex items-center gap-3 bg-white/5 border border-white/10 px-5 py-3 rounded-2xl">
+                  <Star className="text-slate-400" size={18} />
+                  <span className="text-slate-200 font-black">
+                    {isRTL
+                      ? 'التقييم النجمي غير متاح من البيانات الحالية'
+                      : 'Star rating not available in current data'}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* ✅ Negative rating impact */}
+            {negativeImpactPercent !== null && (
+              <div className="pt-2">
+                <div className="inline-flex items-center gap-3 bg-red-500/5 border border-red-500/20 px-5 py-3 rounded-2xl">
+                  <AlertTriangle className="text-red-400" size={18} />
+                  <span className="text-red-200 font-black">
+                    {isRTL
+                      ? `هذا المستوى قد يقلل قابلية اكتساب عملاء جدد بنحو ${negativeImpactPercent}% (تقدير).`
+                      : `This level may reduce new-customer acquisition by ~${negativeImpactPercent}% (estimate).`}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -461,7 +589,9 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             <div className="w-full md:w-96 bg-red-500/5 rounded-3xl p-8 border border-red-500/20 flex flex-col justify-center text-center space-y-4">
               <AlertTriangle className="text-red-500 mx-auto" size={40} />
               <h4 className="text-red-500 font-black text-sm uppercase tracking-widest">
-                {isRTL ? 'تقييمات تفقدها بسبب الأسلوب الحالي' : 'Reviews Lost Due To Current Approach'}
+                {isRTL
+                  ? 'تقييمات تفقدها بسبب الأسلوب الحالي'
+                  : 'Reviews Lost Due To Current Approach'}
               </h4>
 
               <div className="space-y-2">
@@ -489,70 +619,6 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           </div>
         </div>
 
-        {/* ✅ NEW: NEGATIVE RATING IMPACT SECTION (AFTER CURRENT STATUS) */}
-        <div className={`bg-slate-900/80 p-10 md:p-14 rounded-[3.5rem] border-2 ${negativeStatus.border} ${negativeStatus.bg} relative overflow-hidden shadow-2xl`}>
-          <div className="flex flex-col md:flex-row justify-between gap-10">
-            <div className="flex-1 space-y-6">
-              <div className="flex items-center gap-4 border-b border-white/5 pb-6">
-                <ShieldCheck className={`${negativeStatus.color}`} size={34} />
-                <h3 className="text-slate-200 font-black text-2xl md:text-3xl uppercase tracking-tighter">
-                  {isRTL ? 'تحليل التأثير السلبي على اكتساب العملاء' : 'Negative Impact on Customer Acquisition'}
-                </h3>
-              </div>
-
-              <p className="text-slate-200 text-xl md:text-2xl font-black leading-relaxed">
-                {isRTL
-                  ? `معدل نجومك الحالي تقريبًا: ${rating.toFixed(1)} / 5 — وهذا يعني أن لديك "نسبة نفور" محتملة تقارب`
-                  : `Your current rating is about: ${rating.toFixed(1)} / 5 — which indicates a potential “drop-off rate” of`}
-              </p>
-
-              <div className="flex flex-wrap items-center gap-4">
-                <div className={`px-6 py-3 rounded-2xl border border-white/10 bg-black/30 ${negativeStatus.color} font-black text-3xl`}>
-                  {negativeImpactPercent}%
-                </div>
-                <div className="text-slate-300 font-bold text-sm md:text-base leading-relaxed">
-                  {isRTL
-                    ? 'من العملاء الجدد قد يترددون أو يختارون منافسًا بسبب “عدم كفاية الثقة” في النجوم.'
-                    : 'of new customers may hesitate or choose competitors due to lower trust in the rating.'}
-                </div>
-              </div>
-
-              <div className="bg-black/30 border border-white/10 rounded-3xl p-6">
-                <p className={`font-black text-lg ${negativeStatus.color}`}>
-                  {negativeStatus.title}
-                </p>
-                <p className="text-slate-300 font-semibold mt-2 leading-relaxed">
-                  {negativeStatus.hint}
-                </p>
-                <p className="text-slate-500 text-sm font-bold mt-3 leading-relaxed">
-                  {isRTL
-                    ? 'منطق الحساب: كل نزول بمقدار نصف نجمة (0.5) يضيف 5% نفور إضافي — لذلك تحسين النجوم ليس “شكل”… بل قرار ربح.'
-                    : 'Logic: every 0.5-star drop adds +5% extra drop-off — improving stars isn’t cosmetic, it’s profit.'}
-                </p>
-              </div>
-            </div>
-
-            <div className="w-full md:w-96 bg-black/20 rounded-3xl p-8 border border-white/10 text-center flex flex-col justify-center space-y-4">
-              <h4 className="text-slate-200 font-black text-sm uppercase tracking-widest">
-                {isRTL ? 'ماذا يعني ذلك عمليًا؟' : 'What this means in practice'}
-              </h4>
-
-              <div className="text-6xl font-black text-white leading-none">
-                {Math.round((dailyCustomers || 0) * (negativeImpactPercent / 100))}
-              </div>
-              <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">
-                {isRTL ? 'عميل يوميًا قد يتردد أو لا يختارك' : 'customers/day may hesitate or not choose you'}
-              </p>
-
-              <div className="pt-4 border-t border-white/10 text-slate-300 text-sm font-semibold leading-relaxed">
-                {isRTL
-                  ? 'وهنا يأتي دور ردود AI + درع حماية السمعة… لتقليل الضرر ورفع التقييم تدريجيًا.'
-                  : 'That’s where AI replies + Reputation Shield reduce damage and lift rating over time.'}
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* WITH SYSTEM (PRO) */}
         <div className="bg-gradient-to-br from-indigo-950/60 to-slate-900 p-10 md:p-16 rounded-[4rem] border-4 border-indigo-500/30 relative overflow-hidden shadow-indigo-500/20 shadow-2xl group">
           <div className="absolute top-0 right-0 p-8 text-indigo-500/10 group-hover:scale-110 transition-transform duration-700">
@@ -565,7 +631,9 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                 <div className="flex items-center gap-4 justify-center md:justify-start">
                   <Zap className="text-indigo-400 fill-indigo-400" size={42} />
                   <h3 className="text-white font-black text-4xl md:text-5xl italic">
-                    {isRTL ? 'مع نظام Elegant Options PRO' : 'With Elegant Options PRO'}
+                    {isRTL
+                      ? 'مع نظام Elegant Options PRO'
+                      : 'With Elegant Options PRO'}
                   </h3>
                 </div>
 
@@ -644,11 +712,189 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         </div>
       </div>
 
-      {/* باقي الكود كما هو بدون تغيير */}
-      {/* ... (SYSTEM FEATURES, QUOTE, RECOMMENDATION, FINAL CTA) */}
-      {/* ملاحظة: اترك بقية الأقسام في ملفك كما هي تماماً */}
+      {/* SYSTEM FEATURES (ENHANCED UI + EFFECTS) */}
+      <div className="grid lg:grid-cols-3 gap-8">
+        {/* AI Smart Replies */}
+        <div className="group relative rounded-[3.5rem] overflow-hidden">
+          <div className="absolute inset-0 rounded-[3.5rem] p-[1px] bg-gradient-to-br from-indigo-500/40 via-slate-700/30 to-transparent opacity-70 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(99,102,241,.18),transparent_55%),radial-gradient(circle_at_100%_30%,rgba(99,102,241,.12),transparent_40%)]" />
+          <div className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[220%] transition-all duration-1000" />
 
-      {/* FINAL CTA with guidance line */}
+          <div className="relative bg-slate-900/70 border border-slate-800/70 p-10 rounded-[3.5rem] space-y-7 shadow-2xl flex flex-col min-h-[520px] backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_30px_120px_-25px_rgba(99,102,241,.35)] group-hover:border-indigo-500/30">
+            <div className="absolute -top-16 -right-16 w-56 h-56 bg-indigo-500/10 blur-[90px] rounded-full" />
+
+            <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-400 shadow-inner ring-1 ring-white/10 group-hover:ring-indigo-400/30 transition-all">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-2xl blur-lg bg-indigo-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Bot size={36} className="relative group-hover:scale-110 transition-transform duration-300" />
+              </div>
+            </div>
+
+            <h4 className="text-2xl md:text-3xl font-black text-white italic tracking-tight">
+              {isRTL ? 'ردود ذكية بالذكاء الاصطناعي' : 'AI Smart Replies'}
+            </h4>
+
+            <p className="text-slate-300 text-lg leading-relaxed font-semibold flex-1">
+              {isRTL
+                ? 'رد تلقائي احترافي على جميع التقييمات 24 ساعه لا يتوقف… يزيد الثقة، يرفع جودة الصفحة، ويمنح جوجل إشارات نشاط مستمرة تدعم ترتيبك.'
+                : 'Professional auto-replies 24 hours non-stop… increase trust, improve profile quality, and feed Google continuous activity signals that support ranking.'}
+            </p>
+
+            <div className="bg-black/30 border border-white/10 rounded-2xl p-5 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <p className="relative text-slate-200 font-black text-sm">
+                {isRTL
+                  ? 'النتيجة: عميل يشعر بالاهتمام → تقييم أفضل → ظهور أعلى.'
+                  : 'Result: customer feels cared for → better reviews → higher visibility.'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Reputation Shield */}
+        <div className="group relative rounded-[3.5rem] overflow-hidden">
+          <div className="absolute inset-0 rounded-[3.5rem] p-[1px] bg-gradient-to-br from-orange-500/40 via-slate-700/30 to-transparent opacity-70 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(249,115,22,.18),transparent_55%),radial-gradient(circle_at_100%_30%,rgba(249,115,22,.12),transparent_40%)]" />
+          <div className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[220%] transition-all duration-1000" />
+
+          <div className="relative bg-slate-900/70 border border-slate-800/70 p-10 rounded-[3.5rem] space-y-7 shadow-2xl flex flex-col min-h-[520px] backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_30px_120px_-25px_rgba(249,115,22,.30)] group-hover:border-orange-500/30">
+            <div className="absolute -top-16 -right-16 w-56 h-56 bg-orange-500/10 blur-[90px] rounded-full" />
+
+            <div className="w-16 h-16 bg-orange-500/10 rounded-2xl flex items-center justify-center text-orange-400 shadow-inner ring-1 ring-white/10 group-hover:ring-orange-400/30 transition-all">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-2xl blur-lg bg-orange-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ShieldCheck size={36} className="relative group-hover:scale-110 transition-transform duration-300" />
+              </div>
+            </div>
+
+            <h4 className="text-2xl md:text-3xl font-black text-white italic tracking-tight">
+              {isRTL ? 'درع حماية السمعة' : 'Reputation Shield'}
+            </h4>
+
+            <p className="text-slate-300 text-lg leading-relaxed font-semibold flex-1">
+              {isRTL
+                ? 'نظام يلتقط أي تقييم سلبي مبكرًا ويحوّله لمعالجة داخلية خاصة قبل أن يؤثر على قرار العملاء الجدد… ويحافظ على متوسط تقييمك قويًا.'
+                : 'A system that catches negative feedback early, routes it privately for resolution before it impacts new customers—keeping your rating strong.'}
+            </p>
+
+            <div className="bg-black/30 border border-white/10 rounded-2xl p-5 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <p className="relative text-slate-200 font-black text-sm">
+                {isRTL
+                  ? 'النتيجة: ثقة أعلى + ضرر أقل + قرار شراء أسرع.'
+                  : 'Result: higher trust + less damage + faster purchase decisions.'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Delivery Integration */}
+        <div className={`group relative rounded-[3.5rem] overflow-hidden ${!isRestaurant ? 'opacity-60 grayscale' : ''}`}>
+          <div className="absolute inset-0 rounded-[3.5rem] p-[1px] bg-gradient-to-br from-green-500/40 via-slate-700/30 to-transparent opacity-70 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(34,197,94,.18),transparent_55%),radial-gradient(circle_at_100%_30%,rgba(34,197,94,.12),transparent_40%)]" />
+          <div className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[220%] transition-all duration-1000" />
+
+          <div className={`relative bg-slate-900/70 border border-slate-800/70 p-10 rounded-[3.5rem] space-y-7 shadow-2xl flex flex-col min-h-[520px] backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_30px_120px_-25px_rgba(34,197,94,.28)] group-hover:border-green-500/30 ${!isRestaurant ? 'pointer-events-none' : ''}`}>
+            <div className="absolute -top-16 -right-16 w-56 h-56 bg-green-500/10 blur-[90px] rounded-full" />
+
+            <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-400 shadow-inner ring-1 ring-white/10 group-hover:ring-green-400/30 transition-all">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-2xl blur-lg bg-green-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Bike size={36} className="relative group-hover:scale-110 transition-transform duration-300" />
+              </div>
+            </div>
+
+            <div className="flex items-start justify-between gap-4">
+              <h4 className="text-2xl md:text-3xl font-black text-white italic tracking-tight">
+                {isRTL ? 'دمج تطبيقات التوصيل' : 'Delivery Integration'}
+              </h4>
+
+              {!isRestaurant && (
+                <span className="shrink-0 px-3 py-1 rounded-full text-xs font-black bg-white/5 border border-white/10 text-slate-200">
+                  {isRTL ? 'حصري للمطاعم' : 'Restaurants only'}
+                </span>
+              )}
+            </div>
+
+            <p className="text-slate-300 text-lg leading-relaxed font-semibold flex-1">
+              {isRTL
+                ? 'بعد كل طلب… نرسل رسالة طلب تقييم تلقائية عبر واتساب في التوقيت المثالي. هكذا تتحول “الطلبات الصامتة” إلى تقييمات إيجابية تدفع ظهورك للأعلى.'
+                : 'After each order… an automatic WhatsApp review request is sent at the perfect moment. Silent orders turn into positive reviews that boost visibility.'}
+            </p>
+
+            <div className="bg-black/30 border border-white/10 rounded-2xl p-5 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <p className="relative text-slate-200 font-black text-sm">
+                {isRTL
+                  ? 'تطبيق مباشر لقاعدة 10%: تحويل جزء ثابت من عملائك اليوميين إلى تقييمات نشطة.'
+                  : 'Direct application of the 10% rule: converting a consistent share of daily customers into active reviews.'}
+              </p>
+            </div>
+
+            {!isRestaurant && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="px-6 py-4 rounded-3xl bg-black/40 border border-white/10 backdrop-blur-md text-center">
+                  <p className="text-white font-black">
+                    {isRTL ? 'هذه الميزة تُفعّل للمطاعم فقط' : 'This feature is enabled for restaurants only'}
+                  </p>
+                  <p className="text-slate-200/80 text-sm font-semibold mt-1">
+                    {isRTL ? 'اختر نوع النشاط مطعم لتفعيلها' : 'Select “Restaurant” to unlock it'}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* QUOTE + STRATEGIC RECOMMENDATION */}
+      <div className="space-y-16 py-10">
+        <div className="flex flex-col items-center text-center space-y-8 max-w-4xl mx-auto px-4">
+          <QuoteIcon className="text-indigo-500/20" size={80} fill="currentColor" />
+          <p className="text-slate-200 text-2xl md:text-4xl font-black italic leading-tight tracking-tight">
+            {isRTL
+              ? '"زيادة نجمة واحدة في التقييم تؤدي إلى زيادة في الإيرادات بنسبة 5% إلى 9%."'
+              : '"A one-star increase in rating can lead to a 5%–9% increase in revenue."'}
+          </p>
+          <div className="w-20 h-1 bg-yellow-500/30 rounded-full" />
+          <span className="text-yellow-500 font-black tracking-[0.4em] text-sm uppercase">
+            Harvard Business School
+          </span>
+        </div>
+
+        <div className="bg-indigo-600/5 border border-indigo-500/20 rounded-[4rem] p-12 md:p-16 relative overflow-hidden group shadow-2xl">
+          <div className="absolute -top-12 -right-12 p-8 text-indigo-500/5 rotate-12 transition-transform group-hover:scale-110">
+            <ShieldCheck size={300} />
+          </div>
+
+          <div className="relative z-10 space-y-6">
+            <div className="flex items-center gap-5 text-indigo-400">
+              <ShieldCheck size={48} />
+              <h3 className="text-3xl md:text-4xl font-black italic">
+                {isRTL ? 'التوصية الاستراتيجية النهائية' : 'Strategic Recommendation'}
+              </h3>
+            </div>
+
+            <p className="text-slate-200 text-xl md:text-3xl leading-relaxed font-bold max-w-5xl">
+              {isRTL
+                ? `بناءً على تحليل بيانات (${data.projectName || 'مشروعك'})، التوصية واضحة: تفعيل نظام الأتمتة لحماية السمعة ورفع الظهور بشكل مستمر. الهدف ليس “زيادة تقييمات” فقط… بل تثبيت مركزك في البحث ومنع التسرب الصامت وتحويل العملاء إلى ولاء وربح متكرر.`
+                : `Based on the analysis of (${data.projectName || 'your business'}), the recommendation is clear: activate automation to protect reputation and continuously boost visibility. The goal isn’t just “more reviews”—it’s locking your search position, preventing silent churn, and turning customers into repeat profit.`}
+            </p>
+
+            <div className="bg-black/30 border border-white/10 rounded-3xl p-6">
+              <p className="text-slate-300 text-base md:text-lg font-semibold leading-relaxed">
+                {isRTL
+                  ? `ما نقدّمه ليس أداة… بل نظام يضاعف كفاءتك ويختصر وقتك ويقودك لنمو حقيقي.
+
+القيمة الحقيقية تكمن في الكفاءة، توفير الوقت، وبناء نمو طويل الأمد.).`
+                  : 'If you want, you can watch a visual simulation showing the full journey (visit/order → review request → positive review → higher visibility → more customers).'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* FINAL CTA */}
       <div className="text-center space-y-12 pt-10 border-t border-slate-800">
         <div className="space-y-6">
           <h2 className="text-5xl md:text-7xl font-black text-white leading-tight tracking-tighter italic">
@@ -695,6 +941,17 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
               <RotateCw className="w-8 h-8 group-hover:rotate-180 transition-transform duration-700" />
               {isRTL ? 'تحليل نشاط آخر' : 'Analyze Another'}
             </button>
+          </div>
+
+          {/* Optional: small footer note for rating confidence */}
+          <div className="text-slate-600 text-xs font-bold pt-4">
+            {rating === null
+              ? isRTL
+                ? 'ملاحظة: لم يتم توفير تقييم النجوم ضمن البيانات المدخلة.'
+                : 'Note: star rating was not provided in input data.'
+              : isRTL
+              ? `ملاحظة: تم استخراج التقييم (${rating.toFixed(1)}/5) — دقة: ${ratingInfo.confidence}.`
+              : `Note: rating extracted (${rating.toFixed(1)}/5) — confidence: ${ratingInfo.confidence}.`}
           </div>
         </div>
       </div>
