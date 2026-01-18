@@ -201,7 +201,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         id: 'average',
         title: isRTL ? 'تواجد متوسط - مهدد' : 'Average Presence',
         desc: isRTL
-          ? 'أنت موجود… لكن المنافسون يرفعون حضورهم بالأتمتة ويبتلعون حصتك تدريجيًا.'
+          ? 'أنت موجود… لكن المنافسون يرفعون حضورهم باهتمامهم بالعملاء ويبتلعون حصتك تدريجيًا.'
           : 'You are present… but competitors strengthen their presence with automation and slowly take your market share.',
         color: 'text-yellow-500',
         bg: 'bg-yellow-900/20',
@@ -211,7 +211,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
     }
     return {
       id: 'strong',
-      title: isRTL ? 'رائد يحتاج أتمتة' : 'Market Leader Needs Automation',
+      title: isRTL ? 'رائد يحتاج ثقة اكبر من العملاء' : 'Market Leader Needs Automation',
       desc: isRTL
         ? 'أداء ممتاز… لكن الحفاظ على القمة أصعب من الوصول إليها. أي ثغرة سيستغلها المنافسون.'
         : 'Great performance… but staying on top is harder than reaching it. Competitors exploit any gap.',
@@ -249,11 +249,11 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   const manualHeadline =
     status.id === 'strong'
       ? isRTL
-        ? 'أداؤك قوي… لكن القمة تحتاج أتمتة'
+        ? 'أداؤك قوي… لكن القمة تحتاج التطور المستمر'
         : 'You’re strong… but staying on top needs automation'
       : status.id === 'average'
       ? isRTL
-        ? 'أنت مهدد… المنافسون يسبقونك بالأتمتة'
+        ? 'أنت مهدد… المنافسون يسبقونك بزيادة العملاء'
         : 'You’re at risk… competitors outrun you with automation'
       : isRTL
       ? 'أنت غير مرئي… وتخسر فرصًا يوميًا'
@@ -266,7 +266,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         : 'Your current reviews are good, but relying on manual effort makes staying on top exhausting and vulnerable—because competitors grow automatically every day.'
       : status.id === 'average'
       ? isRTL
-        ? 'أنت موجود، لكن ضعف الاستمرارية يمنح المنافسين مساحة لسرقة حصتك. بدون أتمتة، نموك سيبقى أبطأ من السوق.'
+        ? 'أنت موجود، لكن ضعف الاستمرارية يمنح المنافسين مساحة لسرقة حصتك. بدون السعي لزيادة ولاء عملائك، نموك سيبقى أبطأ في السوق.'
         : 'You exist, but inconsistency gives competitors room to take your share. Without automation, your growth stays slower than the market.'
       : isRTL
       ? 'محركات البحث تتجاهلك بسبب نقص الإشارات الثابتة للثقة. كل يوم يمر بدون تدفق تقييمات… يعني عملاء يذهبون لغيرك.'
@@ -498,8 +498,8 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                   <Zap className="text-indigo-400 fill-indigo-400" size={42} />
                   <h3 className="text-white font-black text-4xl md:text-5xl italic">
                     {isRTL
-                      ? 'مع نظام Elegant Options PRO'
-                      : 'With Elegant Options PRO'}
+                      ? 'مع نظام Elegant Options '
+                      : 'With Elegant Options '}
                   </h3>
                 </div>
 
@@ -587,7 +587,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         <div className="max-w-5xl mx-auto text-center space-y-12 px-4">
           <h2 className="text-4xl md:text-6xl font-black text-white italic tracking-tight">
             {isRTL
-              ? 'كيف تغيّر الأتمتة مستوى مشروعك؟'
+              ? 'كيف يغيّر نظامنا والأتمتة مستوى مشروعك؟'
               : 'How Automation Upgrades Your Business'}
           </h2>
 
@@ -873,7 +873,7 @@ The real value is in efficiency, time savings, and building long-term growth.`}
       <div className="text-center space-y-12 pt-10 border-t border-slate-800">
         <div className="space-y-6">
           <h2 className="text-5xl md:text-7xl font-black text-white leading-tight tracking-tighter italic">
-            {isRTL ? 'لا تكن خفيًا…' : "Don’t be invisible…"}
+            {isRTL ? 'ابدأ التغيير الآن…' : "Don’t be invisible…"}
           </h2>
 
           <p className="text-indigo-400 text-xl md:text-2xl font-black leading-relaxed max-w-3xl mx-auto">
