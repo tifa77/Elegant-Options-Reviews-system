@@ -135,19 +135,28 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   const baseYearlyReviews = baselineMonthly * 12;
   const projectedYearlyReviews = systemMonthly * 12;
 
-  const reviewGapYearly = Math.max(0, projectedYearlyReviews - baseYearlyReviews);
+  const reviewGapYearly = Math.max(
+    0,
+    projectedYearlyReviews - baseYearlyReviews
+  );
 
   const customerLossMultiplier = 4; // as previously used
-  const lostCustomersCount = Math.max(0, reviewGapYearly * customerLossMultiplier);
+  const lostCustomersCount = Math.max(
+    0,
+    reviewGapYearly * customerLossMultiplier
+  );
 
   const lostRevenueValue = lostCustomersCount * regional.ticket;
-  const lostRevenue = Number.isFinite(lostRevenueValue) ? Math.round(lostRevenueValue) : 0;
+  const lostRevenue = Number.isFinite(lostRevenueValue)
+    ? Math.round(lostRevenueValue)
+    : 0;
 
   // Growth % (keep reasonable and safe)
   const percentageIncrease =
     baseYearlyReviews > 0
       ? Math.round(
-          ((projectedYearlyReviews - baseYearlyReviews) / baseYearlyReviews) * 100
+          ((projectedYearlyReviews - baseYearlyReviews) / baseYearlyReviews) *
+            100
         )
       : 100;
 
@@ -280,7 +289,9 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
         >
           {isRTL ? <ArrowRight size={20} /> : <ArrowLeft size={20} />}
-          <span className="font-bold text-sm uppercase tracking-wider">{t.back}</span>
+          <span className="font-bold text-sm uppercase tracking-wider">
+            {t.back}
+          </span>
         </button>
 
         <span className="bg-indigo-500/10 border border-indigo-500/20 px-4 py-1 rounded-full text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em]">
@@ -318,7 +329,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
               {status.desc}
             </p>
 
-            {/* ✅ التعديل الأول: نفس النص العربي + إنجليزي مطابق + نسبة متغيرة */}
+            {/* ✅ التعديل الأول */}
             <p className="text-slate-400 text-sm md:text-base font-semibold leading-relaxed">
               {isRTL
                 ? `هذا المستوى قد يقلل قابلية اكتساب عملاء جدد بنحو ${acquisitionLossPercent}% (تقدير).`
@@ -374,7 +385,9 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
               {m.label}
             </span>
             <div className="flex flex-col items-center">
-              <span className={`text-4xl font-black text-white ${m.color || ''}`}>
+              <span
+                className={`text-4xl font-black text-white ${m.color || ''}`}
+              >
                 {m.value}
               </span>
               <span className="text-[10px] text-slate-500 font-bold mt-2 uppercase tracking-widest">
@@ -413,21 +426,27 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                   <span className="text-slate-500 text-xs block mb-1 uppercase font-black tracking-widest">
                     {isRTL ? 'المعدل اليومي' : 'Daily Rate'}
                   </span>
-                  <span className="text-3xl font-black text-white">{baselineDaily}</span>
+                  <span className="text-3xl font-black text-white">
+                    {baselineDaily}
+                  </span>
                 </div>
 
                 <div className="bg-black/20 p-5 rounded-2xl border border-white/5">
                   <span className="text-slate-500 text-xs block mb-1 uppercase font-black tracking-widest">
                     {isRTL ? 'المعدل الأسبوعي' : 'Weekly Rate'}
                   </span>
-                  <span className="text-3xl font-black text-white">{baselineWeekly}</span>
+                  <span className="text-3xl font-black text-white">
+                    {baselineWeekly}
+                  </span>
                 </div>
 
                 <div className="bg-black/20 p-5 rounded-2xl border border-white/5">
                   <span className="text-slate-500 text-xs block mb-1 uppercase font-black tracking-widest">
                     {isRTL ? 'المعدل الشهري' : 'Monthly Rate'}
                   </span>
-                  <span className="text-3xl font-black text-white">{baselineMonthly}</span>
+                  <span className="text-3xl font-black text-white">
+                    {baselineMonthly}
+                  </span>
                 </div>
               </div>
             </div>
@@ -478,7 +497,9 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                 <div className="flex items-center gap-4 justify-center md:justify-start">
                   <Zap className="text-indigo-400 fill-indigo-400" size={42} />
                   <h3 className="text-white font-black text-4xl md:text-5xl italic">
-                    {isRTL ? 'مع نظام Elegant Options PRO' : 'With Elegant Options PRO'}
+                    {isRTL
+                      ? 'مع نظام Elegant Options PRO'
+                      : 'With Elegant Options PRO'}
                   </h3>
                 </div>
 
@@ -531,7 +552,11 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                   <span className="text-indigo-300 text-[10px] uppercase font-black tracking-widest block mb-3">
                     {p.label}
                   </span>
-                  <span className={`text-4xl font-black ${p.color || 'text-white'}`}>
+                  <span
+                    className={`text-4xl font-black ${
+                      p.color || 'text-white'
+                    }`}
+                  >
                     {p.value}
                   </span>
                   <span className="text-slate-500 text-[10px] block mt-2 font-bold uppercase">
@@ -541,7 +566,6 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
               ))}
             </div>
 
-            {/* ✅ إصلاح خطأ JSX (بدون تغيير المعنى) + توحيد العربي كأساس */}
             <div className="bg-black/30 border border-white/10 rounded-3xl p-8">
               <p className="text-white text-xl md:text-2xl font-black leading-relaxed">
                 {isRTL
@@ -562,7 +586,9 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
       <div className="py-20 border-y border-slate-800/50 relative">
         <div className="max-w-5xl mx-auto text-center space-y-12 px-4">
           <h2 className="text-4xl md:text-6xl font-black text-white italic tracking-tight">
-            {isRTL ? 'كيف تغيّر الأتمتة مستوى مشروعك؟' : 'How Automation Upgrades Your Business'}
+            {isRTL
+              ? 'كيف تغيّر الأتمتة مستوى مشروعك؟'
+              : 'How Automation Upgrades Your Business'}
           </h2>
 
           <div className="grid md:grid-cols-2 gap-12">
@@ -637,7 +663,10 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-400 shadow-inner ring-1 ring-white/10 group-hover:ring-indigo-400/30 transition-all">
               <div className="relative">
                 <div className="absolute inset-0 rounded-2xl blur-lg bg-indigo-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <Bot size={36} className="relative group-hover:scale-110 transition-transform duration-300" />
+                <Bot
+                  size={36}
+                  className="relative group-hover:scale-110 transition-transform duration-300"
+                />
               </div>
             </div>
 
@@ -674,7 +703,10 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             <div className="w-16 h-16 bg-orange-500/10 rounded-2xl flex items-center justify-center text-orange-400 shadow-inner ring-1 ring-white/10 group-hover:ring-orange-400/30 transition-all">
               <div className="relative">
                 <div className="absolute inset-0 rounded-2xl blur-lg bg-orange-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <ShieldCheck size={36} className="relative group-hover:scale-110 transition-transform duration-300" />
+                <ShieldCheck
+                  size={36}
+                  className="relative group-hover:scale-110 transition-transform duration-300"
+                />
               </div>
             </div>
 
@@ -699,88 +731,97 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           </div>
         </div>
 
-      {/* Delivery / Integration Card */}
-{isRestaurant ? (
-  // ✅ يظهر فقط للمطاعم
-  <div className="group relative rounded-[3.5rem] overflow-hidden">
-    <div className="absolute inset-0 rounded-[3.5rem] p-[1px] bg-gradient-to-br from-green-500/40 via-slate-700/30 to-transparent opacity-70 group-hover:opacity-100 transition-opacity" />
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(34,197,94,.18),transparent_55%),radial-gradient(circle_at_100%_30%,rgba(34,197,94,.12),transparent_40%)]" />
-    <div className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[220%] transition-all duration-1000" />
+        {/* Delivery / Integration Card */}
+        {isRestaurant ? (
+          <div className="group relative rounded-[3.5rem] overflow-hidden">
+            <div className="absolute inset-0 rounded-[3.5rem] p-[1px] bg-gradient-to-br from-green-500/40 via-slate-700/30 to-transparent opacity-70 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(34,197,94,.18),transparent_55%),radial-gradient(circle_at_100%_30%,rgba(34,197,94,.12),transparent_40%)]" />
+            <div className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[220%] transition-all duration-1000" />
 
-    <div className="relative bg-slate-900/70 border border-slate-800/70 p-10 rounded-[3.5rem] space-y-7 shadow-2xl flex flex-col min-h-[520px] backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_30px_120px_-25px_rgba(34,197,94,.28)] group-hover:border-green-500/30">
-      <div className="absolute -top-16 -right-16 w-56 h-56 bg-green-500/10 blur-[90px] rounded-full" />
+            <div className="relative bg-slate-900/70 border border-slate-800/70 p-10 rounded-[3.5rem] space-y-7 shadow-2xl flex flex-col min-h-[520px] backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_30px_120px_-25px_rgba(34,197,94,.28)] group-hover:border-green-500/30">
+              <div className="absolute -top-16 -right-16 w-56 h-56 bg-green-500/10 blur-[90px] rounded-full" />
 
-      <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-400 shadow-inner ring-1 ring-white/10 group-hover:ring-green-400/30 transition-all">
-        <div className="relative">
-          <div className="absolute inset-0 rounded-2xl blur-lg bg-green-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <Bike size={36} className="relative group-hover:scale-110 transition-transform duration-300" />
-        </div>
+              <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-400 shadow-inner ring-1 ring-white/10 group-hover:ring-green-400/30 transition-all">
+                <div className="relative">
+                  <div className="absolute inset-0 rounded-2xl blur-lg bg-green-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <Bike
+                    size={36}
+                    className="relative group-hover:scale-110 transition-transform duration-300"
+                  />
+                </div>
+              </div>
+
+              <h4 className="text-2xl md:text-3xl font-black text-white italic tracking-tight">
+                {isRTL ? 'دمج تطبيقات التوصيل' : 'Delivery Apps Integration'}
+              </h4>
+
+              <p className="text-slate-300 text-lg leading-relaxed font-semibold flex-1">
+                {isRTL
+                  ? 'بعد كل طلب… نرسل رسالة طلب تقييم تلقائية عبر واتساب في التوقيت المثالي. هكذا تتحول “الطلبات الصامتة” إلى تقييمات إيجابية تدفع ظهورك للأعلى.'
+                  : 'After every order, we automatically send a WhatsApp review request at the perfect timing—turning silent orders into positive reviews that boost visibility.'}
+              </p>
+
+              <div className="bg-black/30 border border-white/10 rounded-2xl p-5 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <p className="relative text-slate-200 font-black text-sm">
+                  {isRTL
+                    ? 'تطبيق مباشر لقاعدة 10%: تحويل جزء ثابت من عملائك اليوميين إلى تقييمات نشطة.'
+                    : 'Direct application of the 10% rule: convert a consistent share of daily customers into active reviews.'}
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="group relative rounded-[3.5rem] overflow-hidden">
+            <div className="absolute inset-0 rounded-[3.5rem] p-[1px] bg-gradient-to-br from-slate-500/30 via-slate-700/30 to-transparent opacity-70 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(148,163,184,.18),transparent_55%),radial-gradient(circle_at_100%_30%,rgba(148,163,184,.10),transparent_40%)]" />
+            <div className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[220%] transition-all duration-1000" />
+
+            <div className="relative bg-slate-900/70 border border-slate-800/70 p-10 rounded-[3.5rem] space-y-7 shadow-2xl flex flex-col min-h-[520px] backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-2 group-hover:border-slate-600/50">
+              <div className="absolute -top-16 -right-16 w-56 h-56 bg-slate-500/10 blur-[90px] rounded-full" />
+
+              <div className="w-16 h-16 bg-slate-500/10 rounded-2xl flex items-center justify-center text-slate-300 shadow-inner ring-1 ring-white/10 group-hover:ring-white/20 transition-all">
+                <div className="relative">
+                  <div className="absolute inset-0 rounded-2xl blur-lg bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <Zap
+                    size={36}
+                    className="relative group-hover:scale-110 transition-transform duration-300"
+                  />
+                </div>
+              </div>
+
+              <h4 className="text-2xl md:text-3xl font-black text-white italic tracking-tight">
+                {isRTL ? 'ربط مع أي نظام' : 'Connect With Any System'}
+              </h4>
+
+              <p className="text-slate-300 text-lg leading-relaxed font-semibold flex-1">
+                {isRTL
+                  ? 'بدل ربط تطبيقات التوصيل، يمكننا ربط النظام مع أي منصة أو نظام تستخدمه لإتمام عملية إرسال طلبات التقييم بشكل تلقائي بعد تقديم الخدمة أو إتمام الطلب.'
+                  : 'Instead of delivery apps integration, we can connect the system with any platform you use to automatically send review requests after a service is delivered or an order is completed.'}
+              </p>
+
+              <div className="bg-black/30 border border-white/10 rounded-2xl p-5 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-white/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <p className="relative text-slate-200 font-black text-sm">
+                  {isRTL
+                    ? 'الهدف واحد: طلب تقييم في التوقيت الصحيح → زيادة الثقة → رفع الظهور.'
+                    : 'Same goal: request at the right time → more trust → higher visibility.'}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-
-      <h4 className="text-2xl md:text-3xl font-black text-white italic tracking-tight">
-        {isRTL ? 'دمج تطبيقات التوصيل' : 'Delivery Apps Integration'}
-      </h4>
-
-      <p className="text-slate-300 text-lg leading-relaxed font-semibold flex-1">
-        {isRTL
-          ? 'بعد كل طلب… نرسل رسالة طلب تقييم تلقائية عبر واتساب في التوقيت المثالي. هكذا تتحول “الطلبات الصامتة” إلى تقييمات إيجابية تدفع ظهورك للأعلى.'
-          : 'After every order, we automatically send a WhatsApp review request at the perfect timing—turning silent orders into positive reviews that boost visibility.'}
-      </p>
-
-      <div className="bg-black/30 border border-white/10 rounded-2xl p-5 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-        <p className="relative text-slate-200 font-black text-sm">
-          {isRTL
-            ? 'تطبيق مباشر لقاعدة 10%: تحويل جزء ثابت من عملائك اليوميين إلى تقييمات نشطة.'
-            : 'Direct application of the 10% rule: convert a consistent share of daily customers into active reviews.'}
-        </p>
-      </div>
-    </div>
-  </div>
-) : (
-  // ✅ يظهر لأي نوع آخر بدل “التوصيل”
-  <div className="group relative rounded-[3.5rem] overflow-hidden">
-    <div className="absolute inset-0 rounded-[3.5rem] p-[1px] bg-gradient-to-br from-slate-500/30 via-slate-700/30 to-transparent opacity-70 group-hover:opacity-100 transition-opacity" />
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(148,163,184,.18),transparent_55%),radial-gradient(circle_at_100%_30%,rgba(148,163,184,.10),transparent_40%)]" />
-    <div className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[220%] transition-all duration-1000" />
-
-    <div className="relative bg-slate-900/70 border border-slate-800/70 p-10 rounded-[3.5rem] space-y-7 shadow-2xl flex flex-col min-h-[520px] backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-2 group-hover:border-slate-600/50">
-      <div className="absolute -top-16 -right-16 w-56 h-56 bg-slate-500/10 blur-[90px] rounded-full" />
-
-      <div className="w-16 h-16 bg-slate-500/10 rounded-2xl flex items-center justify-center text-slate-300 shadow-inner ring-1 ring-white/10 group-hover:ring-white/20 transition-all">
-        <div className="relative">
-          <div className="absolute inset-0 rounded-2xl blur-lg bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <Zap size={36} className="relative group-hover:scale-110 transition-transform duration-300" />
-        </div>
-      </div>
-
-      <h4 className="text-2xl md:text-3xl font-black text-white italic tracking-tight">
-        {isRTL ? 'ربط مع أي نظام' : 'Connect With Any System'}
-      </h4>
-
-      <p className="text-slate-300 text-lg leading-relaxed font-semibold flex-1">
-        {isRTL
-          ? 'بدل ربط تطبيقات التوصيل، يمكننا ربط النظام مع أي منصة أو نظام تستخدمه لإتمام عملية إرسال طلبات التقييم بشكل تلقائي بعد تقديم الخدمة أو إتمام الطلب.'
-          : 'Instead of delivery apps integration, we can connect the system with any platform you use to automatically send review requests after a service is delivered or an order is completed.'}
-      </p>
-
-      <div className="bg-black/30 border border-white/10 rounded-2xl p-5 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-white/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-        <p className="relative text-slate-200 font-black text-sm">
-          {isRTL
-            ? 'الهدف واحد: طلب تقييم في التوقيت الصحيح → زيادة الثقة → رفع الظهور.'
-            : 'Same goal: request at the right time → more trust → higher visibility.'}
-        </p>
-      </div>
-    </div>
-  </div>
-)}
-
+      {/* ✅ هذا هو الإصلاح الوحيد: إغلاق grid قبل QUOTE */}
 
       {/* QUOTE + STRATEGIC RECOMMENDATION */}
       <div className="space-y-16 py-10">
         <div className="flex flex-col items-center text-center space-y-8 max-w-4xl mx-auto px-4">
-          <QuoteIcon className="text-indigo-500/20" size={80} fill="currentColor" />
+          <QuoteIcon
+            className="text-indigo-500/20"
+            size={80}
+            fill="currentColor"
+          />
           <p className="text-slate-200 text-2xl md:text-4xl font-black italic leading-tight tracking-tight">
             {isRTL
               ? '"زيادة نجمة واحدة في التقييم تؤدي إلى زيادة في الإيرادات بنسبة 5% إلى 9%."'
@@ -801,7 +842,9 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             <div className="flex items-center gap-5 text-indigo-400">
               <ShieldCheck size={48} />
               <h3 className="text-3xl md:text-4xl font-black italic">
-                {isRTL ? 'التوصية الاستراتيجية النهائية' : 'Final Strategic Recommendation'}
+                {isRTL
+                  ? 'التوصية الاستراتيجية النهائية'
+                  : 'Final Strategic Recommendation'}
               </h3>
             </div>
 
