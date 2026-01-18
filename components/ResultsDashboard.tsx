@@ -699,68 +699,83 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           </div>
         </div>
 
-        {/* Delivery Integration */}
-        <div className={`group relative rounded-[3.5rem] overflow-hidden ${!isRestaurant ? 'opacity-60 grayscale' : ''}`}>
-          <div className="absolute inset-0 rounded-[3.5rem] p-[1px] bg-gradient-to-br from-green-500/40 via-slate-700/30 to-transparent opacity-70 group-hover:opacity-100 transition-opacity" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(34,197,94,.18),transparent_55%),radial-gradient(circle_at_100%_30%,rgba(34,197,94,.12),transparent_40%)]" />
-          <div className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[220%] transition-all duration-1000" />
+      {/* Delivery / Integration Card */}
+{isRestaurant ? (
+  // ✅ يظهر فقط للمطاعم
+  <div className="group relative rounded-[3.5rem] overflow-hidden">
+    <div className="absolute inset-0 rounded-[3.5rem] p-[1px] bg-gradient-to-br from-green-500/40 via-slate-700/30 to-transparent opacity-70 group-hover:opacity-100 transition-opacity" />
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(34,197,94,.18),transparent_55%),radial-gradient(circle_at_100%_30%,rgba(34,197,94,.12),transparent_40%)]" />
+    <div className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[220%] transition-all duration-1000" />
 
-          <div
-            className={`relative bg-slate-900/70 border border-slate-800/70 p-10 rounded-[3.5rem] space-y-7 shadow-2xl flex flex-col min-h-[520px] backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_30px_120px_-25px_rgba(34,197,94,.28)] group-hover:border-green-500/30 ${
-              !isRestaurant ? 'pointer-events-none' : ''
-            }`}
-          >
-            <div className="absolute -top-16 -right-16 w-56 h-56 bg-green-500/10 blur-[90px] rounded-full" />
+    <div className="relative bg-slate-900/70 border border-slate-800/70 p-10 rounded-[3.5rem] space-y-7 shadow-2xl flex flex-col min-h-[520px] backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_30px_120px_-25px_rgba(34,197,94,.28)] group-hover:border-green-500/30">
+      <div className="absolute -top-16 -right-16 w-56 h-56 bg-green-500/10 blur-[90px] rounded-full" />
 
-            <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-400 shadow-inner ring-1 ring-white/10 group-hover:ring-green-400/30 transition-all">
-              <div className="relative">
-                <div className="absolute inset-0 rounded-2xl blur-lg bg-green-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <Bike size={36} className="relative group-hover:scale-110 transition-transform duration-300" />
-              </div>
-            </div>
-
-            <div className="flex items-start justify-between gap-4">
-              <h4 className="text-2xl md:text-3xl font-black text-white italic tracking-tight">
-                {isRTL ? 'دمج تطبيقات التوصيل' : 'Delivery Integration'}
-              </h4>
-
-              {!isRestaurant && (
-                <span className="shrink-0 px-3 py-1 rounded-full text-xs font-black bg-white/5 border border-white/10 text-slate-200">
-                  {isRTL ? 'حصري للمطاعم' : 'Restaurants only'}
-                </span>
-              )}
-            </div>
-
-            <p className="text-slate-300 text-lg leading-relaxed font-semibold flex-1">
-              {isRTL
-                ? 'بعد كل طلب… نرسل رسالة طلب تقييم تلقائية عبر واتساب في التوقيت المثالي. هكذا تتحول “الطلبات الصامتة” إلى تقييمات إيجابية تدفع ظهورك للأعلى.'
-                : 'After each order… we send an automatic WhatsApp review request at the perfect time. Silent orders turn into positive reviews that push your visibility up.'}
-            </p>
-
-            <div className="bg-black/30 border border-white/10 rounded-2xl p-5 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <p className="relative text-slate-200 font-black text-sm">
-                {isRTL
-                  ? 'تطبيق مباشر لقاعدة 10%: تحويل جزء ثابت من عملائك اليوميين إلى تقييمات نشطة.'
-                  : 'Direct application of the 10% rule: converting a consistent share of daily customers into active reviews.'}
-              </p>
-            </div>
-
-            {!isRestaurant && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="px-6 py-4 rounded-3xl bg-black/40 border border-white/10 backdrop-blur-md text-center">
-                  <p className="text-white font-black">
-                    {isRTL ? 'هذه الميزة تُفعّل للمطاعم فقط' : 'This feature is enabled for restaurants only'}
-                  </p>
-                  <p className="text-slate-200/80 text-sm font-semibold mt-1">
-                    {isRTL ? 'اختر نوع النشاط مطعم لتفعيلها' : 'Select “Restaurant” to unlock it'}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
+      <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-400 shadow-inner ring-1 ring-white/10 group-hover:ring-green-400/30 transition-all">
+        <div className="relative">
+          <div className="absolute inset-0 rounded-2xl blur-lg bg-green-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <Bike size={36} className="relative group-hover:scale-110 transition-transform duration-300" />
         </div>
       </div>
+
+      <h4 className="text-2xl md:text-3xl font-black text-white italic tracking-tight">
+        {isRTL ? 'دمج تطبيقات التوصيل' : 'Delivery Apps Integration'}
+      </h4>
+
+      <p className="text-slate-300 text-lg leading-relaxed font-semibold flex-1">
+        {isRTL
+          ? 'بعد كل طلب… نرسل رسالة طلب تقييم تلقائية عبر واتساب في التوقيت المثالي. هكذا تتحول “الطلبات الصامتة” إلى تقييمات إيجابية تدفع ظهورك للأعلى.'
+          : 'After every order, we automatically send a WhatsApp review request at the perfect timing—turning silent orders into positive reviews that boost visibility.'}
+      </p>
+
+      <div className="bg-black/30 border border-white/10 rounded-2xl p-5 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <p className="relative text-slate-200 font-black text-sm">
+          {isRTL
+            ? 'تطبيق مباشر لقاعدة 10%: تحويل جزء ثابت من عملائك اليوميين إلى تقييمات نشطة.'
+            : 'Direct application of the 10% rule: convert a consistent share of daily customers into active reviews.'}
+        </p>
+      </div>
+    </div>
+  </div>
+) : (
+  // ✅ يظهر لأي نوع آخر بدل “التوصيل”
+  <div className="group relative rounded-[3.5rem] overflow-hidden">
+    <div className="absolute inset-0 rounded-[3.5rem] p-[1px] bg-gradient-to-br from-slate-500/30 via-slate-700/30 to-transparent opacity-70 group-hover:opacity-100 transition-opacity" />
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(148,163,184,.18),transparent_55%),radial-gradient(circle_at_100%_30%,rgba(148,163,184,.10),transparent_40%)]" />
+    <div className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[220%] transition-all duration-1000" />
+
+    <div className="relative bg-slate-900/70 border border-slate-800/70 p-10 rounded-[3.5rem] space-y-7 shadow-2xl flex flex-col min-h-[520px] backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-2 group-hover:border-slate-600/50">
+      <div className="absolute -top-16 -right-16 w-56 h-56 bg-slate-500/10 blur-[90px] rounded-full" />
+
+      <div className="w-16 h-16 bg-slate-500/10 rounded-2xl flex items-center justify-center text-slate-300 shadow-inner ring-1 ring-white/10 group-hover:ring-white/20 transition-all">
+        <div className="relative">
+          <div className="absolute inset-0 rounded-2xl blur-lg bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <Zap size={36} className="relative group-hover:scale-110 transition-transform duration-300" />
+        </div>
+      </div>
+
+      <h4 className="text-2xl md:text-3xl font-black text-white italic tracking-tight">
+        {isRTL ? 'ربط مع أي نظام' : 'Connect With Any System'}
+      </h4>
+
+      <p className="text-slate-300 text-lg leading-relaxed font-semibold flex-1">
+        {isRTL
+          ? 'بدل ربط تطبيقات التوصيل، يمكننا ربط النظام مع أي منصة أو نظام تستخدمه لإتمام عملية إرسال طلبات التقييم بشكل تلقائي بعد تقديم الخدمة أو إتمام الطلب.'
+          : 'Instead of delivery apps integration, we can connect the system with any platform you use to automatically send review requests after a service is delivered or an order is completed.'}
+      </p>
+
+      <div className="bg-black/30 border border-white/10 rounded-2xl p-5 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-white/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <p className="relative text-slate-200 font-black text-sm">
+          {isRTL
+            ? 'الهدف واحد: طلب تقييم في التوقيت الصحيح → زيادة الثقة → رفع الظهور.'
+            : 'Same goal: request at the right time → more trust → higher visibility.'}
+        </p>
+      </div>
+    </div>
+  </div>
+)}
+
 
       {/* QUOTE + STRATEGIC RECOMMENDATION */}
       <div className="space-y-16 py-10">
