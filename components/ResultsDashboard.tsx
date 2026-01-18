@@ -488,7 +488,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                 {/* ✅ التعديل الثاني: استبدال الفقرتين المطلوبتين فقط */}
                 <p className="text-indigo-100 text-xl md:text-2xl font-black leading-relaxed max-w-3xl">
                   {isRTL
-                    ? 'الميزة الأهم هنا ليست “رقم” فقط… بل نظام مراسلة ذكي بعد كل خدمة أو طلب: يرسل رسالة شكر لطيفة للعميل في التوقيت المناسب ويطلب تقييم 5 نجوم على Google مع تعليق مُقترح جذّاب يساعد العميل على الكتابة بسهولة — ويزيد ثقة العملاء الجدد بك.'
+                    ? 'الميزة الأهم هنا ليست الحصول على التقييم فقط… بل نظام مراسلة ذكي بعد كل خدمة أو طلب: يرسل رسالة شكر لطيفة للعميل في التوقيت المناسب ويطلب تقييم 5 نجوم على Google — ويزيد ثقة العملاء الجدد بك ويزيد كسب الولاء .'
                     : 'The key advantage isn’t just a “number”… it’s a smart post-service messaging system: it sends a thank-you message at the right time and requests a 5-star Google review with a compelling suggested comment—making it easy for customers to write and boosting new-customer trust.'}
                 </p>
 
@@ -507,17 +507,17 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
               {[
                 {
-                  label: isRTL ? 'اليومي بعد الأتمتة' : 'Daily After Automation',
+                  label: isRTL ? 'اليومي بعد تفعيل النظام' : 'Daily After Automation',
                   value: `+${systemDailyPotential}`,
                   sub: isRTL ? 'تقييم / يوم' : 'reviews / day',
                 },
                 {
-                  label: isRTL ? 'الأسبوعي بعد الأتمتة' : 'Weekly After Automation',
+                  label: isRTL ? 'الأسبوعي بعد تفعيل النظام' : 'Weekly After Automation',
                   value: `+${systemWeekly}`,
                   sub: isRTL ? 'تقييم / أسبوع' : 'reviews / week',
                 },
                 {
-                  label: isRTL ? 'الشهري بعد الأتمتة' : 'Monthly After Automation',
+                  label: isRTL ? 'الشهري بعد تفعيل النظام' : 'Monthly After Automation',
                   value: `+${systemMonthly}`,
                   sub: isRTL ? 'تقييم / شهر' : 'reviews / month',
                 },
@@ -548,8 +548,8 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             <div className="bg-black/30 border border-white/10 rounded-3xl p-8">
               <p className="text-white text-xl md:text-2xl font-black leading-relaxed">
                 {isRTL
-                  ? 'كل يوم تتوقف فيه الأتمتة… أنت تترك فرص تقييم “جاهزة” تضيع بلا رجعة.'
-                  : 'Every day without automation… you leave “ready-to-win” reviews on the table.'}
+                  ? 'كل يوم تتوقف فيه بكسب ولاء عملائك … أنت تترك فرص تقييم “جاهزة” تضيع بلا رجعة.'
+                  </p> : 'Every day you stop building customer loyalty… you're letting a golden opportunity slip away irretrievably..'}
               </p>
               <p className="text-slate-400 text-base md:text-lg font-semibold mt-3 leading-relaxed">
                 {isRTL
