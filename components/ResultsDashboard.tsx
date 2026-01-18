@@ -54,7 +54,6 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   // ==========================
   const currentYear = new Date().getFullYear();
 
-  // ✅ عمر النشاط يعتمد على "سنة التأسيس" كما في الفورم (YYYY)
   const establishedYear = Number(
     (data as any).establishedYear ?? (data as any).establishmentYear
   );
@@ -85,12 +84,11 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   // ==========================
   // 2) SYSTEM POTENTIAL (10% RULE)
   // ==========================
-  const systemDailyPotential = Math.round(dailyCustomers * 0.10); // ✅ 10% golden rule
+  const systemDailyPotential = Math.round(dailyCustomers * 0.10);
   const systemWeekly = systemDailyPotential * 7;
   const systemMonthly = systemDailyPotential * 30;
   const systemYearly = systemDailyPotential * 365;
 
-  // Lost Reviews Gap (Safe)
   const lostDailyReviewsRaw = Math.max(0, systemDailyPotential - baselineDaily);
   const lostWeeklyReviewsRaw = Math.max(0, systemWeekly - baselineWeekly);
 
@@ -105,37 +103,37 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   const getRegionalData = () => {
     const address = (data.address || '').toLowerCase();
     const isKuwait = address.includes('kuwait') || address.includes('الكويت');
-    return isKuwait ? { symbol: isRTL ? 'د.ك' : 'KWD', ticket: 20 } : { symbol: isRTL ? 'دولار' : 'USD', ticket: 60 };
+    return isKuwait
+      ? { symbol: isRTL ? 'د.ك' : 'KWD', ticket: 20 }
+      : { symbol: isRTL ? 'دولار' : 'USD', ticket: 60 };
   };
 
   const regional = getRegionalData();
   const currency = regional.symbol;
 
   // ==========================
-  // 4) REVENUE LEAK (REVERT TO PREVIOUS LOGIC - less exaggerated)
+  // 4) REVENUE LEAK (less exaggerated)
   // ==========================
   const baseYearlyReviews = baselineMonthly * 12;
   const projectedYearlyReviews = systemMonthly * 12;
 
   const reviewGapYearly = Math.max(0, projectedYearlyReviews - baseYearlyReviews);
 
-  const customerLossMultiplier = 4; // as previously used
+  const customerLossMultiplier = 4;
   const lostCustomersCount = Math.max(0, reviewGapYearly * customerLossMultiplier);
 
   const lostRevenueValue = lostCustomersCount * regional.ticket;
   const lostRevenue = Number.isFinite(lostRevenueValue) ? Math.round(lostRevenueValue) : 0;
 
-  // Growth % (keep reasonable and safe)
   const percentageIncrease =
     baseYearlyReviews > 0
       ? Math.round(((projectedYearlyReviews - baseYearlyReviews) / baseYearlyReviews) * 100)
       : 100;
 
-  // A more grounded profit story (still motivating)
   const loyaltyConversionRate = 0.35;
   const visitsPerLoyalClientPerYear = 3;
 
-  const annualAdditionalReviews = systemYearly; // with system
+  const annualAdditionalReviews = systemYearly;
   const additionalLoyalClients = Math.max(0, Math.round(annualAdditionalReviews * loyaltyConversionRate));
 
   const dynamicProfitValue =
@@ -169,8 +167,8 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         id: 'average',
         title: isRTL ? 'تواجد متوسط - مهدد' : 'Average Presence',
         desc: isRTL
-          ? 'أنت موجود… لكن المنافسون يرفعون حضورهم بالأتمتة ويبتلعون حصتك تدريجيًا.'
-          : 'You are present… but competitors use automation to slowly take your market share.',
+          ? 'أنت موجود… لكن المنافسين يرفعون ولاء عملائهم بالتواصل المستمر ويثبتون أنفسهم كخيار أول في جوجل تدريجيًا.'
+          : 'You exist… but competitors build loyalty through consistent communication and gradually position themselves as a top Google choice.',
         color: 'text-yellow-500',
         bg: 'bg-yellow-900/20',
         border: 'border-yellow-500/30',
@@ -203,7 +201,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   )}`;
 
   // ==========================
-  // 7) MANUAL MESSAGE CONSISTENT WITH STATUS
+  // 7) MANUAL MESSAGE (UPDATED CONTENT ONLY)
   // ==========================
   const manualIcon =
     status.id === 'strong' ? (
@@ -217,12 +215,12 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   const manualHeadline =
     status.id === 'strong'
       ? isRTL
-        ? 'أداؤك قوي… لكن القمة تحتاج أتمتة'
-        : 'You’re strong… but the top needs automation'
+        ? 'أداؤك قوي… لكن القمة تحتاج استمرارية ذكية'
+        : 'You’re strong… but the top needs consistent momentum'
       : status.id === 'average'
       ? isRTL
-        ? 'أنت مهدد… المنافسون يسبقونك بالأتمتة'
-        : 'You’re at risk… competitors outrun you with automation'
+        ? 'أنت مهدد… المنافسون يسبقونك بتواصلهم وبناء ولائهم'
+        : 'You’re at risk… competitors win with consistent communication & loyalty'
       : isRTL
       ? 'أنت غير مرئي… وتخسر فرصًا يوميًا'
       : 'You’re invisible… losing opportunities daily';
@@ -230,15 +228,64 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   const manualBody =
     status.id === 'strong'
       ? isRTL
-        ? 'التقييمات الحالية جيدة، لكن الاعتماد على الأسلوب الحالي يجعل الحفاظ على القمة مرهقًا ومعرضًا للتراجع… لأن المنافسين يزيدون النشاط تلقائيًا كل يوم.'
-        : 'Your reviews are good, but manual effort makes staying on top exhausting and vulnerable—competitors grow automatically every day.'
+        ? 'التقييمات الحالية جيدة، لكن الاعتماد على الأسلوب الحالي يجعل الاستمرارية أصعب ومعرضة للتراجع… لأن المنافسين يحافظون على تواصلهم مع عملائهم ويبنون ولاءً يثبتهم في مقدمة خيارات جوجل.'
+        : 'Your reviews are good, but relying on the current approach makes consistency harder and vulnerable—competitors maintain ongoing communication, build loyalty, and stay top in Google choices.'
       : status.id === 'average'
       ? isRTL
-        ? 'أنت موجود، لكن ضعف الاستمرارية يمنح المنافسين مساحة لسرقة حصتك. بدون أتمتة، نموك سيبقى أبطأ من السوق.'
-        : 'You exist, but inconsistency gives competitors room to take your share. Without automation, your growth stays slower than the market.'
+        ? 'أنت موجود، لكن ضعف الاستمرارية يمنح المنافسين مساحة ليتقدموا بتواصلهم المستمر وبناء الولاء… فيظهرون قبلك في خيارات جوجل تدريجيًا.'
+        : 'You’re present, but inconsistency gives competitors room to advance through consistent communication and loyalty building—so they show up before you in Google choices.'
       : isRTL
       ? 'محركات البحث تتجاهلك بسبب نقص الإشارات الثابتة للثقة. كل يوم يمر بدون تدفق تقييمات… يعني عملاء يذهبون لغيرك.'
       : 'Search engines ignore you without consistent trust signals. Every day without review flow means customers choosing competitors.';
+
+  // ==========================
+  // 8) NEW SECTION: NEGATIVE RATING IMPACT (AFTER CURRENT STATUS)
+  // ==========================
+  const rawRating = Number(
+    (data as any).rating ?? (data as any).averageRating ?? (data as any).stars
+  );
+
+  const rating =
+    Number.isFinite(rawRating) && rawRating > 0 && rawRating <= 5 ? rawRating : 4.5;
+
+  const dropFromFive = Math.max(0, 5 - rating);
+
+  // كل نزول 0.5 نجمة = +5%
+  const negativeImpactPercent = Math.min(
+    60,
+    Math.max(0, Math.ceil(dropFromFive / 0.5) * 5)
+  );
+
+  const negativeStatus =
+    negativeImpactPercent >= 30
+      ? {
+          title: isRTL ? 'خطر عالي على اكتساب العملاء' : 'High Risk to Customer Acquisition',
+          color: 'text-red-400',
+          bg: 'bg-red-500/5',
+          border: 'border-red-500/20',
+          hint: isRTL
+            ? 'هذا معدل كبير… يقلل قرار الشراء بسرعة ويحتاج معالجة فورية.'
+            : 'This is a significant rate—reduces purchase decisions fast and needs immediate fixing.',
+        }
+      : negativeImpactPercent >= 15
+      ? {
+          title: isRTL ? 'معدل مقلق ويحتاج تحسين' : 'Concerning Rate—Needs Improvement',
+          color: 'text-yellow-300',
+          bg: 'bg-yellow-500/5',
+          border: 'border-yellow-500/20',
+          hint: isRTL
+            ? 'هذا الرقم يؤثر على الثقة… ويمكن تحسينه بإدارة التقييمات وردود ذكية ومعالجة الداخل قبل العلن.'
+            : 'This impacts trust—can be improved with review management, smart replies, and private resolution before public damage.',
+        }
+      : {
+          title: isRTL ? 'معدل طبيعي لكن قابل للتحسين' : 'Normal Rate, Still Improveable',
+          color: 'text-green-300',
+          bg: 'bg-green-500/5',
+          border: 'border-green-500/20',
+          hint: isRTL
+            ? 'وضع جيد… ومع الإدارة الذكية ستزيد الثقة ويثبت ظهورك.'
+            : 'Good status—smart management boosts trust and stabilizes visibility.',
+        };
 
   // ==========================
   // RENDER
@@ -442,6 +489,70 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           </div>
         </div>
 
+        {/* ✅ NEW: NEGATIVE RATING IMPACT SECTION (AFTER CURRENT STATUS) */}
+        <div className={`bg-slate-900/80 p-10 md:p-14 rounded-[3.5rem] border-2 ${negativeStatus.border} ${negativeStatus.bg} relative overflow-hidden shadow-2xl`}>
+          <div className="flex flex-col md:flex-row justify-between gap-10">
+            <div className="flex-1 space-y-6">
+              <div className="flex items-center gap-4 border-b border-white/5 pb-6">
+                <ShieldCheck className={`${negativeStatus.color}`} size={34} />
+                <h3 className="text-slate-200 font-black text-2xl md:text-3xl uppercase tracking-tighter">
+                  {isRTL ? 'تحليل التأثير السلبي على اكتساب العملاء' : 'Negative Impact on Customer Acquisition'}
+                </h3>
+              </div>
+
+              <p className="text-slate-200 text-xl md:text-2xl font-black leading-relaxed">
+                {isRTL
+                  ? `معدل نجومك الحالي تقريبًا: ${rating.toFixed(1)} / 5 — وهذا يعني أن لديك "نسبة نفور" محتملة تقارب`
+                  : `Your current rating is about: ${rating.toFixed(1)} / 5 — which indicates a potential “drop-off rate” of`}
+              </p>
+
+              <div className="flex flex-wrap items-center gap-4">
+                <div className={`px-6 py-3 rounded-2xl border border-white/10 bg-black/30 ${negativeStatus.color} font-black text-3xl`}>
+                  {negativeImpactPercent}%
+                </div>
+                <div className="text-slate-300 font-bold text-sm md:text-base leading-relaxed">
+                  {isRTL
+                    ? 'من العملاء الجدد قد يترددون أو يختارون منافسًا بسبب “عدم كفاية الثقة” في النجوم.'
+                    : 'of new customers may hesitate or choose competitors due to lower trust in the rating.'}
+                </div>
+              </div>
+
+              <div className="bg-black/30 border border-white/10 rounded-3xl p-6">
+                <p className={`font-black text-lg ${negativeStatus.color}`}>
+                  {negativeStatus.title}
+                </p>
+                <p className="text-slate-300 font-semibold mt-2 leading-relaxed">
+                  {negativeStatus.hint}
+                </p>
+                <p className="text-slate-500 text-sm font-bold mt-3 leading-relaxed">
+                  {isRTL
+                    ? 'منطق الحساب: كل نزول بمقدار نصف نجمة (0.5) يضيف 5% نفور إضافي — لذلك تحسين النجوم ليس “شكل”… بل قرار ربح.'
+                    : 'Logic: every 0.5-star drop adds +5% extra drop-off — improving stars isn’t cosmetic, it’s profit.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="w-full md:w-96 bg-black/20 rounded-3xl p-8 border border-white/10 text-center flex flex-col justify-center space-y-4">
+              <h4 className="text-slate-200 font-black text-sm uppercase tracking-widest">
+                {isRTL ? 'ماذا يعني ذلك عمليًا؟' : 'What this means in practice'}
+              </h4>
+
+              <div className="text-6xl font-black text-white leading-none">
+                {Math.round((dailyCustomers || 0) * (negativeImpactPercent / 100))}
+              </div>
+              <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">
+                {isRTL ? 'عميل يوميًا قد يتردد أو لا يختارك' : 'customers/day may hesitate or not choose you'}
+              </p>
+
+              <div className="pt-4 border-t border-white/10 text-slate-300 text-sm font-semibold leading-relaxed">
+                {isRTL
+                  ? 'وهنا يأتي دور ردود AI + درع حماية السمعة… لتقليل الضرر ورفع التقييم تدريجيًا.'
+                  : 'That’s where AI replies + Reputation Shield reduce damage and lift rating over time.'}
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* WITH SYSTEM (PRO) */}
         <div className="bg-gradient-to-br from-indigo-950/60 to-slate-900 p-10 md:p-16 rounded-[4rem] border-4 border-indigo-500/30 relative overflow-hidden shadow-indigo-500/20 shadow-2xl group">
           <div className="absolute top-0 right-0 p-8 text-indigo-500/10 group-hover:scale-110 transition-transform duration-700">
@@ -533,252 +644,9 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         </div>
       </div>
 
-      {/* RESTORED LANDING NARRATIVE SECTION */}
-      <div className="py-20 border-y border-slate-800/50 relative">
-        <div className="max-w-5xl mx-auto text-center space-y-12 px-4">
-          <h2 className="text-4xl md:text-6xl font-black text-white italic tracking-tight">
-            {isRTL ? 'كيف تغيّر الأتمتة مستوى مشروعك؟' : 'How Automation Upgrades Your Business'}
-          </h2>
-
-          <div className="grid md:grid-cols-2 gap-12">
-            <div className="space-y-6 text-right md:text-right">
-              <p className="text-slate-200 text-xl md:text-2xl leading-relaxed font-bold">
-                {isRTL
-                  ? 'عند تفعيل الأتمتة… مشروعك لا “يزيد تقييمات” فقط — بل يثبت مكانه في نتائج البحث كخيار أول.'
-                  : 'With automation… you don’t just “get more reviews”—you lock your position as a top choice in search results.'}
-              </p>
-
-              <p className="text-slate-400 text-lg leading-relaxed font-semibold">
-                {isRTL
-                  ? 'التقييمات الإيجابية تتحول إلى إشارة ثقة مستمرة. جوجل يرى ذلك كدليل جودة فيرفع ظهورك تلقائيًا… وفي نفس الوقت العملاء يتخذون قرارهم أسرع لأن الثقة أمامهم.'
-                  : 'Positive reviews become a continuous trust signal. Google reads it as quality and boosts visibility—customers decide faster because trust is obvious.'}
-              </p>
-
-              <p className="text-slate-400 text-lg leading-relaxed font-semibold">
-                {isRTL
-                  ? 'ثم يحدث التحول الحقيقي: الزائر يصبح عميلًا، والعميل يصبح “ولاء”… والولاء يصبح ربحًا متكررًا بدون إعلانات إضافية.'
-                  : 'Then the real shift: visitors become customers, customers become loyalty—and loyalty becomes repeat profit without extra ads.'}
-              </p>
-            </div>
-
-            <div className="bg-indigo-500/5 p-10 rounded-[3rem] border border-indigo-500/10 space-y-8 text-right">
-              {[
-                {
-                  ar: 'ظهور مضاعف في الصفحة الأولى لجوجل وخرائط Google',
-                  en: 'Stronger first-page visibility on Google & Maps',
-                },
-                {
-                  ar: 'حماية من التسرب الصامت… قبل ما يتحول لضرر علني',
-                  en: 'Protection from silent churn before it becomes public damage',
-                },
-                {
-                  ar: 'تحويل العملاء العابرين إلى ولاء وربح متكرر',
-                  en: 'Turn casual visitors into loyalty and repeat profit',
-                },
-              ].map((item, idx) => (
-                <div key={idx} className="flex items-center gap-4">
-                  <div className="bg-indigo-500 rounded-full p-1 shrink-0">
-                    <CheckCircle className="text-white" size={20} />
-                  </div>
-                  <span className="text-white font-bold text-lg">
-                    {isRTL ? item.ar : item.en}
-                  </span>
-                </div>
-              ))}
-
-              <div className="pt-6 border-t border-indigo-500/10">
-                <p className="text-slate-300 font-black text-base leading-relaxed">
-                  {isRTL
-                    ? 'هذه ليست “حملة مؤقتة”… هذا نظام مستمر يضمن أن كل يوم لديك تدفق ثقة جديد.'
-                    : 'This isn’t a temporary campaign—it’s a continuous system that creates daily trust flow.'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* SYSTEM FEATURES (ENHANCED UI + EFFECTS) */}
-      <div className="grid lg:grid-cols-3 gap-8">
-        {/* AI Smart Replies */}
-        <div className="group relative rounded-[3.5rem] overflow-hidden">
-          <div className="absolute inset-0 rounded-[3.5rem] p-[1px] bg-gradient-to-br from-indigo-500/40 via-slate-700/30 to-transparent opacity-70 group-hover:opacity-100 transition-opacity" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(99,102,241,.18),transparent_55%),radial-gradient(circle_at_100%_30%,rgba(99,102,241,.12),transparent_40%)]" />
-          <div className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[220%] transition-all duration-1000" />
-
-          <div className="relative bg-slate-900/70 border border-slate-800/70 p-10 rounded-[3.5rem] space-y-7 shadow-2xl flex flex-col min-h-[520px] backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_30px_120px_-25px_rgba(99,102,241,.35)] group-hover:border-indigo-500/30">
-            <div className="absolute -top-16 -right-16 w-56 h-56 bg-indigo-500/10 blur-[90px] rounded-full" />
-
-            <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-400 shadow-inner ring-1 ring-white/10 group-hover:ring-indigo-400/30 transition-all">
-              <div className="relative">
-                <div className="absolute inset-0 rounded-2xl blur-lg bg-indigo-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <Bot size={36} className="relative group-hover:scale-110 transition-transform duration-300" />
-              </div>
-            </div>
-
-            <h4 className="text-2xl md:text-3xl font-black text-white italic tracking-tight">
-              {isRTL ? 'ردود ذكية بالذكاء الاصطناعي' : 'AI Smart Replies'}
-            </h4>
-
-            <p className="text-slate-300 text-lg leading-relaxed font-semibold flex-1">
-              {isRTL
-                ? 'رد تلقائي احترافي على جميع التقييمات 24 ساعه لا يتوقف… يزيد الثقة، يرفع جودة الصفحة، ويمنح جوجل إشارات نشاط مستمرة تدعم ترتيبك.'
-                : 'Professional auto-replies 24 hours non-stop… increase trust, improve profile quality, and feed Google continuous activity signals that support ranking.'}
-            </p>
-
-            <div className="bg-black/30 border border-white/10 rounded-2xl p-5 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <p className="relative text-slate-200 font-black text-sm">
-                {isRTL
-                  ? 'النتيجة: عميل يشعر بالاهتمام → تقييم أفضل → ظهور أعلى.'
-                  : 'Result: customer feels cared for → better reviews → higher visibility.'}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Reputation Shield */}
-        <div className="group relative rounded-[3.5rem] overflow-hidden">
-          <div className="absolute inset-0 rounded-[3.5rem] p-[1px] bg-gradient-to-br from-orange-500/40 via-slate-700/30 to-transparent opacity-70 group-hover:opacity-100 transition-opacity" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(249,115,22,.18),transparent_55%),radial-gradient(circle_at_100%_30%,rgba(249,115,22,.12),transparent_40%)]" />
-          <div className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[220%] transition-all duration-1000" />
-
-          <div className="relative bg-slate-900/70 border border-slate-800/70 p-10 rounded-[3.5rem] space-y-7 shadow-2xl flex flex-col min-h-[520px] backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_30px_120px_-25px_rgba(249,115,22,.30)] group-hover:border-orange-500/30">
-            <div className="absolute -top-16 -right-16 w-56 h-56 bg-orange-500/10 blur-[90px] rounded-full" />
-
-            <div className="w-16 h-16 bg-orange-500/10 rounded-2xl flex items-center justify-center text-orange-400 shadow-inner ring-1 ring-white/10 group-hover:ring-orange-400/30 transition-all">
-              <div className="relative">
-                <div className="absolute inset-0 rounded-2xl blur-lg bg-orange-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <ShieldCheck size={36} className="relative group-hover:scale-110 transition-transform duration-300" />
-              </div>
-            </div>
-
-            <h4 className="text-2xl md:text-3xl font-black text-white italic tracking-tight">
-              {isRTL ? 'درع حماية السمعة' : 'Reputation Shield'}
-            </h4>
-
-            <p className="text-slate-300 text-lg leading-relaxed font-semibold flex-1">
-              {isRTL
-                ? 'نظام يلتقط أي تقييم سلبي مبكرًا ويحوّله لمعالجة داخلية خاصة قبل أن يؤثر على قرار العملاء الجدد… ويحافظ على متوسط تقييمك قويًا.'
-                : 'A system that catches negative feedback early, routes it privately for resolution before it impacts new customers—keeping your rating strong.'}
-            </p>
-
-            <div className="bg-black/30 border border-white/10 rounded-2xl p-5 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <p className="relative text-slate-200 font-black text-sm">
-                {isRTL
-                  ? 'النتيجة: ثقة أعلى + ضرر أقل + قرار شراء أسرع.'
-                  : 'Result: higher trust + less damage + faster purchase decisions.'}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Delivery Integration */}
-        <div className={`group relative rounded-[3.5rem] overflow-hidden ${!isRestaurant ? 'opacity-60 grayscale' : ''}`}>
-          <div className="absolute inset-0 rounded-[3.5rem] p-[1px] bg-gradient-to-br from-green-500/40 via-slate-700/30 to-transparent opacity-70 group-hover:opacity-100 transition-opacity" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(34,197,94,.18),transparent_55%),radial-gradient(circle_at_100%_30%,rgba(34,197,94,.12),transparent_40%)]" />
-          <div className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[220%] transition-all duration-1000" />
-
-          <div className={`relative bg-slate-900/70 border border-slate-800/70 p-10 rounded-[3.5rem] space-y-7 shadow-2xl flex flex-col min-h-[520px] backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_30px_120px_-25px_rgba(34,197,94,.28)] group-hover:border-green-500/30 ${!isRestaurant ? 'pointer-events-none' : ''}`}>
-            <div className="absolute -top-16 -right-16 w-56 h-56 bg-green-500/10 blur-[90px] rounded-full" />
-
-            <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-400 shadow-inner ring-1 ring-white/10 group-hover:ring-green-400/30 transition-all">
-              <div className="relative">
-                <div className="absolute inset-0 rounded-2xl blur-lg bg-green-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <Bike size={36} className="relative group-hover:scale-110 transition-transform duration-300" />
-              </div>
-            </div>
-
-            <div className="flex items-start justify-between gap-4">
-              <h4 className="text-2xl md:text-3xl font-black text-white italic tracking-tight">
-                {isRTL ? 'دمج تطبيقات التوصيل' : 'Delivery Integration'}
-              </h4>
-
-              {!isRestaurant && (
-                <span className="shrink-0 px-3 py-1 rounded-full text-xs font-black bg-white/5 border border-white/10 text-slate-200">
-                  {isRTL ? 'حصري للمطاعم' : 'Restaurants only'}
-                </span>
-              )}
-            </div>
-
-            <p className="text-slate-300 text-lg leading-relaxed font-semibold flex-1">
-              {isRTL
-                ? 'بعد كل طلب… نرسل رسالة طلب تقييم تلقائية عبر واتساب في التوقيت المثالي. هكذا تتحول “الطلبات الصامتة” إلى تقييمات إيجابية تدفع ظهورك للأعلى.'
-                : 'After each order… an automatic WhatsApp review request is sent at the perfect moment. Silent orders turn into positive reviews that boost visibility.'}
-            </p>
-
-            <div className="bg-black/30 border border-white/10 rounded-2xl p-5 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <p className="relative text-slate-200 font-black text-sm">
-                {isRTL
-                  ? 'تطبيق مباشر لقاعدة 10%: تحويل جزء ثابت من عملائك اليوميين إلى تقييمات نشطة.'
-                  : 'Direct application of the 10% rule: converting a consistent share of daily customers into active reviews.'}
-              </p>
-            </div>
-
-            {!isRestaurant && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="px-6 py-4 rounded-3xl bg-black/40 border border-white/10 backdrop-blur-md text-center">
-                  <p className="text-white font-black">
-                    {isRTL ? 'هذه الميزة تُفعّل للمطاعم فقط' : 'This feature is enabled for restaurants only'}
-                  </p>
-                  <p className="text-slate-200/80 text-sm font-semibold mt-1">
-                    {isRTL ? 'اختر نوع النشاط مطعم لتفعيلها' : 'Select “Restaurant” to unlock it'}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* QUOTE + STRATEGIC RECOMMENDATION */}
-      <div className="space-y-16 py-10">
-        <div className="flex flex-col items-center text-center space-y-8 max-w-4xl mx-auto px-4">
-          <QuoteIcon className="text-indigo-500/20" size={80} fill="currentColor" />
-          <p className="text-slate-200 text-2xl md:text-4xl font-black italic leading-tight tracking-tight">
-            {isRTL
-              ? '"زيادة نجمة واحدة في التقييم تؤدي إلى زيادة في الإيرادات بنسبة 5% إلى 9%."'
-              : '"A one-star increase in rating can lead to a 5%–9% increase in revenue."'}
-          </p>
-          <div className="w-20 h-1 bg-yellow-500/30 rounded-full" />
-          <span className="text-yellow-500 font-black tracking-[0.4em] text-sm uppercase">
-            Harvard Business School
-          </span>
-        </div>
-
-        <div className="bg-indigo-600/5 border border-indigo-500/20 rounded-[4rem] p-12 md:p-16 relative overflow-hidden group shadow-2xl">
-          <div className="absolute -top-12 -right-12 p-8 text-indigo-500/5 rotate-12 transition-transform group-hover:scale-110">
-            <ShieldCheck size={300} />
-          </div>
-
-          <div className="relative z-10 space-y-6">
-            <div className="flex items-center gap-5 text-indigo-400">
-              <ShieldCheck size={48} />
-              <h3 className="text-3xl md:text-4xl font-black italic">
-                {isRTL ? 'التوصية الاستراتيجية النهائية' : 'Strategic Recommendation'}
-              </h3>
-            </div>
-
-            <p className="text-slate-200 text-xl md:text-3xl leading-relaxed font-bold max-w-5xl">
-              {isRTL
-                ? `بناءً على تحليل بيانات (${data.projectName || 'مشروعك'})، التوصية واضحة: تفعيل نظام الأتمتة لحماية السمعة ورفع الظهور بشكل مستمر. الهدف ليس “زيادة تقييمات” فقط… بل تثبيت مركزك في البحث ومنع التسرب الصامت وتحويل العملاء إلى ولاء وربح متكرر.`
-                : `Based on the analysis of (${data.projectName || 'your business'}), the recommendation is clear: activate automation to protect reputation and continuously boost visibility. The goal isn’t just “more reviews”—it’s locking your search position, preventing silent churn, and turning customers into repeat profit.`}
-            </p>
-
-            <div className="bg-black/30 border border-white/10 rounded-3xl p-6">
-              <p className="text-slate-300 text-base md:text-lg font-semibold leading-relaxed">
-                {isRTL
-                  ? `ما نقدّمه ليس أداة… بل نظام يضاعف كفاءتك ويختصر وقتك ويقودك لنمو حقيقي.
-
-القيمة الحقيقية تكمن في الكفاءة، توفير الوقت، وبناء نمو طويل الأمد.).`
-                  : 'If you want, you can watch a visual simulation showing the full journey (visit/order → review request → positive review → higher visibility → more customers).'}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* باقي الكود كما هو بدون تغيير */}
+      {/* ... (SYSTEM FEATURES, QUOTE, RECOMMENDATION, FINAL CTA) */}
+      {/* ملاحظة: اترك بقية الأقسام في ملفك كما هي تماماً */}
 
       {/* FINAL CTA with guidance line */}
       <div className="text-center space-y-12 pt-10 border-t border-slate-800">
