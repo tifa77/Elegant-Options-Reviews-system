@@ -796,7 +796,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
 
               <p className="text-slate-300 text-lg leading-relaxed font-semibold flex-1">
                 {isRTL
-                  ? 'بدل ربط تطبيقات التوصيل، يمكننا ربط النظام مع أي منصة أو نظام تستخدمه لإتمام عملية إرسال طلبات التقييم بشكل تلقائي بعد تقديم الخدمة أو إتمام الطلب.'
+                  ? ' يمكننا ربط النظام مع أي منصة أو نظام تستخدمه لإتمام عملية إرسال طلبات التقييم بشكل تلقائي بعد تقديم الخدمة أو إتمام الطلب.'
                   : 'Instead of delivery apps integration, we can connect the system with any platform you use to automatically send review requests after a service is delivered or an order is completed.'}
               </p>
 
