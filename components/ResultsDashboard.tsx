@@ -73,7 +73,9 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
 
   // Baseline (Current Reality)
   const baselineWeekly =
-    Number(data.weeklyGrowth) || Number((avgReviewsPerYear / 52).toFixed(1)) || 0;
+    Number(data.weeklyGrowth) ||
+    Number((avgReviewsPerYear / 52).toFixed(1)) ||
+    0;
 
   const baselineDaily = Number((baselineWeekly / 7).toFixed(1)) || 0;
 
@@ -105,7 +107,9 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   const getRegionalData = () => {
     const address = (data.address || '').toLowerCase();
     const isKuwait = address.includes('kuwait') || address.includes('الكويت');
-    return isKuwait ? { symbol: isRTL ? 'د.ك' : 'KWD', ticket: 20 } : { symbol: isRTL ? 'دولار' : 'USD', ticket: 60 };
+    return isKuwait
+      ? { symbol: isRTL ? 'د.ك' : 'KWD', ticket: 20 }
+      : { symbol: isRTL ? 'دولار' : 'USD', ticket: 60 };
   };
 
   const regional = getRegionalData();
@@ -117,18 +121,29 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   const baseYearlyReviews = baselineMonthly * 12;
   const projectedYearlyReviews = systemMonthly * 12;
 
-  const reviewGapYearly = Math.max(0, projectedYearlyReviews - baseYearlyReviews);
+  const reviewGapYearly = Math.max(
+    0,
+    projectedYearlyReviews - baseYearlyReviews
+  );
 
   const customerLossMultiplier = 4; // as previously used
-  const lostCustomersCount = Math.max(0, reviewGapYearly * customerLossMultiplier);
+  const lostCustomersCount = Math.max(
+    0,
+    reviewGapYearly * customerLossMultiplier
+  );
 
   const lostRevenueValue = lostCustomersCount * regional.ticket;
-  const lostRevenue = Number.isFinite(lostRevenueValue) ? Math.round(lostRevenueValue) : 0;
+  const lostRevenue = Number.isFinite(lostRevenueValue)
+    ? Math.round(lostRevenueValue)
+    : 0;
 
   // Growth % (keep reasonable and safe)
   const percentageIncrease =
     baseYearlyReviews > 0
-      ? Math.round(((projectedYearlyReviews - baseYearlyReviews) / baseYearlyReviews) * 100)
+      ? Math.round(
+          ((projectedYearlyReviews - baseYearlyReviews) / baseYearlyReviews) *
+            100
+        )
       : 100;
 
   // A more grounded profit story (still motivating)
@@ -136,7 +151,10 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   const visitsPerLoyalClientPerYear = 3;
 
   const annualAdditionalReviews = systemYearly; // with system
-  const additionalLoyalClients = Math.max(0, Math.round(annualAdditionalReviews * loyaltyConversionRate));
+  const additionalLoyalClients = Math.max(
+    0,
+    Math.round(annualAdditionalReviews * loyaltyConversionRate)
+  );
 
   const dynamicProfitValue =
     annualAdditionalReviews *
@@ -297,6 +315,13 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
               {status.desc}
             </p>
 
+            {/* ✅ التعديل الأول: إضافة الجملة المطلوبة بدون تغيير أي شيء آخر */}
+            <p className="text-slate-400 text-sm md:text-base font-semibold leading-relaxed">
+              {isRTL
+                ? 'هذا المستوى قد يقلل قابلية اكتساب عملاء جدد بنحو 8% (تقدير).'
+                : 'This level may reduce your ability to acquire new customers by about 8% (estimate).'}
+            </p>
+
             <div className="inline-flex items-center gap-3 bg-black/40 border border-white/10 px-5 py-3 rounded-2xl text-slate-200 font-black text-sm md:text-base">
               <AlertTriangle className="text-orange-400" size={18} />
               <span>
@@ -414,7 +439,9 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             <div className="w-full md:w-96 bg-red-500/5 rounded-3xl p-8 border border-red-500/20 flex flex-col justify-center text-center space-y-4">
               <AlertTriangle className="text-red-500 mx-auto" size={40} />
               <h4 className="text-red-500 font-black text-sm uppercase tracking-widest">
-                {isRTL ? 'تقييمات تفقدها بسبب الأسلوب الحالي' : 'Reviews Lost Due To Current Approach'}
+                {isRTL
+                  ? 'تقييمات تفقدها بسبب الأسلوب الحالي'
+                  : 'Reviews Lost Due To Current Approach'}
               </h4>
 
               <div className="space-y-2">
@@ -458,16 +485,17 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                   </h3>
                 </div>
 
+                {/* ✅ التعديل الثاني: استبدال الفقرتين المطلوبتين فقط */}
                 <p className="text-indigo-100 text-xl md:text-2xl font-black leading-relaxed max-w-3xl">
                   {isRTL
-                    ? 'نطبق قاعدة الـ 10% الذهبية: تحويل كل 10 عملاء على الاقل من أصل 100 يزورون مشروعك إلى مقيمين نشطين بشكل آلي بالكامل.'
-                    : 'We apply the Golden 10% Rule: converting 10 out of every 100 daily visitors into active reviewers—fully automated.'}
+                    ? 'الميزة الأهم هنا ليست “رقم” فقط… بل نظام مراسلة ذكي بعد كل خدمة أو طلب: يرسل رسالة شكر لطيفة للعميل في التوقيت المناسب ويطلب تقييم 5 نجوم على Google مع تعليق مُقترح جذّاب يساعد العميل على الكتابة بسهولة — ويزيد ثقة العملاء الجدد بك.'
+                    : 'The key advantage isn’t just a “number”… it’s a smart post-service messaging system: it sends a thank-you message at the right time and requests a 5-star Google review with a compelling suggested comment—making it easy for customers to write and boosting new-customer trust.'}
                 </p>
 
                 <p className="text-slate-300 text-lg md:text-xl font-semibold leading-relaxed max-w-3xl">
                   {isRTL
-                    ? 'الفكرة ليست فقط “زيادة تقييمات”… بل تثبيت مكانك في نتائج البحث، رفع الثقة، وتحويل الزوار إلى ولاء وربح متكرر.'
-                    : 'It’s not just “more reviews”… it’s locking your search position, boosting trust, and turning visitors into repeat profit.'}
+                    ? 'وفي نفس الوقت، أي ملاحظة سلبية تُلتقط بشكل خاص وتُرسل للإدارة لمعالجتها قبل أن تتحول إلى تقييم سيء علني. النتيجة: ولاء أعلى، تقييمات أقوى، عملاء أكثر، وأرباح متكررة — بدون أن تترك السمعة للصدفة.'
+                    : 'At the same time, any negative feedback is captured privately and routed to management before it becomes a public bad review. Result: higher loyalty, stronger ratings, more customers, and repeat profit—without leaving your reputation to chance.'}
                 </p>
               </div>
 
@@ -612,7 +640,10 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-400 shadow-inner ring-1 ring-white/10 group-hover:ring-indigo-400/30 transition-all">
               <div className="relative">
                 <div className="absolute inset-0 rounded-2xl blur-lg bg-indigo-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <Bot size={36} className="relative group-hover:scale-110 transition-transform duration-300" />
+                <Bot
+                  size={36}
+                  className="relative group-hover:scale-110 transition-transform duration-300"
+                />
               </div>
             </div>
 
@@ -649,7 +680,10 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             <div className="w-16 h-16 bg-orange-500/10 rounded-2xl flex items-center justify-center text-orange-400 shadow-inner ring-1 ring-white/10 group-hover:ring-orange-400/30 transition-all">
               <div className="relative">
                 <div className="absolute inset-0 rounded-2xl blur-lg bg-orange-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <ShieldCheck size={36} className="relative group-hover:scale-110 transition-transform duration-300" />
+                <ShieldCheck
+                  size={36}
+                  className="relative group-hover:scale-110 transition-transform duration-300"
+                />
               </div>
             </div>
 
@@ -675,18 +709,29 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         </div>
 
         {/* Delivery Integration */}
-        <div className={`group relative rounded-[3.5rem] overflow-hidden ${!isRestaurant ? 'opacity-60 grayscale' : ''}`}>
+        <div
+          className={`group relative rounded-[3.5rem] overflow-hidden ${
+            !isRestaurant ? 'opacity-60 grayscale' : ''
+          }`}
+        >
           <div className="absolute inset-0 rounded-[3.5rem] p-[1px] bg-gradient-to-br from-green-500/40 via-slate-700/30 to-transparent opacity-70 group-hover:opacity-100 transition-opacity" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(34,197,94,.18),transparent_55%),radial-gradient(circle_at_100%_30%,rgba(34,197,94,.12),transparent_40%)]" />
           <div className="pointer-events-none absolute -left-1/2 top-0 h-full w-1/2 rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-[220%] transition-all duration-1000" />
 
-          <div className={`relative bg-slate-900/70 border border-slate-800/70 p-10 rounded-[3.5rem] space-y-7 shadow-2xl flex flex-col min-h-[520px] backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_30px_120px_-25px_rgba(34,197,94,.28)] group-hover:border-green-500/30 ${!isRestaurant ? 'pointer-events-none' : ''}`}>
+          <div
+            className={`relative bg-slate-900/70 border border-slate-800/70 p-10 rounded-[3.5rem] space-y-7 shadow-2xl flex flex-col min-h-[520px] backdrop-blur-xl transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-[0_30px_120px_-25px_rgba(34,197,94,.28)] group-hover:border-green-500/30 ${
+              !isRestaurant ? 'pointer-events-none' : ''
+            }`}
+          >
             <div className="absolute -top-16 -right-16 w-56 h-56 bg-green-500/10 blur-[90px] rounded-full" />
 
             <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-400 shadow-inner ring-1 ring-white/10 group-hover:ring-green-400/30 transition-all">
               <div className="relative">
                 <div className="absolute inset-0 rounded-2xl blur-lg bg-green-400/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <Bike size={36} className="relative group-hover:scale-110 transition-transform duration-300" />
+                <Bike
+                  size={36}
+                  className="relative group-hover:scale-110 transition-transform duration-300"
+                />
               </div>
             </div>
 
@@ -721,10 +766,14 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="px-6 py-4 rounded-3xl bg-black/40 border border-white/10 backdrop-blur-md text-center">
                   <p className="text-white font-black">
-                    {isRTL ? 'هذه الميزة تُفعّل للمطاعم فقط' : 'This feature is enabled for restaurants only'}
+                    {isRTL
+                      ? 'هذه الميزة تُفعّل للمطاعم فقط'
+                      : 'This feature is enabled for restaurants only'}
                   </p>
                   <p className="text-slate-200/80 text-sm font-semibold mt-1">
-                    {isRTL ? 'اختر نوع النشاط مطعم لتفعيلها' : 'Select “Restaurant” to unlock it'}
+                    {isRTL
+                      ? 'اختر نوع النشاط مطعم لتفعيلها'
+                      : 'Select “Restaurant” to unlock it'}
                   </p>
                 </div>
               </div>
@@ -736,7 +785,11 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
       {/* QUOTE + STRATEGIC RECOMMENDATION */}
       <div className="space-y-16 py-10">
         <div className="flex flex-col items-center text-center space-y-8 max-w-4xl mx-auto px-4">
-          <QuoteIcon className="text-indigo-500/20" size={80} fill="currentColor" />
+          <QuoteIcon
+            className="text-indigo-500/20"
+            size={80}
+            fill="currentColor"
+          />
           <p className="text-slate-200 text-2xl md:text-4xl font-black italic leading-tight tracking-tight">
             {isRTL
               ? '"زيادة نجمة واحدة في التقييم تؤدي إلى زيادة في الإيرادات بنسبة 5% إلى 9%."'
@@ -757,7 +810,9 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             <div className="flex items-center gap-5 text-indigo-400">
               <ShieldCheck size={48} />
               <h3 className="text-3xl md:text-4xl font-black italic">
-                {isRTL ? 'التوصية الاستراتيجية النهائية' : 'Strategic Recommendation'}
+                {isRTL
+                  ? 'التوصية الاستراتيجية النهائية'
+                  : 'Strategic Recommendation'}
               </h3>
             </div>
 
