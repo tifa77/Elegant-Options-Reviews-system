@@ -194,7 +194,7 @@ const DataIntake: React.FC<DataIntakeProps> = ({ language, onSubmit, onBack }) =
             <label className="text-[13px] font-black text-blue-400 uppercase tracking-widest block">{isRTL ? 'اسم المشروع (كما يظهر في جوجل)' : 'PROJECT NAME'}</label>
             <div className="relative">
               <Search className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-500" size={28} />
-              <input ref={inputRef} type="text" required placeholder={isRTL ? "ابدأ بكتابة الاسم واشترِ الموقع من القائمة..." : "Type and select from list..."}
+              <input ref={inputRef} type="text" required placeholder={isRTL ? "ابدأ بكتابة الاسم واخترِ الموقع من القائمة..." : "Type and select from list..."}
                 value={formData.projectName} onChange={(e) => setFormData({...formData, projectName: e.target.value})}
                 className="w-full bg-[#0a121e] border-4 border-solid border-white/10 rounded-3xl py-6 pr-16 pl-8 text-white text-xl font-black focus:border-blue-500 outline-none transition-all" />
             </div>
