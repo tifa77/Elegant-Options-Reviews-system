@@ -485,6 +485,21 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           </div>
         </div>
 
+        {/* ✅ إضافات المحتوى المطلوبة فقط (بين الوضع الحالي ومع نظام Elegant Options) */}
+        <div className="bg-black/30 border border-white/10 rounded-3xl p-8 text-center space-y-4">
+          <p className="text-slate-200 text-lg md:text-xl font-black leading-relaxed">
+            {isRTL
+              ? 'بعد كشف وتحليل محتوى التقييمات لديك… لاحظنا وجود بعض التقييمات غير محفّزة لجذب العملاء وقد تكون منفّرة، وهذا أمر غير جيد لمشروعك في كسب عملاء جدد.'
+              : 'After reviewing and analyzing your review content, we noticed some reviews are not encouraging and may even repel potential customers—this is not good for acquiring new customers.'}
+          </p>
+
+          <p className="text-indigo-300 text-base md:text-lg font-black leading-relaxed">
+            {isRTL
+              ? 'لدينا الحل الجاهز لمعالجة ذلك… ويمكنك الحصول عليه الآن بخصم 70%.'
+              : 'We have a ready solution to fix this—and you can get it now with a 70% discount.'}
+          </p>
+        </div>
+
         {/* WITH SYSTEM (PRO) */}
         <div className="bg-gradient-to-br from-indigo-950/60 to-slate-900 p-10 md:p-16 rounded-[4rem] border-4 border-indigo-500/30 relative overflow-hidden shadow-indigo-500/20 shadow-2xl group">
           <div className="absolute top-0 right-0 p-8 text-indigo-500/10 group-hover:scale-110 transition-transform duration-700">
@@ -492,9 +507,10 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           </div>
 
           <div className="relative z-10 space-y-10">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-8 border-b border-indigo-500/20 pb-10">
-              <div className="space-y-5 text-center md:text-left">
-                <div className="flex items-center gap-4 justify-center md:justify-start">
+            {/* ✅ تنسيق المستطيل في المنتصف + تعديل النسبة إلى 200%+ فقط */}
+            <div className="flex flex-col items-center justify-center gap-8 border-b border-indigo-500/20 pb-10 text-center">
+              <div className="space-y-5 text-center">
+                <div className="flex items-center gap-4 justify-center">
                   <Zap className="text-indigo-400 fill-indigo-400" size={42} />
                   <h3 className="text-white font-black text-4xl md:text-5xl italic">
                     {isRTL
@@ -503,13 +519,13 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
                   </h3>
                 </div>
 
-                <p className="text-indigo-100 text-xl md:text-2xl font-black leading-relaxed max-w-3xl">
+                <p className="text-indigo-100 text-xl md:text-2xl font-black leading-relaxed max-w-3xl mx-auto">
                   {isRTL
                     ? 'الميزة الأهم هنا ليست الحصول على التقييم فقط… بل نظام مراسلة ذكي بعد كل خدمة أو طلب: يرسل رسالة شكر لطيفة للعميل في التوقيت المناسب ويطلب تقييم 5 نجوم على Google — ويزيد ثقة العملاء الجدد بك ويزيد كسب الولاء .'
                     : 'The key advantage isn’t just getting reviews… it’s a smart post-service messaging system: it sends a friendly thank-you at the right time and requests a 5-star Google review—boosting new-customer trust and increasing loyalty.'}
                 </p>
 
-                <p className="text-slate-300 text-lg md:text-xl font-semibold leading-relaxed max-w-3xl">
+                <p className="text-slate-300 text-lg md:text-xl font-semibold leading-relaxed max-w-3xl mx-auto">
                   {isRTL
                     ? 'وفي نفس الوقت، أي ملاحظة سلبية تُلتقط بشكل خاص وتُرسل للإدارة لمعالجتها قبل أن تتحول إلى تقييم سيء علني. النتيجة: ولاء أعلى، تقييمات أقوى، عملاء أكثر، وأرباح متكررة — بدون أن تترك السمعة للصدفة.'
                     : 'At the same time, any negative feedback is captured privately and sent to management to resolve before it becomes a public bad review. The result: higher loyalty, stronger ratings, more customers, and recurring profits—without leaving reputation to chance.'}
@@ -517,7 +533,7 @@ const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
               </div>
 
               <div className="bg-green-500 text-black px-8 py-3 rounded-full font-black text-xl shadow-xl shadow-green-500/20">
-                +{percentageIncrease}%
+                200%+
               </div>
             </div>
 
